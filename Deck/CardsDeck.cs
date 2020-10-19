@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 
 namespace Deck
 {
@@ -11,15 +12,16 @@ namespace Deck
 		#region Fields
 
 		private readonly List<TCard> cards;
-		private readonly IEnumerable<TCard> cardsEnumerable;
+
+		private static readonly Random rand = new Random();
 		#endregion
 
 		#region Properties
 
 		public TCard this[int index]
 		{
-			get => this.cards[^index];
-			set => this.cards[^index] = value;
+			get => this.cards[ReversedIndex(index)];
+			set => this.cards[ReversedIndex(index)] = value;
 		}
 
 		public TCard? Top => this.Count == 0
@@ -36,7 +38,6 @@ namespace Deck
 		public CardsDeck()
 		{
 			this.cards = new List<TCard>();
-			this.cardsEnumerable = this.cards.AsEnumerable().Reverse();
 		}
 
 		public CardsDeck(IEnumerable<TCard> cards)
@@ -44,7 +45,6 @@ namespace Deck
 			this.cards = cards is CardsDeck<TCard> deck
 				? new List<TCard>(deck.cards)
 				: new List<TCard>(cards.Reverse());
-			this.cardsEnumerable = this.cards.AsEnumerable().Reverse();
 		}
 		#endregion
 
@@ -59,11 +59,38 @@ namespace Deck
 		public bool Contains(TCard card) =>
 			this.cards.Contains(card);
 
-		public void CopyTo(TCard[] array, int arrayIndex) =>
-			this.cards.CopyTo(array, arrayIndex);
+		public void CopyTo(TCard[] array, int arrayIndex)
+		{
+			if (array is null)
+			{
+				throw new ArgumentNullException(nameof(array));
+			}
+			if (arrayIndex < 0)
+			{
+				throw new ArgumentOutOfRangeException(nameof(arrayIndex));
+			}
+			if (array.Length - arrayIndex < this.Count)
+			{
+				throw new ArgumentException(
+					"Destination array was not long enough. " +
+						"Check the destination index, length, and the array's lower bounds.",
+					nameof(array)
+				);
+			}
 
-		public IEnumerator<TCard> GetEnumerator() =>
-			this.cardsEnumerable.GetEnumerator();
+			for (int i = 0; i < this.Count; i++)
+			{
+				array[i + arrayIndex] = this[i];
+			}
+		}
+
+		public IEnumerator<TCard> GetEnumerator()
+		{
+			for (int i = 0; i < this.Count; i++)
+			{
+				yield return this[i];
+			}
+		}
 
 		public int IndexOf(TCard card) =>
 			ReversedIndex(this.cards.LastIndexOf(card));
@@ -107,7 +134,6 @@ namespace Deck
 
 		public void Shuffle()
 		{
-			var rand = new Random();
 			var tempList = new LinkedList<TCard>(this.cards);
 			this.cards.Clear();
 			var node = tempList.First;
@@ -131,7 +157,7 @@ namespace Deck
 			GetEnumerator();
 
 		private int ReversedIndex(int index) =>
-			this.Count - index - 1;
+			Math.Max(this.Count - index - 1, 0);
 		#endregion
 	}
 }

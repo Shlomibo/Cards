@@ -12,10 +12,15 @@ namespace Checks
 			var d = new CardsDeck<Card>(Card.AllCards());
 
 			d.Shuffle();
+			Console.WriteLine(d.Count);
 
-			foreach (var c in d)
+			var d1 = d.AsEnumerable().ToArray();
+			d.Shuffle();
+			var d2 = d.ToArray();
+
+			for (int i = 0; i <d.Count; i++)
 			{
-				Console.WriteLine(c);
+				Console.WriteLine($"{d1[i]} <-> {d2[i]} <-> {d[i]}");
 			}
 		}
 	}
