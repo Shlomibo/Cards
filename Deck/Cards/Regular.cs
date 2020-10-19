@@ -4,14 +4,18 @@ namespace Deck.Cards.Regular
 {
 	public sealed class Card 
 	{
-		public const int CARDS_COUNT =NO_JOKERS_CARDS_COUNT + 2;
+		#region Consts
+
+		public const int CARDS_COUNT = NO_JOKERS_CARDS_COUNT + 2;
 		public const int NO_JOKERS_CARDS_COUNT = 52;
 
-		private const int SHAPES_COUNT = 4;
+		private const int SHAPES_COUNT = 4; 
+		#endregion
+
 		#region Fields
 
 		private readonly Shape shape;
-		private static readonly Card?[] allCards = new Card[54];
+		private static readonly Card?[] allCards = new Card[CARDS_COUNT];
 		#endregion
 
 		#region Properties
@@ -81,7 +85,7 @@ namespace Deck.Cards.Regular
 		{
 			int index = CardIndex(value, shape);
 
-			if (allCards[index] == null)
+			if (allCards[index] is null)
 			{
 				allCards[index] = new Card(value, shape);
 			}
