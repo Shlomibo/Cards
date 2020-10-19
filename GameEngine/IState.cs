@@ -1,13 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using TurnsManager;
+using TurnsManagement;
 
 namespace GameEngine
 {
 	public interface IState<TGameState, TSharedState, TPlayerState>
 	{
-		event EventHandler Updated;
+		event EventHandler? Updated;
 
 		ITurnsManager Turns { get; }
 		TGameState GameState { get; }

@@ -1,15 +1,20 @@
 ﻿using System;
 using System.Diagnostics;
 
-namespace TurnsManager
+namespace TurnsManagement
 {
 	public sealed class TurnsManager : ITurnsManager
 	{
+		#region Properties
+
 		public int PlayersCount { get; }
 
 		public int Current { get; private set; }
 
 		public TurnsDirection Direction { get; set; }
+		#endregion
+
+		#region Ctors
 
 		public TurnsManager(int playersCount, TurnsDirection? direction = null)
 		{
@@ -25,6 +30,9 @@ namespace TurnsManager
 				this.Direction = direction.Value;
 			}
 		}
+		#endregion
+
+		#region Methods
 
 		public int Jump(int skippedTurns, TurnsDirection? direction = null)
 		{
@@ -72,6 +80,7 @@ namespace TurnsManager
 				TurnsDirection.Up => TurnsDirection.Down,
 				TurnsDirection.Down => TurnsDirection.Up,
 				_ => throw new InvalidOperationException("Invalid direction"),
-			};
+			}; 
+		#endregion
 	}
 }

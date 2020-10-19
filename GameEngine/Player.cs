@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace GameEngine
 {
@@ -15,7 +13,7 @@ namespace GameEngine
 
 			#region Events
 
-			public event EventHandler Updated
+			public event EventHandler? Updated
 			{
 				add => this.engine.state.Updated += value;
 				remove => this.engine.state.Updated -= value;

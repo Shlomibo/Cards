@@ -6,6 +6,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Deck\Deck.csproj" />
+    <ProjectReference Include="..\GameEngine\GameEngine.csproj" />
     <ProjectReference Include="..\TurnsManagement\TurnsManagement.csproj" />
   </ItemGroup>
 
