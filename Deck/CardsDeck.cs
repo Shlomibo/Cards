@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 
 namespace Deck
 {
-	public class CardsDeck<TCard> : IDeck<TCard>
+	public sealed class CardsDeck<TCard> : IDeck<TCard>
 		where TCard : class
 	{
 		#region Fields

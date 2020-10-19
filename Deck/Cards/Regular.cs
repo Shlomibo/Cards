@@ -2,7 +2,7 @@
 
 namespace Deck.Cards.Regular
 {
-	public class Card 
+	public sealed class Card 
 	{
 		public const int CARDS_COUNT =NO_JOKERS_CARDS_COUNT + 2;
 		public const int NO_JOKERS_CARDS_COUNT = 52;
