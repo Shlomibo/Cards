@@ -36,7 +36,7 @@ namespace Deck.Cards.FrenchSuited
 
 		#region Methods
 
-		public static CardsDeck FullDeck() =>
+		public static CardsDeck FullDeck() => new CardsDeck(Card.AllCards());
 
 		#region IDeck<Card> Methods
 		public void Add(Card item)

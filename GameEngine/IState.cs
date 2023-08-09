@@ -1,5 +1,4 @@
 ﻿using System;
-using TurnsManagement;
 
 namespace GameEngine
 {
@@ -14,8 +13,8 @@ namespace GameEngine
 
         TPlayerState GetPlayerState(int player);
 
-        bool IsValidMove(int player, TGameMove move);
+        bool IsValidMove(TGameMove move, int? player = null);
 
-		void PlayMove(int player, TGameMove move);
+		void PlayMove(TGameMove move, int? player = null);
 	}
 }

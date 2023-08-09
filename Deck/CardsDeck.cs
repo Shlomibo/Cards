@@ -134,9 +134,14 @@ namespace Deck
 
 		public void Shuffle()
 		{
+			if (this.cards.Count == 0)
+			{
+				return;
+			}
+
 			var tempList = new LinkedList<TCard>(this.cards);
 			this.cards.Clear();
-			var node = tempList.First;
+			var node = tempList.First!;
 
 			while (tempList.Count > 0)
 			{
@@ -144,12 +149,13 @@ namespace Deck
 
 				for (int i = 0; i < next; i++)
 				{
-					node = node.Next ?? tempList.First;
+					node = node.Next ?? tempList.First!;
 				}
 
-				this.Push(node.Value);
-				node = node.Next ?? tempList.First;
-				tempList.Remove(node.Previous ?? tempList.Last);
+				this.cards.Add(node.Value);
+				node = node.Next ?? tempList.First!;
+
+				tempList.Remove(node.Previous ?? tempList.Last!);
 			}
 		}
 

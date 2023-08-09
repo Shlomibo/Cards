@@ -52,12 +52,12 @@ namespace GameEngine
 
 			public void PlayMove(TGameMove move)
 			{
-				this.engine.PlayMove(this.PlayerId, move);
+				this.engine.PlayMove(move, this.PlayerId);
 			}
 
 			public bool IsValidMove(TGameMove move)
 			{
-				return this.engine.IsValidMove(this.PlayerId, move);
+				return this.engine.IsValidMove(move, this.PlayerId);
 			}
 
 			#endregion

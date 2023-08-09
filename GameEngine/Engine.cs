@@ -33,14 +33,14 @@ namespace GameEngine
 		#endregion
 
 		#region Methods
-		public bool IsValidMove(int player, TGameMove move)
+		public bool IsValidMove(TGameMove move, int? player = null)
 		{
-			return this.state.IsValidMove(player, move);
+			return this.state.IsValidMove(move, player);
 		}
 
-		public void PlayMove(int playerId, TGameMove move)
+		public void PlayMove(TGameMove move, int? playerId = null)
 		{
-			this.state.PlayMove(playerId, move);
+			this.state.PlayMove(move, playerId);
 		}
 		#endregion
 	}

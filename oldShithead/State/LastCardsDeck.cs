@@ -1,4 +1,4 @@
-﻿using Deck.Cards.FrenchSuited;
+﻿using Deck.Cards.FrenchSuite;
 using System;
 using System.Collections;
 using System.Collections.Generic;
