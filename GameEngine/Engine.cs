@@ -19,23 +19,14 @@ namespace GameEngine
 
 		#region Ctors
 
-		public Engine(
-			IState<TGameState, TSharedState, TPlayerState, TGameMove> state, 
-			Func<int, TGameMove> actionsFactory
-		)
+		public Engine(IState<TGameState, TSharedState, TPlayerState, TGameMove> state)
 		{
-			if (actionsFactory is null)
-			{
-				throw new ArgumentNullException(nameof(actionsFactory));
-			}
-
 			this.state = state ?? throw new ArgumentNullException(nameof(state));
 			this.players = Enumerable.Range(0, this.state.PlayersCount)
 				.Select((player, id) => new Player(
-					id, 
-					this, 
-					state.GetPlayerState(player), 
-					actionsFactory(player)
+					id,
+					this,
+					state.GetPlayerState(player)
 				))
 				.ToArray();
 		}

@@ -27,8 +27,6 @@ namespace GameEngine
 			public TSharedState SharedState => this.engine.state.SharedState;
 
 			public TPlayerState State { get; }
-
-			public TGameMove Actions { get; }
 			#endregion
 
 			#region Ctors
@@ -36,14 +34,9 @@ namespace GameEngine
 			public Player(
 				int playerId,
 				Engine<TGameState, TSharedState, TPlayerState, TGameMove> engine,
-				TPlayerState state,
-				TGameMove actions
+				TPlayerState state
 			)
 			{
-				if (actions == null)
-				{
-					throw new ArgumentNullException(nameof(actions));
-				}
 				if (state == null)
 				{
 					throw new ArgumentNullException(nameof(state));
@@ -52,7 +45,6 @@ namespace GameEngine
 				this.engine = engine ?? throw new ArgumentNullException(nameof(engine));
 				this.PlayerId = playerId;
 				this.State = state;
-				this.Actions = actions;
 			}
 			#endregion
 
