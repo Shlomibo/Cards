@@ -3,14 +3,19 @@ using TurnsManagement;
 
 namespace GameEngine
 {
-	public interface IState<TGameState, TSharedState, TPlayerState>
-	{
-		event EventHandler? Updated;
-
-		ITurnsManager Turns { get; }
+    public interface IState<TGameState, TSharedState, TPlayerState, TGameMove>
+    {
+        event EventHandler? Updated;
+		int PlayersCount { get; }
+		//ITurnsManager Turns { get; }
 		TGameState GameState { get; }
-		TSharedState SharedState { get; }
+        TSharedState SharedState { get; }
+        bool IsGameOver();
 
-		TPlayerState GetPlayerState(int player);
+        TPlayerState GetPlayerState(int player);
+
+        bool IsValidMove(int player, TGameMove move);
+
+		void PlayMove(int player, TGameMove move);
 	}
 }

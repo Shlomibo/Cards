@@ -4,22 +4,25 @@ using System.Linq;
 
 namespace GameEngine
 {
-	public sealed partial class Engine<TGameState, TSharedState, TPlayerState, TActions>
+	public sealed partial class Engine<TGameState, TSharedState, TPlayerState, TGameMove>
 	{
 		#region Fields
 
 		private readonly Player[] players;
-		private readonly IState<TGameState, TSharedState, TPlayerState> state;
+		private readonly IState<TGameState, TSharedState, TPlayerState, TGameMove> state;
 		#endregion
 
 		#region Properties
 
-		public IReadOnlyList<IPlayer<TActions, TSharedState, TPlayerState>> Players => this.players;
+		public IReadOnlyList<IPlayer<TSharedState, TPlayerState, TGameMove>> Players => this.players;
 		#endregion
 
 		#region Ctors
 
-		public Engine(IState<TGameState, TSharedState, TPlayerState> state, Func<int, TActions> actionsFactory)
+		public Engine(
+			IState<TGameState, TSharedState, TPlayerState, TGameMove> state, 
+			Func<int, TGameMove> actionsFactory
+		)
 		{
 			if (actionsFactory is null)
 			{
@@ -27,10 +30,27 @@ namespace GameEngine
 			}
 
 			this.state = state ?? throw new ArgumentNullException(nameof(state));
-			this.players = Enumerable.Range(0, this.state.Turns.PlayersCount)
-				.Select(player => new Player(this, state.GetPlayerState(player), actionsFactory(player)))
+			this.players = Enumerable.Range(0, this.state.PlayersCount)
+				.Select((player, id) => new Player(
+					id, 
+					this, 
+					state.GetPlayerState(player), 
+					actionsFactory(player)
+				))
 				.ToArray();
-		} 
+		}
+		#endregion
+
+		#region Methods
+		public bool IsValidMove(int player, TGameMove move)
+		{
+			return this.state.IsValidMove(player, move);
+		}
+
+		public void PlayMove(int playerId, TGameMove move)
+		{
+			this.state.PlayMove(playerId, move);
+		}
 		#endregion
 	}
 }

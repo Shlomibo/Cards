@@ -2,13 +2,13 @@
 
 namespace GameEngine
 {
-	partial class Engine<TGameState, TSharedState, TPlayerState, TActions>
+	partial class Engine<TGameState, TSharedState, TPlayerState, TGameMove>
 	{
-		private class Player : IPlayer<TActions, TSharedState, TPlayerState>
+		private class Player : IPlayer<TSharedState, TPlayerState, TGameMove>
 		{
 			#region Fields
 
-			private readonly Engine<TGameState, TSharedState, TPlayerState, TActions> engine;
+			private readonly Engine<TGameState, TSharedState, TPlayerState, TGameMove> engine;
 			#endregion
 
 			#region Events
@@ -22,18 +22,23 @@ namespace GameEngine
 
 			#region Properties
 
+			public int PlayerId { get; }
+			
 			public TSharedState SharedState => this.engine.state.SharedState;
 
 			public TPlayerState State { get; }
 
-			public TActions Actions { get; }
+			public TGameMove Actions { get; }
 			#endregion
 
 			#region Ctors
 
-			public Player(Engine<TGameState, TSharedState, TPlayerState, TActions> engine,
-				 TPlayerState state,
-				 TActions actions)
+			public Player(
+				int playerId,
+				Engine<TGameState, TSharedState, TPlayerState, TGameMove> engine,
+				TPlayerState state,
+				TGameMove actions
+			)
 			{
 				if (actions == null)
 				{
@@ -45,9 +50,24 @@ namespace GameEngine
 				}
 
 				this.engine = engine ?? throw new ArgumentNullException(nameof(engine));
+				this.PlayerId = playerId;
 				this.State = state;
 				this.Actions = actions;
-			} 
+			}
+			#endregion
+
+			#region Methods
+
+			public void PlayMove(TGameMove move)
+			{
+				this.engine.PlayMove(this.PlayerId, move);
+			}
+
+			public bool IsValidMove(TGameMove move)
+			{
+				return this.engine.IsValidMove(this.PlayerId, move);
+			}
+
 			#endregion
 		}
 	}
