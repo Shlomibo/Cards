@@ -7,13 +7,13 @@ using System.Runtime.InteropServices;
 namespace Deck
 {
 	public sealed class CardsDeck<TCard> : IDeck<TCard>
-		where TCard : class
+		where TCard : struct
 	{
 		#region Fields
 
 		private readonly List<TCard> cards;
 
-		private static readonly Random rand = new Random();
+		private static readonly Random rand = new();
 		#endregion
 
 		#region Properties
@@ -108,7 +108,7 @@ namespace Deck
 			var card = this.Top!;
 			this.cards.RemoveAt(this.Count - 1);
 
-			return card;
+			return card.Value;
 		}
 
 		public void Push(TCard card)

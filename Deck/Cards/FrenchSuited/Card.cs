@@ -4,35 +4,32 @@ using System.Text;
 
 namespace Deck.Cards.FrenchSuited
 {
-	public sealed class Card
+	public struct Card: IEquatable<Card>
 	{
 		#region Consts
 
 		public const int CARDS_COUNT = NO_JOKERS_CARDS_COUNT + 2;
 		public const int NO_JOKERS_CARDS_COUNT = 52;
-
-		private const int SUITS_COUNT = 4;
 		#endregion
 
 		#region Fields
 
 		private readonly Suit suit;
-		private static readonly Card?[] allCards = new Card[CARDS_COUNT];
 		#endregion
 
 		#region Properties
 
 		public Value Value { get; }
-		public Suit? Suit => this.Value != Value.Joker
+		public readonly Suit? Suit => this.Value != Value.Joker
 			? this.suit
-			: (Suit?)null;
+			: null;
 
-		public Color Color => ColorBySuit(this.suit);
+		public readonly Color Color => ColorBySuit(this.suit);
 		#endregion
 
 		#region Ctors
 
-		private Card(Value value, Suit suit)
+		public Card(Value value, Suit suit)
 		{
 			this.Value = value;
 			this.suit = suit;
@@ -41,10 +38,10 @@ namespace Deck.Cards.FrenchSuited
 
 		#region Methods
 
-		public Card With(Value? value = null, Suit? suit = null) =>
+		public readonly Card With(Value? value = null, Suit? suit = null) =>
 			GetCard(value ?? this.Value, suit ?? this.suit);
 
-		public override string ToString()
+		public override readonly string ToString()
 		{
 			if (this is { Value: Value.Joker })
 			{
@@ -67,47 +64,29 @@ namespace Deck.Cards.FrenchSuited
 		public static Suit DefaultColorSuit(Color color) =>
 			(Suit)(int)color;
 
-		private static int CardIndex(Value value, Suit suit)
-		{
-			if (value == Value.Joker)
-			{
-				return NO_JOKERS_CARDS_COUNT + (int)suit / 2;
-			}
-			else
-			{
-				return ((int)value - 1) * SUITS_COUNT + (int)suit;
-			}
-		}
-
 		public static Card GetCard(Value value, Suit suit)
 		{
-			int index = CardIndex(value, suit);
-
-			if (allCards[index] is null)
-			{
-				allCards[index] = new Card(value, suit);
-			}
-
-			return allCards[index]!;
+			return new Card(value, suit);
 		}
 
 		public static Card GetJoker(Color color) =>
 			GetCard(Value.Joker, DefaultColorSuit(color));
 
-		//public static IEnumerable<Card> FullSuit(Suit)
-
-		public static IEnumerable<Card> AllCards()
+		public static IEnumerable<Card> AllCards(bool excludeJokers = false)
 		{
 			for (Suit suit = default; suit <= FrenchSuited.Suit.Spades; suit++)
 			{
-                foreach (var card in FullSuit(suit))
-                {
+				foreach (var card in FullSuit(suit))
+				{
 					yield return card;
-                }
-            }
+				}
+			}
 
-			yield return GetJoker(Color.Black);
-			yield return GetJoker(Color.Red);
+			if (!excludeJokers)
+			{
+				yield return GetJoker(Color.Black);
+				yield return GetJoker(Color.Red);
+			}
 
 		}
 
@@ -126,6 +105,43 @@ namespace Deck.Cards.FrenchSuited
 			yield return GetCard(value, FrenchSuited.Suit.Diamonds);
 			yield return GetCard(value, FrenchSuited.Suit.Hearts);
 		}
+
+		// override object.Equals
+		public override readonly bool Equals(object? obj) => 
+			obj is Card other && Equals(other);
+
+		// override object.GetHashCode
+		public override readonly int GetHashCode()
+		{
+			return this.Value != Value.Joker
+				? (this.Value, this.Suit).GetHashCode()
+				: (this.Value, this.Color).GetHashCode();
+		}
+
+		public readonly bool Equals(Card other)
+		{
+			if (this.Value != other.Value)
+			{
+				return false;
+			}
+
+			return this.Value != Value.Joker
+				? this.Suit == other.Suit
+				: this.Color == other.Color;
+		}
+		#endregion
+
+		#region Operators
+
+		public static bool operator ==(Card left, Card right)
+		{
+			return left.Equals(right);
+		}
+
+		public static bool operator !=(Card left, Card right)
+		{
+			return !(left == right);
+		} 
 		#endregion
 	}
 

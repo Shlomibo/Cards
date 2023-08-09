@@ -3,7 +3,7 @@
 namespace Deck
 {
 	public interface IDeck<TCard> : IList<TCard>, IReadOnlyList<TCard>
-		where TCard : class
+		where TCard: struct
 	{
 		TCard? Top { get; }
 		new int Count { get; }
