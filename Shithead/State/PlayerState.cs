@@ -49,5 +49,19 @@ namespace Shithead.State
 			this.RevealedCards.Count == UNDERCARDS_COUNT;
 
 		public bool CanReselectRevealedCards() => this.RevealedCardsAccepted;
+
+		public bool CanPlaceJoker() => this.Hand.Any(card => card.Value == Value.Joker);
+
+		public bool CanPlaceCard(IEnumerable<int> cardIndices)
+		{
+			if (!cardIndices.Any() || cardIndices.Any(i => i < 0 || i >= this.Hand.Count))
+			{
+				return false;
+			}
+
+			var value = this.Hand[cardIndices.First()].Value;
+
+			return cardIndices.Skip(1).All(i => this.Hand[i].Value == value);
+		}
 	}
 }

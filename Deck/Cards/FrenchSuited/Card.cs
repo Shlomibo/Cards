@@ -169,7 +169,7 @@ namespace Deck.Cards.FrenchSuited
 		Four,
 		Five,
 		Six,
-		Sevem,
+		Seven,
 		Eight,
 		Nine,
 		Ten,

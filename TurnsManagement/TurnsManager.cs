@@ -5,11 +5,20 @@ namespace TurnsManagement
 {
 	public sealed class TurnsManager : ITurnsManager
 	{
+		#region Fields
+
+		private int current;
+		#endregion
+
 		#region Properties
 
 		public int PlayersCount { get; }
 
-		public int Current { get; private set; }
+		public int Current 
+		{ 
+			get => current; 
+			set => current = Math.Abs(value % this.PlayersCount); 
+		}
 
 		public TurnsDirection Direction { get; set; }
 		#endregion

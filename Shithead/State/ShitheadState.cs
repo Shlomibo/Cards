@@ -11,9 +11,12 @@ namespace Shithead.State
 		IState<ShitheadState, ShitheadState.Shared, ShitheadState.Player, IShitheadMove>
 	{
 		private const int MIN_PLAYERS_COUNT = 3;
+		private const int MIN_HAND_CARDS = 3;
 		#region Fields
 
-		private PlayerState[] players;
+		private readonly PlayerState[] players;
+		private readonly TurnsManager turnsManager;
+		private static readonly CardComparer cardComparer = new();
 		#endregion
 
 		#region Events
@@ -46,6 +49,7 @@ namespace Shithead.State
 
 			this.Deck.Shuffle();
 			this.SharedState = new Shared(this);
+			this.turnsManager = new TurnsManager(playersCount);
 			this.players = Enumerable
 				.Range(0, playersCount)
 				.Select(i => new PlayerState(
@@ -121,8 +125,136 @@ namespace Shithead.State
 					_ => null,
 				},
 
+				GameState.GameOn => move switch
+				{
+					PlaceJoker { PlayerId: var targetPlayerId } when player.CanPlaceJoker() => () =>
+					{
+						player.Hand.RemoveAt(
+							player.Hand
+								.Select((card, index) => (card, index))
+								.Where(item => item.card.Value == Value.Joker)
+								.Select(item => item.index)
+								.First()
+						);
+						var targetPlayer = this.players[targetPlayerId];
+						targetPlayer.Hand.Push(this.DiscardPile);
+						this.DiscardPile.Clear();
+						this.turnsManager.Current = targetPlayerId + 1;
+					}
+					,
+
+					PlaceCard { CardIndices: var indices } when this.turnsManager.Current == playerId &&
+						player.CanPlaceCard(indices) &&
+						CanPlaceCard(player.Hand[indices.First()]) => () =>
+						{
+							var value = PlayHand(player, indices);
+
+							if (ShouldDiscardPile(value))
+							{
+								this.DiscardPile.Clear();
+							}
+							else
+							{
+								this.turnsManager.MoveNext();
+							}
+						}
+					,
+					// When Player tries to add cards of the same value they got from deck, after finishing
+					// their turn
+					PlaceCard { CardIndices: var indices } when this.turnsManager.Current == playerId + 1 &&
+						player.CanPlaceCard(indices) &&
+						player.Hand[indices.First()].Value == TopCard()?.Value => () =>
+						{
+							var value = PlayHand(player, indices);
+
+							if (ShouldDiscardPile(value))
+							{
+								this.DiscardPile.Clear();
+								this.turnsManager.Current = playerId.Value;
+							}
+						}
+					,
+
+					_ => null
+				},
+
+				GameState.GameOver => null,
+
 				_ => throw new Exception("Invalid game state"),
+			}; ;
+		}
+
+		private bool ShouldDiscardPile(Value cardValue)
+		{
+			var topFour = this.DiscardPile.Take(Enum.GetNames(typeof(Suit)).Length);
+			return cardValue == Value.Ten || topFour.All(discard => discard.Value == cardValue);
+		}
+
+		private Value PlayHand(PlayerState player, int[] indices)
+		{
+			// TODO: change `player.Hand[i]` to a method on `PlayerState` that get the correct card
+			var cards = indices.Select(i => player.Hand[i]).ToArray();
+
+			foreach (var i in indices.OrderByDescending(i => i))
+			{
+				player.Hand.RemoveAt(i);
+			}
+
+			this.DiscardPile.Push(cards);
+
+			var value = cards.First().Value;
+			ReplenishPlayerHand(player);
+
+			return value;
+		}
+
+		private void ReplenishPlayerHand(PlayerState player)
+		{
+			while (player.Hand.Count < MIN_HAND_CARDS && this.Deck.Count > 0)
+			{
+				var card = this.Deck.Pop();
+				player.Hand.Push(card);
+			}
+		}
+
+		private bool CanPlaceCard(Card card)
+		{
+			var cardValue = card.Value;
+
+			if (!Enum.IsDefined(cardValue))
+			{
+				return false;
+			}
+
+			var top = TopCard();
+
+
+			if (top is null)
+			{
+				return true;
+			}
+
+			return cardValue switch
+			{
+				Value.Two => true,
+				Value.Three => true,
+				Value.Ten => true,
+				var value when top.Value.Value == Value.Seven => cardComparer.Compare(value, Value.Seven) <= 0,
+				var value => cardComparer.Compare(value, top.Value.Value) >= 0,
 			};
+		}
+
+		private Card? TopCard()
+		{
+			foreach (var card in this.DiscardPile)
+			{
+				if (card.Value != Value.Three)
+				{
+					return card;
+				}
+			}
+
+			return null;
 		}
 		#endregion
 	}

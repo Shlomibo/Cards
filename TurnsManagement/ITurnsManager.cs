@@ -3,7 +3,7 @@
 	public interface ITurnsManager
 	{
 		int PlayersCount { get; }
-		int Current { get; }
+		int Current { get; set; }
 		TurnsDirection Direction { get; set; }
 		
 		int MoveNext(int? next = null);

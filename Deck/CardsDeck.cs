@@ -116,6 +116,22 @@ namespace Deck
 			this.cards.Add(card);
 		}
 
+		public void Push(params TCard[]? cards)
+		{
+			if (cards != null)
+			{
+				Push(cards.AsEnumerable());
+			}
+		}
+
+		public void Push(IEnumerable<TCard> cards)
+		{
+			foreach (var card in cards)
+			{
+				Push(card);
+			}
+		}
+
 		public bool Remove(TCard card)
 		{
 			int lastIndex = this.cards.LastIndexOf(card);

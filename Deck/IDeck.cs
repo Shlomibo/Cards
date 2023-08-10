@@ -9,6 +9,8 @@ namespace Deck
 		new int Count { get; }
 
 		void Push(TCard card);
+		void Push(params TCard[]? cards);
+		void Push(IEnumerable<TCard> cards);
 		TCard Pop();
 		void Shuffle();
 	}

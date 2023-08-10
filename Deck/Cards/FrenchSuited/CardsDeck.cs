@@ -85,6 +85,22 @@ namespace Deck.Cards.FrenchSuited
 			this.deck.Push(card);
 		}
 
+		public void Push(params Card[]? cards)
+		{
+			if (cards != null)
+			{
+				Push(cards.AsEnumerable());
+			}
+		}
+
+		public void Push(IEnumerable<Card> cards)
+		{
+			foreach (var card in cards)
+			{
+				Push(card);
+			}
+		}
+
 		public bool Remove(Card item)
 		{
 			return this.deck.Remove(item);
