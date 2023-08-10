@@ -1,20 +1,16 @@
-﻿using System;
-
-namespace GameEngine
+﻿namespace GameEngine
 {
-    public interface IState<TGameState, TSharedState, TPlayerState, TGameMove>
-    {
-        event EventHandler? Updated;
+	public interface IState<TGameState, TSharedState, TPlayerState, TGameMove>
+	{
 		int PlayersCount { get; }
-		//ITurnsManager Turns { get; }
 		TGameState GameState { get; }
-        TSharedState SharedState { get; }
-        bool IsGameOver();
+		TSharedState SharedState { get; }
+		bool IsGameOver();
 
-        TPlayerState GetPlayerState(int player);
+		TPlayerState GetPlayerState(int player);
 
-        bool IsValidMove(TGameMove move, int? player = null);
+		bool IsValidMove(TGameMove move, int? player = null);
 
-		void PlayMove(TGameMove move, int? player = null);
+		bool PlayMove(TGameMove move, int? player = null);
 	}
 }

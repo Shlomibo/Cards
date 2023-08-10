@@ -1,32 +1,23 @@
-﻿using System;
-
-namespace GameEngine
+﻿namespace GameEngine
 {
 	partial class Engine<TGameState, TSharedState, TPlayerState, TGameMove>
 	{
 		private class Player : IPlayer<TSharedState, TPlayerState, TGameMove>
 		{
-			#region Fields
-
-			private readonly Engine<TGameState, TSharedState, TPlayerState, TGameMove> engine;
-			#endregion
-
 			#region Events
 
-			public event EventHandler? Updated
-			{
-				add => this.engine.state.Updated += value;
-				remove => this.engine.state.Updated -= value;
-			}
+			public event EventHandler? Updated;
 			#endregion
 
 			#region Properties
 
 			public int PlayerId { get; }
-			
-			public TSharedState SharedState => this.engine.state.SharedState;
+
+			public TSharedState SharedState => this.Engine.state.SharedState;
 
 			public TPlayerState State { get; }
+
+			public Engine<TGameState, TSharedState, TPlayerState, TGameMove> Engine { get; }
 			#endregion
 
 			#region Ctors
@@ -42,9 +33,11 @@ namespace GameEngine
 					throw new ArgumentNullException(nameof(state));
 				}
 
-				this.engine = engine ?? throw new ArgumentNullException(nameof(engine));
+				this.Engine = engine ?? throw new ArgumentNullException(nameof(engine));
 				this.PlayerId = playerId;
 				this.State = state;
+
+				this.Engine.Updated += (_, args) => this.Updated?.Invoke(this, args);
 			}
 			#endregion
 
@@ -52,12 +45,12 @@ namespace GameEngine
 
 			public void PlayMove(TGameMove move)
 			{
-				this.engine.PlayMove(move, this.PlayerId);
+				this.Engine.PlayMove(move, this.PlayerId);
 			}
 
 			public bool IsValidMove(TGameMove move)
 			{
-				return this.engine.IsValidMove(move, this.PlayerId);
+				return this.Engine.IsValidMove(move, this.PlayerId);
 			}
 
 			#endregion

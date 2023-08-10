@@ -6,7 +6,7 @@ using TurnsManagement;
 namespace Shithead.State
 {
 	public sealed partial class ShitheadState :
-		IState<ShitheadState, ShitheadState.SharedState, ShitheadState.Player, IShitheadMove>
+		IState<ShitheadState, ShitheadState.SharedShitheadState, ShitheadState.ShitheadPlayerState, IShitheadMove>
 	{
 		private const int MIN_PLAYERS_COUNT = 3;
 		private const int MIN_HAND_CARDS = 3;
@@ -17,19 +17,14 @@ namespace Shithead.State
 		private static readonly CardComparer cardComparer = new();
 		#endregion
 
-		#region Events
-
-		public event EventHandler? Updated;
-		#endregion
-
 		#region Properties
 
 		public int PlayersCount { get; private set; }
 
-		ShitheadState IState<ShitheadState, SharedState, Player, IShitheadMove>.GameState => this;
+		ShitheadState IState<ShitheadState, SharedShitheadState, ShitheadPlayerState, IShitheadMove>.GameState => this;
 		public GameState GameState { get; private set; } = GameState.Init;
 
-		public SharedState SharedState { get; }
+		public SharedShitheadState SharedState { get; }
 		public CardsDeck Deck { get; } = CardsDeck.FullDeck();
 		public CardsDeck DiscardPile { get; } = new();
 		#endregion
@@ -46,7 +41,7 @@ namespace Shithead.State
 			this.PlayersCount = playersCount;
 
 			this.Deck.Shuffle();
-			this.SharedState = new SharedState(this);
+			this.SharedState = new SharedShitheadState(this);
 			this.turnsManager = new TurnsManager(playersCount);
 			this.players = Enumerable
 				.Range(0, playersCount)
@@ -62,7 +57,7 @@ namespace Shithead.State
 
 		#region Methods
 
-		public Player GetPlayerState(int playerId) =>
+		public ShitheadPlayerState GetPlayerState(int playerId) =>
 			new(playerId, this);
 
 		public bool IsGameOver() =>
@@ -71,10 +66,12 @@ namespace Shithead.State
 		public bool IsValidMove(IShitheadMove move, int? player = null) =>
 			GetMove(move, player) is not null;
 
-		public void PlayMove(IShitheadMove move, int? player = null)
+		public bool PlayMove(IShitheadMove move, int? player = null)
 		{
 			var moveAction = GetMove(move, player);
 			moveAction?.Invoke();
+
+			return moveAction != null;
 		}
 
 		private Action? GetMove(IShitheadMove move, int? playerId = null)

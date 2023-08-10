@@ -3,7 +3,7 @@ using Deck.Cards.FrenchSuited;
 
 namespace Shithead.State
 {
-	internal sealed class PlayerState
+	public sealed class PlayerState
 	{
 		public const int UNDERCARDS_COUNT = 3;
 

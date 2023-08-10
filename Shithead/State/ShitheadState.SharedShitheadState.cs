@@ -7,7 +7,7 @@ namespace Shithead.State
 {
 	public sealed partial class ShitheadState
 	{
-		public sealed class SharedState
+		public sealed class SharedShitheadState
 		{
 			private readonly ShitheadState state;
 
@@ -17,7 +17,7 @@ namespace Shithead.State
 			public GameState GameState => this.state.GameState;
 			public int CurrentTurnPlayer => this.state.turnsManager.Current;
 
-			public SharedState(ShitheadState state)
+			public SharedShitheadState(ShitheadState state)
 			{
 				this.state = state;
 				this.Players = new PlayersView(this);
@@ -26,7 +26,7 @@ namespace Shithead.State
 
 			private sealed class PlayersView : IReadOnlyList<SharedPlayerState>
 			{
-				private readonly SharedState sharedState;
+				private readonly SharedShitheadState sharedState;
 				private readonly Lazy<SharedPlayerState[]> sharedPlayers;
 
 				private SharedPlayerState[] Players => this.sharedPlayers.Value;
@@ -36,7 +36,7 @@ namespace Shithead.State
 				public int Count => this.sharedState.state.players.Length;
 
 
-				public PlayersView(SharedState sharedState)
+				public PlayersView(SharedShitheadState sharedState)
 				{
 					this.sharedState = sharedState;
 					this.sharedPlayers = new Lazy<SharedPlayerState[]>(() =>

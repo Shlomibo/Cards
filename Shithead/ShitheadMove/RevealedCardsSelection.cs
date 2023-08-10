@@ -1,6 +1,6 @@
 ﻿namespace Shithead.ShitheadMove
 {
-	internal sealed class RevealedCardsSelection : IShitheadMove
+	public sealed class RevealedCardsSelection : IShitheadMove
 	{
 		/// <summary>
 		/// Card index in player deck
@@ -13,7 +13,7 @@
 		public int TargetIndex { get; set; }
 	}
 
-	internal sealed class UnsetRevealedCard : IShitheadMove
+	public sealed class UnsetRevealedCard : IShitheadMove
 	{
 		/// <summary>
 		/// Card index in player revealed deck
@@ -21,11 +21,11 @@
 		public int CardIndex { get; set; }
 	}
 
-	internal sealed class AcceptSelectedRevealedCards : IShitheadMove
+	public sealed class AcceptSelectedRevealedCards : IShitheadMove
 	{
 	}
 
-	internal sealed class ReselectRevealedCards : IShitheadMove
+	public sealed class ReselectRevealedCards : IShitheadMove
 	{
 	}
 }
