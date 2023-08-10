@@ -129,23 +129,20 @@ namespace Shithead.State
 				{
 					PlaceJoker { PlayerId: var targetPlayerId } when player.CanPlaceJoker() => () =>
 					{
-						player.Hand.RemoveAt(
-							player.Hand
-								.Select((card, index) => (card, index))
-								.Where(item => item.card.Value == Value.Joker)
-								.Select(item => item.index)
-								.First()
-						);
+						player.RemoveJoker();
 						var targetPlayer = this.players[targetPlayerId];
+						
 						targetPlayer.Hand.Push(this.DiscardPile);
 						this.DiscardPile.Clear();
-						this.turnsManager.Current = targetPlayerId + 1;
+
+						this.turnsManager.Current = targetPlayerId;
+						this.turnsManager.MoveNext();
 					}
 					,
 
 					PlaceCard { CardIndices: var indices } when this.turnsManager.Current == playerId &&
 						player.CanPlaceCard(indices) &&
-						CanPlaceCard(player.Hand[indices.First()]) => () =>
+						CanPlaceCard(player.GetCard(indices.First())) => () =>
 						{
 							var value = PlayHand(player, indices);
 
@@ -163,7 +160,7 @@ namespace Shithead.State
 					// their turn
 					PlaceCard { CardIndices: var indices } when this.turnsManager.Current == playerId + 1 &&
 						player.CanPlaceCard(indices) &&
-						player.Hand[indices.First()].Value == TopCard()?.Value => () =>
+						player.GetCard(indices.First()).Value == TopCard()?.Value => () =>
 						{
 							var value = PlayHand(player, indices);
 
@@ -193,11 +190,11 @@ namespace Shithead.State
 		private Value PlayHand(PlayerState player, int[] indices)
 		{
 			// TODO: change `player.Hand[i]` to a method on `PlayerState` that get the correct card
-			var cards = indices.Select(i => player.Hand[i]).ToArray();
+			var cards = indices.Select(i => player.GetCard(i)).ToArray();
 
 			foreach (var i in indices.OrderByDescending(i => i))
 			{
-				player.Hand.RemoveAt(i);
+				player.RemoveCard(i);
 			}
 
 			this.DiscardPile.Push(cards);

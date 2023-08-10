@@ -105,7 +105,7 @@ namespace TurnsManagement
 			
 			if (this.currentPlayerIndex >= this.activePlayers.Count)
 			{
-				this.currentPlayerIndex = 0;
+				this.currentPlayerIndex = this.activePlayers.Count - 1;
 			}
 		}
 		#endregion
