@@ -1,17 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Shithead.ShitheadMove
+﻿namespace Shithead.ShitheadMove
 {
-	internal sealed class RevealedCardsSelection: IShitheadMove
+	internal sealed class RevealedCardsSelection : IShitheadMove
 	{
 		/// <summary>
 		/// Card index in player deck
 		/// </summary>
 		public int CardIndex { get; set; }
+
+		/// <summary>
+		/// The revealed card index to send the card to
+		/// </summary>
+		public int TargetIndex { get; set; }
 	}
 
 	internal sealed class UnsetRevealedCard : IShitheadMove

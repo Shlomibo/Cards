@@ -1,8 +1,6 @@
 ﻿using Deck.Cards.FrenchSuited;
 using GameEngine;
 using Shithead.ShitheadMove;
-using System;
-using System.Linq;
 using TurnsManagement;
 
 namespace Shithead.State
@@ -52,10 +50,11 @@ namespace Shithead.State
 			this.turnsManager = new TurnsManager(playersCount);
 			this.players = Enumerable
 				.Range(0, playersCount)
-				.Select(i => new PlayerState(
+				.Select(id => new PlayerState(
 					Enumerable.Range(0, PlayerState.UNDERCARDS_COUNT)
 					.Select(_ => this.Deck.Pop())
-					.ToArray()
+					.ToArray(),
+					id
 				))
 				.ToArray();
 		}
@@ -64,7 +63,7 @@ namespace Shithead.State
 		#region Methods
 
 		public Player GetPlayerState(int playerId) =>
-			new Player(playerId, this);
+			new(playerId, this);
 
 		public bool IsGameOver() =>
 			this.GameState == GameState.GameOver;
@@ -91,18 +90,25 @@ namespace Shithead.State
 			{
 				GameState.Init => move switch
 				{
-					RevealedCardsSelection { CardIndex: var index } when player.CanSetRevealedCard(index) => () =>
+					RevealedCardsSelection
+					{
+						CardIndex: var index,
+						TargetIndex: var target,
+					} when player.CanSetRevealedCard(index) => () =>
 					{
 						var card = player.Hand[index];
 						player.Hand.RemoveAt(index);
 
-						player.RevealedCards.Add(card);
+						player.RevealedCards.Add(target, card);
 					}
 					,
-					UnsetRevealedCard { CardIndex: var index } when player.CanUnsetRevealedCard(index) => () =>
+					UnsetRevealedCard
+					{
+						CardIndex: var index,
+					} when player.CanUnsetRevealedCard(index) => () =>
 					{
 						var card = player.RevealedCards[index];
-						player.RevealedCards.RemoveAt(index);
+						player.RevealedCards.Remove(index);
 
 						player.Hand.Add(card);
 					}
@@ -127,30 +133,41 @@ namespace Shithead.State
 
 				GameState.GameOn => move switch
 				{
-					PlaceJoker { PlayerId: var targetPlayerId } when player.CanPlaceJoker() => () =>
+					PlaceJoker
 					{
-						player.RemoveJoker();
-						var targetPlayer = this.players[targetPlayerId];
-						
-						targetPlayer.Hand.Push(this.DiscardPile);
-						this.DiscardPile.Clear();
+						PlayerId: var targetPlayerId,
+					} when player.CanPlaceJoker() &&
+						this.turnsManager.ActivePlayers.Contains(targetPlayerId) => () =>
+						{
+							player.RemoveJoker();
+							var targetPlayer = this.players[targetPlayerId];
 
-						this.turnsManager.Current = targetPlayerId;
-						this.turnsManager.MoveNext();
-					}
+							targetPlayer.Hand.Push(this.DiscardPile);
+							this.DiscardPile.Clear();
+
+							HandlePlayerWin(player);
+
+							this.turnsManager.Current = targetPlayerId;
+							this.turnsManager.MoveNext();
+						}
 					,
 
-					PlaceCard { CardIndices: var indices } when this.turnsManager.Current == playerId &&
+					PlaceCard
+					{
+						CardIndices: var indices,
+					} when this.turnsManager.Current == playerId &&
 						player.CanPlaceCard(indices) &&
 						CanPlaceCard(player.GetCard(indices.First())) => () =>
 						{
 							var value = PlayHand(player, indices);
+							HandlePlayerWin(player);
 
 							if (ShouldDiscardPile(value))
 							{
 								this.DiscardPile.Clear();
 							}
-							else
+							// If the player won, it was removed and the turn belongs to the next player
+							else if (!player.Won)
 							{
 								this.turnsManager.MoveNext();
 							}
@@ -158,17 +175,28 @@ namespace Shithead.State
 					,
 					// When Player tries to add cards of the same value they got from deck, after finishing
 					// their turn
-					PlaceCard { CardIndices: var indices } when this.turnsManager.Current == playerId + 1 &&
+					PlaceCard { CardIndices: var indices } when this.turnsManager.Previous == playerId &&
 						player.CanPlaceCard(indices) &&
 						player.GetCard(indices.First()).Value == TopCard()?.Value => () =>
 						{
 							var value = PlayHand(player, indices);
+							HandlePlayerWin(player);
 
 							if (ShouldDiscardPile(value))
 							{
 								this.DiscardPile.Clear();
 								this.turnsManager.Current = playerId.Value;
 							}
+						}
+					,
+
+					RevealUndercard
+					{
+						CardIndex: var cardIndex,
+					} when this.turnsManager.Current == playerId &&
+						player.CanRevealUndercard(cardIndex) => () =>
+						{
+							player.Undercards[cardIndex].IsRevealed = true;
 						}
 					,
 
@@ -179,6 +207,19 @@ namespace Shithead.State
 
 				_ => throw new Exception("Invalid game state"),
 			}; ;
+		}
+
+		private void HandlePlayerWin(PlayerState player)
+		{
+			if (player.Won)
+			{
+				this.turnsManager.RemovePlayer(player.Id);
+
+				if (this.turnsManager.ActivePlayers.Count == 1)
+				{
+					this.GameState = GameState.GameOver;
+				}
+			}
 		}
 
 		private bool ShouldDiscardPile(Value cardValue)

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 
 namespace TurnsManagement
 {
@@ -16,17 +15,25 @@ namespace TurnsManagement
 		public int PlayersCount { get; }
 		public IReadOnlyList<int> ActivePlayers => this.activePlayers;
 
-		public int Current 
-		{ 
-			get => this.activePlayers.Count > 0
-				? this.activePlayers[this.currentPlayerIndex]
-				: throw new InvalidOperationException("There are no players to choose from");
+		public int Current
+		{
+			get => GetPlayer(currentPlayerIndex);
 			set => currentPlayerIndex = this.activePlayers.IndexOf(value) switch
 			{
 				-1 => throw new ArgumentException($"The player {value} does not exist or was removed", nameof(Current)),
 				int index => index,
 			};
 		}
+
+		public int Previous =>
+			this.Direction == TurnsDirection.Up
+			? GetPlayer(currentPlayerIndex - 1)
+			: GetPlayer(currentPlayerIndex + 1);
+
+		public int Next =>
+			this.Direction == TurnsDirection.Up
+			? GetPlayer(currentPlayerIndex + 1)
+			: GetPlayer(currentPlayerIndex - 1);
 
 		public TurnsDirection Direction { get; set; }
 		#endregion
@@ -97,16 +104,33 @@ namespace TurnsManagement
 				TurnsDirection.Up => TurnsDirection.Down,
 				TurnsDirection.Down => TurnsDirection.Up,
 				_ => throw new InvalidOperationException("Invalid direction"),
-			}; 
+			};
 
 		public void RemovePlayer(int playerId)
 		{
 			this.activePlayers.Remove(playerId);
-			
+
 			if (this.currentPlayerIndex >= this.activePlayers.Count)
 			{
-				this.currentPlayerIndex = this.activePlayers.Count - 1;
+				this.currentPlayerIndex = 0;
 			}
+		}
+
+		private int GetPlayer(int index)
+		{
+			if (this.activePlayers.Count == 0)
+			{
+				throw new InvalidOperationException("There are no players to choose from");
+			}
+
+			index %= this.activePlayers.Count;
+
+			if (index < 0)
+			{
+				index += this.activePlayers.Count;
+			}
+
+			return this.activePlayers[index];
 		}
 		#endregion
 	}

@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Shithead.ShitheadMove
+﻿namespace Shithead.ShitheadMove
 {
 	internal sealed class PlaceCard : IShitheadMove
 	{
@@ -24,5 +18,13 @@ namespace Shithead.ShitheadMove
 
 	internal sealed class AcceptDiscardPile : IShitheadMove
 	{
+	}
+
+	internal sealed class RevealUndercard : IShitheadMove
+	{
+		/// <summary>
+		/// The index of the card in the player's hand
+		/// </summary>
+		public int CardIndex { get; set; }
 	}
 }
