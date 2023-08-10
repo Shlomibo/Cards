@@ -17,6 +17,8 @@ namespace Shithead.State
 			public IReadonlyDeck<Card> Hand { get; }
 			public IReadOnlyDictionary<int, Card> RevealedCards => this.SharedPlayerState.RevealedCards;
 			public IReadOnlyDictionary<int, Card?> Undercards => this.SharedPlayerState.Undercards;
+			public bool Won => this.PlayerState.Won;
+			public bool RevealedCardsAccepted => this.PlayerState.RevealedCardsAccepted;
 
 
 			public ShitheadPlayerState(int playerId, ShitheadState state)

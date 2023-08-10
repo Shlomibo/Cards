@@ -1,6 +1,6 @@
 ﻿namespace Shithead.ShitheadMove
 {
-	public sealed class RevealedCardsSelection : IShitheadMove
+	public sealed class RevealedCardSelection : IShitheadMove
 	{
 		/// <summary>
 		/// Card index in player deck

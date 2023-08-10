@@ -3,13 +3,15 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.7.34003.232
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Deck", "Deck\Deck.csproj", "{4DB91F12-9963-41F8-AF02-3FD69B5AAD78}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Deck", "Deck\Deck.csproj", "{4DB91F12-9963-41F8-AF02-3FD69B5AAD78}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameEngine", "GameEngine\GameEngine.csproj", "{752E5EAB-4ECB-4F83-BD44-7F59483361C9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GameEngine", "GameEngine\GameEngine.csproj", "{752E5EAB-4ECB-4F83-BD44-7F59483361C9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TurnsManagement", "TurnsManagement\TurnsManagement.csproj", "{996CEDDA-6A76-47D6-BEF5-5CF662AC1387}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TurnsManagement", "TurnsManagement\TurnsManagement.csproj", "{996CEDDA-6A76-47D6-BEF5-5CF662AC1387}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shithead", "Shithead\Shithead.csproj", "{28B8DFB0-5BFB-49D0-9334-65FD6F0082C8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shithead", "Shithead\Shithead.csproj", "{28B8DFB0-5BFB-49D0-9334-65FD6F0082C8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShitheadTester", "ShitheadTester\ShitheadTester.csproj", "{4A7CC0B6-F251-409C-954B-4FD91E6874F4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,10 @@ Global
 		{28B8DFB0-5BFB-49D0-9334-65FD6F0082C8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{28B8DFB0-5BFB-49D0-9334-65FD6F0082C8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{28B8DFB0-5BFB-49D0-9334-65FD6F0082C8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4A7CC0B6-F251-409C-954B-4FD91E6874F4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4A7CC0B6-F251-409C-954B-4FD91E6874F4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4A7CC0B6-F251-409C-954B-4FD91E6874F4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4A7CC0B6-F251-409C-954B-4FD91E6874F4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

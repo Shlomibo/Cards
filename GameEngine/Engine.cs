@@ -4,7 +4,6 @@
 	{
 		#region Fields
 
-		private readonly Player[] players;
 		private readonly IState<TGameState, TSharedState, TPlayerState, TGameMove> state;
 		#endregion
 
@@ -15,7 +14,8 @@
 
 		#region Properties
 
-		public IReadOnlyList<IPlayer<TSharedState, TPlayerState, TGameMove>> Players => this.players;
+		public IReadOnlyList<IPlayer<TSharedState, TPlayerState, TGameMove>> Players { get; }
+		public TSharedState State => this.state.SharedState;
 		#endregion
 
 		#region Ctors
@@ -23,7 +23,7 @@
 		public Engine(IState<TGameState, TSharedState, TPlayerState, TGameMove> state)
 		{
 			this.state = state ?? throw new ArgumentNullException(nameof(state));
-			this.players = Enumerable.Range(0, this.state.PlayersCount)
+			this.Players = Enumerable.Range(0, this.state.PlayersCount)
 				.Select((player, id) => new Player(
 					id,
 					this,

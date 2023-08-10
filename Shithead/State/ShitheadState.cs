@@ -87,7 +87,7 @@ namespace Shithead.State
 			{
 				GameState.Init => move switch
 				{
-					RevealedCardsSelection
+					RevealedCardSelection
 					{
 						CardIndex: var index,
 						TargetIndex: var target,

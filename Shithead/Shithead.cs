@@ -4,7 +4,7 @@ using Shithead.State;
 
 namespace Shithead
 {
-	public static class Shithead
+	public static class ShitheadGame
 	{
 		public static Engine<
 			ShitheadState,

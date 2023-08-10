@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Deck.Cards.FrenchSuited
+﻿namespace Deck.Cards.FrenchSuited
 {
-	public struct Card: IEquatable<Card>
+	public struct Card : IEquatable<Card>
 	{
 		#region Consts
 
@@ -40,23 +36,6 @@ namespace Deck.Cards.FrenchSuited
 
 		public readonly Card With(Value? value = null, Suit? suit = null) =>
 			GetCard(value ?? this.Value, suit ?? this.suit);
-
-		public override readonly string ToString()
-		{
-			if (this is { Value: Value.Joker })
-			{
-				return $"{this.Color} Joker";
-			}
-			else if (this is { Value: Value.Ace } ||
-				(this.Value >= Value.Jack && this.Value <= Value.King))
-			{
-				return $"{this.Value} of {this.Suit}";
-			}
-			else
-			{
-				return $"{this.Value} {this.Suit}";
-			}
-		}
 
 		public static Color ColorBySuit(Suit suit) =>
 			(Color)((int)suit & 0x2);
@@ -107,7 +86,7 @@ namespace Deck.Cards.FrenchSuited
 		}
 
 		// override object.Equals
-		public override readonly bool Equals(object? obj) => 
+		public override readonly bool Equals(object? obj) =>
 			obj is Card other && Equals(other);
 
 		// override object.GetHashCode
@@ -129,6 +108,46 @@ namespace Deck.Cards.FrenchSuited
 				? this.Suit == other.Suit
 				: this.Color == other.Color;
 		}
+
+		public override string ToString()
+		{
+			var value = this.Value;
+			var suit = this.Suit;
+
+			return value == Value.Joker
+				? $"{this.Color} Joker"
+				: PrintValue() + PrintSuit();
+
+			string PrintValue() =>
+				value switch
+				{
+					Value.Joker => "Joker",
+					Value.Ace => "A",
+					Value.Two => "2",
+					Value.Three => "3",
+					Value.Four => "4",
+					Value.Five => "5",
+					Value.Six => "6",
+					Value.Seven => "7",
+					Value.Eight => "8",
+					Value.Nine => "9",
+					Value.Ten => "10",
+					Value.Jack => "J",
+					Value.Queen => "Q",
+					Value.King => "K",
+					_ => throw new InvalidCastException("Invalid card value"),
+				};
+
+			string PrintSuit() =>
+				suit switch
+				{
+					FrenchSuited.Suit.Hearts => "♥️",
+					FrenchSuited.Suit.Diamonds => "♦️",
+					FrenchSuited.Suit.Clubs => "♣️",
+					FrenchSuited.Suit.Spades => "♠️",
+					_ => throw new InvalidCastException("Invalid card suit"),
+				};
+		}
 		#endregion
 
 		#region Operators
@@ -141,7 +160,7 @@ namespace Deck.Cards.FrenchSuited
 		public static bool operator !=(Card left, Card right)
 		{
 			return !(left == right);
-		} 
+		}
 		#endregion
 	}
 

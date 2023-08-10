@@ -12,6 +12,7 @@ namespace Shithead.State
 			private readonly ShitheadState state;
 
 			public IReadOnlyList<SharedPlayerState> Players { get; }
+			public IReadOnlyList<int> ActivePlayers => this.state.turnsManager.ActivePlayers;
 			public int DeckSize => this.state.Deck.Count;
 			public IReadonlyDeck<Card> DiscardPile { get; }
 			public GameState GameState => this.state.GameState;
@@ -67,6 +68,7 @@ namespace Shithead.State
 			public int Id { get; }
 
 			public int CardsCount => this.Player.Hand.Count;
+			public bool RevealedCardsAccepted => this.Player.RevealedCardsAccepted;
 
 			public SharedPlayerState(ShitheadState state, int id)
 			{
