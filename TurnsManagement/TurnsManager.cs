@@ -7,17 +7,25 @@ namespace TurnsManagement
 	{
 		#region Fields
 
-		private int current;
+		private int currentPlayerIndex;
+		private readonly List<int> activePlayers;
 		#endregion
 
 		#region Properties
 
 		public int PlayersCount { get; }
+		public IReadOnlyList<int> ActivePlayers => this.activePlayers;
 
 		public int Current 
 		{ 
-			get => current; 
-			set => current = Math.Abs(value % this.PlayersCount); 
+			get => this.activePlayers.Count > 0
+				? this.activePlayers[this.currentPlayerIndex]
+				: throw new InvalidOperationException("There are no players to choose from");
+			set => currentPlayerIndex = this.activePlayers.IndexOf(value) switch
+			{
+				-1 => throw new ArgumentException($"The player {value} does not exist or was removed", nameof(Current)),
+				int index => index,
+			};
 		}
 
 		public TurnsDirection Direction { get; set; }
@@ -33,6 +41,7 @@ namespace TurnsManagement
 			}
 
 			this.PlayersCount = playersCount;
+			this.activePlayers = Enumerable.Range(0, playersCount).ToList();
 
 			if (direction.HasValue)
 			{
@@ -62,26 +71,25 @@ namespace TurnsManagement
 					skippedTurns *= -1;
 				}
 
-				this.Current = (this.Current + skippedTurns) % this.PlayersCount;
+				this.currentPlayerIndex = (this.currentPlayerIndex + skippedTurns) % this.activePlayers.Count;
 
-				if (this.Current < 0)
+				// If this.currentPlayerIndex is negative, its value is between -1 and -(this.activePlayers.Count - 1)
+				// We want to push it to be positive between 1 and (this.activePlayers.Count - 1), but simply negating it
+				// will make it look as if we changed direction.
+				// So to make it right - we just need to add this.activePlayers.Count to it...
+				if (this.currentPlayerIndex < 0)
 				{
-					this.Current += this.PlayersCount;
+					this.currentPlayerIndex += this.activePlayers.Count;
 				}
 
-				Debug.Assert(this.Current >= 0, "Current player is negative number!");
-				Debug.Assert(this.Current < this.PlayersCount, "Current is greater than players count!");
+				Debug.Assert(this.currentPlayerIndex >= 0, "Current player is negative number!");
+				Debug.Assert(this.currentPlayerIndex < this.activePlayers.Count, "Current is greater than players count!");
 			}
 
 			return this.Current;
 		}
 
-		public int MoveNext(int? next = null) =>
-			next switch
-			{
-				int value => this.Current = value,
-				_ => Jump(1),
-			};
+		public int MoveNext() => Jump(1);
 
 		public TurnsDirection SwitchDirection() =>
 			this.Direction = this.Direction switch
@@ -90,6 +98,16 @@ namespace TurnsManagement
 				TurnsDirection.Down => TurnsDirection.Up,
 				_ => throw new InvalidOperationException("Invalid direction"),
 			}; 
+
+		public void RemovePlayer(int playerId)
+		{
+			this.activePlayers.Remove(playerId);
+			
+			if (this.currentPlayerIndex >= this.activePlayers.Count)
+			{
+				this.currentPlayerIndex = 0;
+			}
+		}
 		#endregion
 	}
 }
