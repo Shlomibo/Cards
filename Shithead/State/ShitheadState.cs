@@ -6,7 +6,7 @@ using TurnsManagement;
 namespace Shithead.State
 {
 	public sealed partial class ShitheadState :
-		IState<ShitheadState, ShitheadState.Shared, ShitheadState.Player, IShitheadMove>
+		IState<ShitheadState, ShitheadState.SharedState, ShitheadState.Player, IShitheadMove>
 	{
 		private const int MIN_PLAYERS_COUNT = 3;
 		private const int MIN_HAND_CARDS = 3;
@@ -26,10 +26,10 @@ namespace Shithead.State
 
 		public int PlayersCount { get; private set; }
 
-		ShitheadState IState<ShitheadState, Shared, Player, IShitheadMove>.GameState => this;
+		ShitheadState IState<ShitheadState, SharedState, Player, IShitheadMove>.GameState => this;
 		public GameState GameState { get; private set; } = GameState.Init;
 
-		public Shared SharedState { get; }
+		public SharedState SharedState { get; }
 		public CardsDeck Deck { get; } = CardsDeck.FullDeck();
 		public CardsDeck DiscardPile { get; } = new();
 		#endregion
@@ -46,7 +46,7 @@ namespace Shithead.State
 			this.PlayersCount = playersCount;
 
 			this.Deck.Shuffle();
-			this.SharedState = new Shared(this);
+			this.SharedState = new SharedState(this);
 			this.turnsManager = new TurnsManager(playersCount);
 			this.players = Enumerable
 				.Range(0, playersCount)

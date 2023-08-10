@@ -1,5 +1,4 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
 
 namespace Deck.Cards.FrenchSuited
 {
@@ -36,7 +35,7 @@ namespace Deck.Cards.FrenchSuited
 
 		#region Methods
 
-		public static CardsDeck FullDeck(bool excludeJokers = false) => 
+		public static CardsDeck FullDeck(bool excludeJokers = false) =>
 			new(Card.AllCards(excludeJokers));
 
 		#region IDeck<Card> Methods
@@ -120,6 +119,7 @@ namespace Deck.Cards.FrenchSuited
 		{
 			return ((IEnumerable)this.deck).GetEnumerator();
 		}
+		public IReadonlyDeck<Card> AsReadonly() => new ReadonlyDeck<Card>(this);
 		#endregion
 		#endregion
 	}

@@ -110,9 +110,23 @@ namespace TurnsManagement
 		{
 			this.activePlayers.Remove(playerId);
 
-			if (this.currentPlayerIndex >= this.activePlayers.Count)
+			if (this.Direction == TurnsDirection.Up)
 			{
-				this.currentPlayerIndex = 0;
+				if (this.currentPlayerIndex >= this.activePlayers.Count)
+				{
+					this.currentPlayerIndex = 0;
+				}
+			}
+			else
+			{
+				this.currentPlayerIndex--;
+
+				if (this.currentPlayerIndex < 0)
+				{
+					this.currentPlayerIndex = this.activePlayers.Count == 0
+						? 0
+						: this.activePlayers.Count - 1;
+				}
 			}
 		}
 

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.InteropServices;
+﻿using System.Collections;
 
 namespace Deck
 {
@@ -178,8 +174,31 @@ namespace Deck
 		IEnumerator IEnumerable.GetEnumerator() =>
 			GetEnumerator();
 
+		public IReadonlyDeck<TCard> AsReadonly() => new ReadonlyDeck<TCard>(this);
+
 		private int ReversedIndex(int index) =>
 			Math.Max(this.Count - index - 1, 0);
 		#endregion
+	}
+
+	public sealed class ReadonlyDeck<TCard> : IReadonlyDeck<TCard>
+		where TCard : struct
+	{
+		private readonly IDeck<TCard> deck;
+
+		public ReadonlyDeck(IDeck<TCard> deck)
+		{
+			this.deck = deck;
+		}
+
+		public TCard this[int index] => this.deck[index];
+
+		public TCard? Top => this.deck.Top;
+
+		public int Count => this.deck.Count;
+
+		public IEnumerator<TCard> GetEnumerator() => this.deck.GetEnumerator();
+
+		IEnumerator IEnumerable.GetEnumerator() => this.GetEnumerator();
 	}
 }
