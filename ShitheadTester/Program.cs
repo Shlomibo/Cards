@@ -48,17 +48,6 @@ while (state.GameState == GameState.Init)
 
 	bool selectRevealedCard = true;
 
-	if (!player.State.RevealedCardsAccepted && player.State.RevealedCards.Count == 3)
-	{
-		Console.WriteLine("Do you want to accept you revealed cards? (y/N)");
-
-		if (Console.ReadLine()!.ToLowerInvariant() == "y")
-		{
-			selectRevealedCard = false;
-			player.PlayMove(new AcceptSelectedRevealedCards());
-		}
-	}
-
 	if (selectRevealedCard)
 	{
 		string action;
@@ -83,44 +72,72 @@ while (state.GameState == GameState.Init)
 
 		if (action == "a")
 		{
-			int selectedCard;
-
-			do
+			while (player.State.RevealedCards.Count < 3)
 			{
-				Console.WriteLine($"Select card (0 - {player.State.Hand.Count - 1}):");
-			} while (!int.TryParse(Console.ReadLine(), out selectedCard) ||
-				selectedCard < 0 ||
-				selectedCard >= player.State.Hand.Count);
+				int selectedCard;
 
-			int selectedTarget;
+				do
+				{
+					Console.WriteLine($"Select card (0 - {player.State.Hand.Count - 1}):");
+				} while (!int.TryParse(Console.ReadLine(), out selectedCard) ||
+					selectedCard < 0 ||
+					selectedCard >= player.State.Hand.Count);
 
-			do
-			{
-				Console.WriteLine($"Select a spot (0 - 2):");
+				int selectedTarget;
+
+				do
+				{
+					Console.WriteLine($"Select a spot (0 - 2):");
+				}
+				while (!int.TryParse(Console.ReadLine(), out selectedTarget) ||
+					selectedTarget < 0 ||
+					selectedTarget > 2);
+
+				player.PlayMove(new RevealedCardSelection
+				{
+					CardIndex = selectedCard,
+					TargetIndex = selectedTarget,
+				});
+
+				Console.WriteLine(PrintPlayer(player.State));
 			}
-			while (!int.TryParse(Console.ReadLine(), out selectedTarget) ||
-				selectedTarget < 0 ||
-				selectedTarget > 2);
 
-			player.PlayMove(new RevealedCardSelection
+			Console.WriteLine("Do you want to accept your revealed cards? (y/N)");
+
+			if (Console.ReadLine()!.ToLowerInvariant() == "y")
 			{
-				CardIndex = selectedCard,
-				TargetIndex = selectedTarget,
-			});
+				selectRevealedCard = false;
+				player.PlayMove(new AcceptSelectedRevealedCards());
+			}
 		}
 		else
 		{
-			int selectedTarget;
-
-			do
+			if (player.State.RevealedCardsAccepted)
 			{
-				Console.WriteLine($"Select a spot (0 - 2):");
-			}
-			while (!int.TryParse(Console.ReadLine(), out selectedTarget) ||
-				selectedTarget < 0 ||
-				selectedTarget > 2);
+				Console.WriteLine("Do you want to change your revealed cards? y/N");
 
-			player.PlayMove(new UnsetRevealedCard { CardIndex = selectedTarget });
+				if (Console.ReadLine() == "y")
+				{
+					player.PlayMove(new ReselectRevealedCards());
+				}
+			}
+
+			while (!player.State.RevealedCardsAccepted && player.State.RevealedCards.Count > 0)
+			{
+				int selectedTarget;
+
+				do
+				{
+					Console.WriteLine($"Select a spot (0 - 2):");
+				}
+				while (!int.TryParse(Console.ReadLine(), out selectedTarget) ||
+					selectedTarget < 0 ||
+					selectedTarget > 2);
+
+				player.PlayMove(new UnsetRevealedCard { CardIndex = selectedTarget });
+
+				Console.WriteLine(PrintPlayer(player.State));
+			}
 		}
 	}
 }
@@ -228,7 +245,8 @@ string PrintPile() =>
 	: $"{state.DiscardPile.Top} ({state.DiscardPile.TopCardValue()})";
 
 string PrintSharedPlayer(ShitheadState.SharedPlayerState player) =>
-	$"{player.Id} (hand: {player.CardsCount}): {string.Join(' ', EnumerateDict(player.RevealedCards))}";
+	$"{player.Id} (hand: {player.CardsCount}): {string.Join(' ', EnumerateDict(player.RevealedCards))} " +
+	PrintUndercards(player.Undercards);
 
 IEnumerable<T> EnumerateDict<T>(IReadOnlyDictionary<int, T> dict) =>
 	from kv in dict
@@ -247,11 +265,14 @@ string PrintPlayer(ShitheadState.ShitheadPlayerState player)
 			? player.RevealedCards[i].ToString()
 			: "[ ]");
 
-	string undercards = "\t" + string.Join(' ',
-		from i in Enumerable.Range(0, 3)
-		select !player.Undercards.ContainsKey(i)
-		? "[ ]"
-		: player.Undercards[i]?.ToString() ?? "[○]");
+	string undercards = "\t" + PrintUndercards(player.Undercards);
 
 	return string.Join('\n', hand, revealed, undercards);
 }
+
+string PrintUndercards(IReadOnlyDictionary<int, Card?> undercards) =>
+	string.Join(' ',
+		from i in Enumerable.Range(0, 3)
+		select !undercards.ContainsKey(i)
+		? "[ ]"
+		: undercards[i]?.ToString() ?? "[○]");

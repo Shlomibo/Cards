@@ -18,6 +18,7 @@ namespace Shithead.State
 		private readonly PlayerState[] players;
 		private readonly TurnsManager turnsManager;
 		private static readonly CardComparer cardComparer = new();
+		private readonly object stateLock = new object();
 		#endregion
 
 		#region Properties
@@ -75,15 +76,23 @@ namespace Shithead.State
 		public bool IsGameOver() =>
 			this.GameState == GameState.GameOver;
 
-		public bool IsValidMove(IShitheadMove move, int? player = null) =>
-			GetMove(move, player) is not null;
+		public bool IsValidMove(IShitheadMove move, int? player = null)
+		{
+			lock (this.stateLock)
+			{
+				return GetMove(move, player) is not null;
+			}
+		}
 
 		public bool PlayMove(IShitheadMove move, int? player = null)
 		{
-			var moveAction = GetMove(move, player);
-			moveAction?.Invoke();
+			lock (this.stateLock)
+			{
+				var moveAction = GetMove(move, player);
+				moveAction?.Invoke();
 
-			return moveAction != null;
+				return moveAction != null;
+			}
 		}
 
 		private void Deal()
@@ -195,7 +204,7 @@ namespace Shithead.State
 						{
 							var value = PlayHand(player, indices);
 							HandlePlayerWin(player);
-							bool pileDiscarded = ShouldDiscardPile(value)
+							bool pileDiscarded = ShouldDiscardPile(value);
 
 							if (pileDiscarded)
 							{
@@ -242,6 +251,17 @@ namespace Shithead.State
 							{
 								this.turnsManager.Jump(indices.Length);
 							}
+						}
+					,
+					PlaceCard
+					{
+						CardIndices: var indices,
+					} when player.CanPlaceCard(indices) &&
+						ShouldDiscardPileIfHadThese(indices.Select(i => player.GetCard(i))) => () =>
+						{
+							PlayHand(player, indices);
+							this.DiscardPile.Clear();
+							this.turnsManager.Current = player.Id;
 						}
 					,
 
@@ -315,6 +335,23 @@ namespace Shithead.State
 
 			return cardValue == Value.Ten || (top.Length == suitSize &&
 				top.All(discard => discard.Value == cardValue));
+		}
+
+		private bool ShouldDiscardPileIfHadThese(IEnumerable<Card> cards)
+		{
+			var top = cards
+				.Concat(this.DiscardPile)
+				.Take(suitSize)
+				.ToArray();
+
+			if (top.Length < suitSize)
+			{
+				return false;
+			}
+
+			var topValue = top.First().Value;
+
+			return top.Skip(1).All(card => card.Value == topValue);
 		}
 
 		private Value PlayHand(PlayerState player, int[] indices)
