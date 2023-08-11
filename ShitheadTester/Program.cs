@@ -202,7 +202,12 @@ string PrintPile() =>
 	: $"{state.DiscardPile.Top} ({state.DiscardPile.TopCardValue()})";
 
 string PrintSharedPlayer(ShitheadState.SharedPlayerState player) =>
-	$"{player.Id} (hand: {player.CardsCount}): {string.Join(' ', player.RevealedCards.Values)}";
+	$"{player.Id} (hand: {player.CardsCount}): {string.Join(' ', EnumerateDict(player.RevealedCards))}";
+
+IEnumerable<T> EnumerateDict<T>(IReadOnlyDictionary<int, T> dict) =>
+	from kv in dict
+	orderby kv.Key
+	select kv.Value;
 
 string PrintPlayer(ShitheadState.ShitheadPlayerState player)
 {

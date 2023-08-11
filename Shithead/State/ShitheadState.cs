@@ -99,7 +99,7 @@ namespace Shithead.State
 									  orderby card.Value ascending
 									  select (Value?)card.Value).FirstOrDefault()
 					where lowestCard.HasValue
-					orderby lowestCard.Value
+					orderby CardComparer.CardValueRank[lowestCard.Value]
 					select (int?)player.Id).FirstOrDefault() ?? 0;
 		}
 
@@ -195,7 +195,20 @@ namespace Shithead.State
 							// If the player won, it was removed and the turn belongs to the next player
 							else if (!player.Won)
 							{
-								this.turnsManager.MoveNext();
+								if (value != Value.Eight)
+								{
+									this.turnsManager.MoveNext();
+								}
+								else
+								{
+									int otherPlayersCount = this.turnsManager.ActivePlayers.Count - 1;
+									int turnsToJump = indices.Length % otherPlayersCount;
+
+									if (turnsToJump != 0)
+									{
+										this.turnsManager.Jump(turnsToJump);
+									}
+								}
 							}
 						}
 					,
@@ -214,6 +227,14 @@ namespace Shithead.State
 								this.turnsManager.Current = playerId.Value;
 							}
 						}
+					,
+
+					AcceptDiscardPile when this.turnsManager.Current == playerId => () =>
+					{
+						player.Hand.Push(this.DiscardPile);
+						this.DiscardPile.Clear();
+						this.turnsManager.MoveNext();
+					}
 					,
 
 					RevealUndercard
