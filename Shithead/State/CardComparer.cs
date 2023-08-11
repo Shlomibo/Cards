@@ -4,6 +4,14 @@ namespace Shithead.State
 {
 	internal sealed class CardComparer : IComparer<Card>, IComparer<Value>
 	{
+		public static IReadOnlySet<Value> WildCards { get; } = new HashSet<Value>(new[]
+		{
+			Value.Joker,
+			Value.Two,
+			Value.Three,
+			Value.Ten,
+		});
+
 		public static Dictionary<Value, int> CardValueRank { get; } = new()
 		{
 			[Value.Joker] = -1,

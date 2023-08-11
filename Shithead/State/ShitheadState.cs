@@ -11,6 +11,8 @@ namespace Shithead.State
 		private const int MIN_PLAYERS_COUNT = 3;
 		private const int MIN_HAND_CARDS = 3;
 		private const int DEALT_CARDS = 6;
+		private static readonly int suitSize = Enum.GetNames(typeof(Suit)).Length;
+
 		#region Fields
 
 		private readonly PlayerState[] players;
@@ -55,6 +57,7 @@ namespace Shithead.State
 				.ToArray();
 
 			Deal();
+			this.turnsManager.Current = SelectStartingPlayer();
 		}
 		#endregion
 
@@ -88,6 +91,18 @@ namespace Shithead.State
 			}
 		}
 
+		private int SelectStartingPlayer()
+		{
+			return (from player in this.players
+					let lowestCard = (from card in player.Hand
+									  where !CardComparer.WildCards.Contains(card.Value)
+									  orderby card.Value ascending
+									  select (Value?)card.Value).FirstOrDefault()
+					where lowestCard.HasValue
+					orderby lowestCard.Value
+					select (int?)player.Id).FirstOrDefault() ?? 0;
+		}
+
 		private Action? GetMove(IShitheadMove move, int? playerId = null)
 		{
 			if (playerId is null)
@@ -105,7 +120,7 @@ namespace Shithead.State
 					{
 						CardIndex: var index,
 						TargetIndex: var target,
-					} when player.CanSetRevealedCard(index) => () =>
+					} when player.CanSetRevealedCard(index, target) => () =>
 					{
 						var card = player.Hand[index];
 						player.Hand.RemoveAt(index);
@@ -235,8 +250,10 @@ namespace Shithead.State
 
 		private bool ShouldDiscardPile(Value cardValue)
 		{
-			var topFour = this.DiscardPile.Take(Enum.GetNames(typeof(Suit)).Length);
-			return cardValue == Value.Ten || topFour.All(discard => discard.Value == cardValue);
+			var top = this.DiscardPile.Take(suitSize).ToArray();
+
+			return cardValue == Value.Ten || (top.Length == suitSize &&
+				top.All(discard => discard.Value == cardValue));
 		}
 
 		private Value PlayHand(PlayerState player, int[] indices)

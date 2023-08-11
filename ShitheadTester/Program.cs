@@ -12,7 +12,7 @@ if (args.Length == 0 || !int.TryParse(args[0], out int playersCount))
 		Console.WriteLine("Please enter how many players are playing:");
 		playersCountStr = Console.ReadLine()!;
 	}
-	while (!int.TryParse(playersCountStr, out playersCount));
+	while (!int.TryParse(playersCountStr, out playersCount) || playersCount < 3);
 }
 
 var engine = ShitheadGame.CreateGame(playersCount);
@@ -63,12 +63,23 @@ while (state.GameState == GameState.Init)
 	{
 		string action;
 
-		do
+		if (player.State.RevealedCards.Count == 0)
 		{
-			Console.WriteLine("Please choose (a) to add a card to the revealed cards or (r) to remove a card");
-			action = Console.ReadLine()!;
+			action = "a";
 		}
-		while (action.ToLowerInvariant() != "a" && action.ToLowerInvariant() != "b");
+		else if (player.State.RevealedCards.Count == 3)
+		{
+			action = "r";
+		}
+		else
+		{
+			do
+			{
+				Console.WriteLine("Please choose (a) to add a card to the revealed cards or (r) to remove a card");
+				action = Console.ReadLine()!;
+			}
+			while (action.ToLowerInvariant() != "a" && action.ToLowerInvariant() != "r");
+		}
 
 		if (action == "a")
 		{

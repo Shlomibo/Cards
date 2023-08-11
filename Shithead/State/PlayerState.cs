@@ -32,17 +32,18 @@ namespace Shithead.State
 				.Select((card, index) => new KeyValuePair<int, CardFace<Card>>(index, new CardFace<Card>(card))));
 		}
 
-		public bool CanSetRevealedCard(int cardIndex) =>
+		public bool CanSetRevealedCard(int cardIndex, int target) =>
 			!this.RevealedCardsAccepted &&
 			this.RevealedCards.Count < UNDERCARDS_COUNT &&
 			cardIndex >= 0 &&
-			cardIndex < this.Hand.Count;
+			cardIndex < this.Hand.Count &&
+			!this.RevealedCards.ContainsKey(target);
 
 		public bool CanUnsetRevealedCard(int cardIndex) =>
 			!this.RevealedCardsAccepted &&
 			this.RevealedCards.Count > 0 &&
 			cardIndex >= 0 &&
-			cardIndex < this.RevealedCards.Count;
+			this.RevealedCards.ContainsKey(cardIndex);
 
 		public bool CanAcceptSelectedRevealedCards() =>
 			!this.RevealedCardsAccepted &&
