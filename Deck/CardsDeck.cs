@@ -9,7 +9,7 @@ namespace Deck
 
 		private readonly List<TCard> cards;
 
-		private static readonly Random rand = new();
+		private readonly Random rand = new();
 		#endregion
 
 		#region Properties
@@ -157,7 +157,7 @@ namespace Deck
 
 			while (tempList.Count > 0)
 			{
-				int next = rand.Next(tempList.Count);
+				int next = this.rand.Next(tempList.Count);
 
 				for (int i = 0; i < next; i++)
 				{
