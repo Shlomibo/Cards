@@ -27,6 +27,23 @@ namespace Shithead.State
 				this.state = state;
 				this.Hand = this.PlayerState.Hand.AsReadonly();
 			}
+
+			public Card GetCard(int cardIndex)
+			{
+				if (this.Hand.Count > 0)
+				{
+					return this.Hand[cardIndex];
+				}
+				else if (this.RevealedCards.Count > 0)
+				{
+					return this.RevealedCards[cardIndex];
+				}
+				else
+				{
+					return this.Undercards[cardIndex] ??
+						throw new InvalidOperationException("The selected undercard is not revealed yet");
+				}
+			}
 		}
 	}
 }

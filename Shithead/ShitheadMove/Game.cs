@@ -27,4 +27,12 @@
 		/// </summary>
 		public int CardIndex { get; set; }
 	}
+
+	public sealed class TakeUndercards :IShitheadMove
+	{
+		/// <summary>
+		/// The index of the card in the player's revealed or undercards lists
+		/// </summary>
+		public int[] CardIndices { get; set; } = Array.Empty<int>();
+	}
 }

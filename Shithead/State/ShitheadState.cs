@@ -57,7 +57,6 @@ namespace Shithead.State
 				.ToArray();
 
 			Deal();
-			this.turnsManager.Current = SelectStartingPlayer();
 		}
 		#endregion
 
@@ -145,6 +144,7 @@ namespace Shithead.State
 
 						if (this.players.All(player => player.RevealedCardsAccepted))
 						{
+							this.turnsManager.Current = SelectStartingPlayer();
 							this.GameState = GameState.GameOn;
 						}
 					}
@@ -171,6 +171,7 @@ namespace Shithead.State
 							targetPlayer.Hand.Push(this.DiscardPile);
 							this.DiscardPile.Clear();
 
+							ReplenishPlayerHand(player);
 							HandlePlayerWin(player);
 
 							this.turnsManager.Current = targetPlayerId;
@@ -195,19 +196,22 @@ namespace Shithead.State
 							// If the player won, it was removed and the turn belongs to the next player
 							else if (!player.Won)
 							{
-								if (value != Value.Eight)
+								this.turnsManager.MoveNext();
+							}
+
+							if (value == Value.Eight)
+							{
+								int otherPlayersCount = this.turnsManager.ActivePlayers.Count - 1;
+								// We jump the count of eights, plus 1 as the turn should have passed anyway
+								int turnsToJump = indices.Length % otherPlayersCount;
+
+								if (turnsToJump == 0)
 								{
-									this.turnsManager.MoveNext();
+									this.turnsManager.Current = player.Id;
 								}
 								else
 								{
-									int otherPlayersCount = this.turnsManager.ActivePlayers.Count - 1;
-									int turnsToJump = indices.Length % otherPlayersCount;
-
-									if (turnsToJump != 0)
-									{
-										this.turnsManager.Jump(turnsToJump);
-									}
+									this.turnsManager.Jump(turnsToJump);
 								}
 							}
 						}
@@ -226,6 +230,10 @@ namespace Shithead.State
 								this.DiscardPile.Clear();
 								this.turnsManager.Current = playerId.Value;
 							}
+							else if (value == Value.Eight)
+							{
+								this.turnsManager.Jump(indices.Length);
+							}
 						}
 					,
 
@@ -240,10 +248,33 @@ namespace Shithead.State
 					RevealUndercard
 					{
 						CardIndex: var cardIndex,
+					} when player.CanRevealUndercard(cardIndex) => () =>
+					{
+						player.Undercards[cardIndex].IsRevealed = true;
+					}
+					,
+
+					TakeUndercards
+					{
+						CardIndices: var cardIndices,
 					} when this.turnsManager.Current == playerId &&
-						player.CanRevealUndercard(cardIndex) => () =>
+						player.CanTakeUndercards(cardIndices) => () =>
 						{
-							player.Undercards[cardIndex].IsRevealed = true;
+							if (player.RevealedCards.Count == 0)
+							{
+								int i = cardIndices[0];
+
+								player.Hand.Push(player.Undercards[i].Card);
+								player.Undercards.Remove(i);
+							}
+							else
+							{
+								foreach (int i in cardIndices)
+								{
+									player.Hand.Push(player.RevealedCards[i]);
+									player.RevealedCards.Remove(i);
+								}
+							}
 						}
 					,
 
@@ -315,17 +346,13 @@ namespace Shithead.State
 
 			var top = TopCard();
 
-
-			if (top is null)
-			{
-				return true;
-			}
-
 			return cardValue switch
 			{
+				_ when top is null => true,
 				Value.Two => true,
 				Value.Three => true,
 				Value.Ten => true,
+				_ when top.Value.Value == Value.Two => true,
 				var value when top.Value.Value == Value.Seven => cardComparer.Compare(value, Value.Seven) <= 0,
 				var value => cardComparer.Compare(value, top.Value.Value) >= 0,
 			};

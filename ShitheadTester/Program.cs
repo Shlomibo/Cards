@@ -146,7 +146,14 @@ while (state.GameState != GameState.GameOver)
 		(action.Length == 0 || action.Split(' ').Any(val =>
 			!int.TryParse(val, out int card) ||
 			card < 0 ||
-			card >= player.State.Hand.Count)));
+			(player.State.Hand.Count > 0 && card >= player.State.Hand.Count) ||
+			(player.State.Hand.Count == 0 &&
+				player.State.RevealedCards.Count > 0 &&
+				!player.State.RevealedCards.ContainsKey(card)) ||
+			(player.State.Hand.Count == 0 &&
+				player.State.RevealedCards.Count == 0 &&
+				player.State.Undercards.Count > 0 &&
+				!player.State.Undercards.ContainsKey(card)))));
 
 	if (action.ToLowerInvariant() == "fuck me")
 	{
@@ -158,7 +165,21 @@ while (state.GameState != GameState.GameOver)
 			.Select(val => int.Parse(val))
 			.ToArray();
 
-		if (selected.Length != 1 || player.State.Hand[selected[0]].Value != Value.Joker)
+		if (player.State.Hand.Count == 0)
+		{
+			if (player.State.RevealedCards.Count == 0 &&
+			selected.Length == 1)
+			{
+				Console.WriteLine("Revealing card...");
+				player.PlayMove(new RevealUndercard { CardIndex = selected[0] });
+
+				Console.WriteLine(PrintPlayer(player.State));
+			}
+
+			Console.WriteLine("Taking selected cards to hand...");
+			player.PlayMove(new TakeUndercards { CardIndices = selected, });
+		}
+		else if (selected.Length != 1 || player.State.GetCard(selected[0]).Value != Value.Joker)
 		{
 			player.PlayMove(new PlaceCard
 			{
@@ -179,6 +200,11 @@ while (state.GameState != GameState.GameOver)
 
 			player.PlayMove(new PlaceJoker { PlayerId = selectedTarget });
 		}
+	}
+
+	if (player.State.Won)
+	{
+		Console.WriteLine($"Player {player.PlayerId} won!");
 	}
 }
 

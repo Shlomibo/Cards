@@ -51,7 +51,26 @@ namespace Shithead.State
 
 		public bool CanReselectRevealedCards() => this.RevealedCardsAccepted;
 
-		public bool CanPlaceJoker() => this.Hand.Any(card => card.Value == Value.Joker);
+		public bool CanPlaceJoker()
+		{
+			if (this.Hand.Count > 0)
+			{
+				return this.Hand.Any(IsJoker);
+			}
+			else if (this.RevealedCards.Count > 0)
+			{
+				return this.RevealedCards.Values.Any(IsJoker);
+			}
+			else
+			{
+				return this.Undercards.Values
+					.Where(undercard => undercard.IsRevealed)
+					.Select(undercard => undercard.Card)
+					.Any(IsJoker);
+			}
+
+			static bool IsJoker(Card card) => card.Value == Value.Joker;
+		}
 
 		public bool CanPlaceCard(IEnumerable<int> cardIndices)
 		{
@@ -60,39 +79,11 @@ namespace Shithead.State
 				return false;
 			}
 
-			if (this.Hand.Any())
-			{
-				return CanPlaceCardFromList(this.Hand);
-			}
-			else if (this.RevealedCards.Any())
-			{
-				return CanPlaceCardFromDictionary(this.RevealedCards);
-			}
-			else if (this.Undercards.Any())
-			{
-				if (cardIndices.Count() != 1)
-				{
-					return false;
-				}
+			return CanPlaceCardFromList(this.Hand);
 
-				int index = cardIndices.First();
-
-				return index > 0 &&
-					this.Undercards.ContainsKey(index) &&
-					this.Undercards[index].IsRevealed;
-			}
-			else
+			bool CanPlaceCardFromList(IReadOnlyList<Card> cards)
 			{
-				return false;
-			}
-
-			bool CanPlaceCardFromList(IReadOnlyList<Card> cards) =>
-				CanPlaceCardFromDictionary(new Dictionary<int, Card>(
-					cards.Select((card, i) => new KeyValuePair<int, Card>(i, card))));
-
-			bool CanPlaceCardFromDictionary(IReadOnlyDictionary<int, Card> cards)
-			{
-				if (cardIndices.Any(i => !cards.ContainsKey(i)))
+				if (cardIndices.Any(i => i < 0 || i >= cards.Count))
 				{
 					return false;
 				}
@@ -109,60 +100,44 @@ namespace Shithead.State
 			this.Undercards.ContainsKey(cardIndex) &&
 			this.Undercards.Values.All(card => !card.IsRevealed);
 
-		public Card GetCard(int cardIndex)
+		public bool CanTakeUndercards(int[] cardIndices)
 		{
-			if (this.Hand.Any())
+			if (cardIndices.Length == 0 || this.Hand.Count > 0)
 			{
-				return this.Hand[cardIndex];
+				return false;
 			}
-			else if (this.RevealedCards.Any())
+			else if (this.RevealedCards.Count > 0)
 			{
-				return this.RevealedCards[cardIndex];
-			}
-			else if (this.Undercards.Any() && this.Undercards[cardIndex].IsRevealed)
-			{
-				return this.Undercards[cardIndex].Card;
+				if (!cardIndices.All(i => this.RevealedCards.ContainsKey(i)))
+				{
+					return false;
+				}
+
+				var value = this.RevealedCards[cardIndices[0]].Value;
+
+				return cardIndices.Skip(1).All(i => this.RevealedCards[i].Value == value);
 			}
 			else
 			{
-				throw new InvalidOperationException($"Cannot get card from index {cardIndex}");
+				return cardIndices.Length == 1 &&
+					this.Undercards[cardIndices[0]].IsRevealed;
 			}
 		}
 
+		public Card GetCard(int cardIndex)
+		{
+			return this.Hand[cardIndex];
+		}
+
+
 		public void RemoveCard(int cardIndex)
 		{
-			if (this.Hand.Any())
-			{
-				this.Hand.RemoveAt(cardIndex);
-			}
-			else if (this.RevealedCards.Any())
-			{
-				this.RevealedCards.Remove(cardIndex);
-			}
-			else if (this.Undercards.ContainsKey(cardIndex) &&
-				this.Undercards[cardIndex].IsRevealed == true)
-			{
-				this.Undercards.Remove(cardIndex);
-			}
+			this.Hand.RemoveAt(cardIndex);
 		}
 
 		public void RemoveJoker()
 		{
-			if (this.Hand.Any())
-			{
-				RemoveFromList(this.Hand, GetJokerIndex(this.Hand, card => card.Value));
-			}
-			else if (this.RevealedCards.Any())
-			{
-				this.RevealedCards.Remove(GetJokerKey(this.RevealedCards, card => card.Value));
-			}
-			else if (this.Undercards.Any())
-			{
-				this.Undercards.Remove(GetJokerKey(
-					this.Undercards,
-					cardface => cardface.Card.Value,
-					cardface => cardface.IsRevealed));
-			}
+			RemoveFromList(this.Hand, GetJokerIndex(this.Hand, card => card.Value));
 
 			void RemoveFromList<T>(IList<T> list, int index)
 			{
