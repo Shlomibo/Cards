@@ -10,6 +10,7 @@ namespace Shithead.State
 	{
 		private const int MIN_PLAYERS_COUNT = 3;
 		private const int MIN_HAND_CARDS = 3;
+		private const int DEALT_CARDS = 6;
 		#region Fields
 
 		private readonly PlayerState[] players;
@@ -52,6 +53,8 @@ namespace Shithead.State
 					id
 				))
 				.ToArray();
+
+			Deal();
 		}
 		#endregion
 
@@ -72,6 +75,17 @@ namespace Shithead.State
 			moveAction?.Invoke();
 
 			return moveAction != null;
+		}
+
+		private void Deal()
+		{
+			for (int i = 0; i < DEALT_CARDS; i++)
+			{
+				foreach (var player in this.players)
+				{
+					player.Hand.Push(this.Deck.Pop());
+				}
+			}
 		}
 
 		private Action? GetMove(IShitheadMove move, int? playerId = null)
