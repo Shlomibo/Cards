@@ -41,6 +41,13 @@ namespace Shithead.State
 				throw new ArgumentException($"The minimum players count is {MIN_PLAYERS_COUNT}", nameof(playersCount));
 			}
 
+			int maxPlayersCount = this.Deck.Count / (DEALT_CARDS + PlayerState.UNDERCARDS_COUNT);
+
+			if (maxPlayersCount < playersCount)
+			{
+				throw new ArgumentException($"The maximum players count is {maxPlayersCount}", nameof(playersCount));
+			}
+
 			this.PlayersCount = playersCount;
 
 			this.Deck.Shuffle();
@@ -188,8 +195,9 @@ namespace Shithead.State
 						{
 							var value = PlayHand(player, indices);
 							HandlePlayerWin(player);
+							bool pileDiscarded = ShouldDiscardPile(value)
 
-							if (ShouldDiscardPile(value))
+							if (pileDiscarded)
 							{
 								this.DiscardPile.Clear();
 							}
@@ -199,7 +207,7 @@ namespace Shithead.State
 								this.turnsManager.MoveNext();
 							}
 
-							if (value == Value.Eight)
+							if (value == Value.Eight && !pileDiscarded)
 							{
 								int otherPlayersCount = this.turnsManager.ActivePlayers.Count - 1;
 								// We jump the count of eights, plus 1 as the turn should have passed anyway
@@ -237,12 +245,13 @@ namespace Shithead.State
 						}
 					,
 
-					AcceptDiscardPile when this.turnsManager.Current == playerId => () =>
-					{
-						player.Hand.Push(this.DiscardPile);
-						this.DiscardPile.Clear();
-						this.turnsManager.MoveNext();
-					}
+					AcceptDiscardPile when this.turnsManager.Current == playerId &&
+						player.Hand.Count > 0 => () =>
+						{
+							player.Hand.Push(this.DiscardPile);
+							this.DiscardPile.Clear();
+							this.turnsManager.MoveNext();
+						}
 					,
 
 					RevealUndercard
