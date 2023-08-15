@@ -127,34 +127,29 @@ namespace Shithead.State
 
 			var player = this.players[playerId.Value];
 
-			return this.GameState switch
+			return (this.GameState, move) switch
 			{
-				GameState.Init => move switch
-				{
-					RevealedCardSelection
-					{
-						CardIndex: var index,
-						TargetIndex: var target,
-					} when player.CanSetRevealedCard(index, target) => () =>
+				// GameState.Init
+				(GameState.Init, RevealedCardSelection { CardIndex: var index, TargetIndex: var target })
+					when player.CanSetRevealedCard(index, target) => () =>
 					{
 						var card = player.Hand[index];
 						player.Hand.RemoveAt(index);
 
 						player.RevealedCards.Add(target, card);
 					}
-					,
-					UnsetRevealedCard
-					{
-						CardIndex: var index,
-					} when player.CanUnsetRevealedCard(index) => () =>
+				,
+				(GameState.Init, UnsetRevealedCard { CardIndex: var index })
+					when player.CanUnsetRevealedCard(index) => () =>
 					{
 						var card = player.RevealedCards[index];
 						player.RevealedCards.Remove(index);
 
 						player.Hand.Add(card);
 					}
-					,
-					AcceptSelectedRevealedCards when player.CanAcceptSelectedRevealedCards() => () =>
+				,
+				(GameState.Init, AcceptSelectedRevealedCards)
+					when player.CanAcceptSelectedRevealedCards() => () =>
 					{
 						player.RevealedCardsAccepted = true;
 
@@ -164,156 +159,172 @@ namespace Shithead.State
 							this.GameState = GameState.GameOn;
 						}
 					}
-					,
-					ReselectRevealedCards when player.CanReselectRevealedCards() => () =>
+				,
+				(GameState.Init, ReselectRevealedCards)
+					when player.CanReselectRevealedCards() => () =>
 					{
 						player.RevealedCardsAccepted = false;
 					}
-					,
-					_ => null,
-				},
+				,
+				(GameState.Init, _) => null,
 
-				GameState.GameOn => move switch
-				{
-					PlaceJoker
+				// GameState.GameOn
+				(GameState.GameOn, PlaceJoker { PlayerId: var targetPlayerId })
+					when player.CanPlaceJoker() &&
+						this.turnsManager.ActivePlayers.Contains(targetPlayerId) =>
+					() =>
 					{
-						PlayerId: var targetPlayerId,
-					} when player.CanPlaceJoker() &&
-						this.turnsManager.ActivePlayers.Contains(targetPlayerId) => () =>
-						{
-							player.RemoveJoker();
-							var targetPlayer = this.players[targetPlayerId];
+						player.RemoveJoker();
+						var targetPlayer = this.players[targetPlayerId];
 
-							targetPlayer.Hand.Push(this.DiscardPile);
-							this.DiscardPile.Clear();
+						targetPlayer.Hand.Push(this.DiscardPile);
+						this.DiscardPile.Clear();
 
-							ReplenishPlayerHand(player);
-							HandlePlayerWin(player);
+						ReplenishPlayerHand(player);
+						HandlePlayerWin(player);
 
-							this.turnsManager.Current = targetPlayerId;
-							this.turnsManager.MoveNext();
-						}
-					,
-
-					PlaceCard
-					{
-						CardIndices: var indices,
-					} when this.turnsManager.Current == playerId &&
-						player.CanPlaceCard(indices) &&
-						CanPlaceCard(player.GetCard(indices.First())) => () =>
-						{
-							var value = PlayHand(player, indices);
-							HandlePlayerWin(player);
-							bool pileDiscarded = ShouldDiscardPile(value);
-
-							if (pileDiscarded)
-							{
-								this.DiscardPile.Clear();
-							}
-							// If the player won, it was removed and the turn belongs to the next player
-							else if (!player.Won)
-							{
-								this.turnsManager.MoveNext();
-							}
-
-							if (value == Value.Eight && !pileDiscarded)
-							{
-								int otherPlayersCount = this.turnsManager.ActivePlayers.Count - 1;
-								// We jump the count of eights, plus 1 as the turn should have passed anyway
-								int turnsToJump = indices.Length % otherPlayersCount;
-
-								if (turnsToJump == 0)
-								{
-									this.turnsManager.Current = player.Id;
-								}
-								else
-								{
-									this.turnsManager.Jump(turnsToJump);
-								}
-							}
-						}
-					,
-					// When Player tries to add cards of the same value they got from deck, after finishing
-					// their turn
-					PlaceCard { CardIndices: var indices } when this.turnsManager.Previous == playerId &&
-						player.CanPlaceCard(indices) &&
-						player.GetCard(indices.First()).Value == TopCard()?.Value => () =>
-						{
-							var value = PlayHand(player, indices);
-							HandlePlayerWin(player);
-
-							if (ShouldDiscardPile(value))
-							{
-								this.DiscardPile.Clear();
-								this.turnsManager.Current = playerId.Value;
-							}
-							else if (value == Value.Eight)
-							{
-								this.turnsManager.Jump(indices.Length);
-							}
-						}
-					,
-					PlaceCard
-					{
-						CardIndices: var indices,
-					} when player.CanPlaceCard(indices) &&
-						ShouldDiscardPileIfHadThese(indices.Select(i => player.GetCard(i))) => () =>
-						{
-							PlayHand(player, indices);
-							this.DiscardPile.Clear();
-							this.turnsManager.Current = player.Id;
-						}
-					,
-
-					AcceptDiscardPile when this.turnsManager.Current == playerId &&
-						player.Hand.Count > 0 => () =>
-						{
-							player.Hand.Push(this.DiscardPile);
-							this.DiscardPile.Clear();
-							this.turnsManager.MoveNext();
-						}
-					,
-
-					RevealUndercard
-					{
-						CardIndex: var cardIndex,
-					} when player.CanRevealUndercard(cardIndex) => () =>
-					{
-						player.Undercards[cardIndex].IsRevealed = true;
+						this.turnsManager.Current = targetPlayerId;
+						this.turnsManager.MoveNext();
 					}
-					,
-
-					TakeUndercards
+				,
+				(GameState.GameOn, PlaceCard { CardIndices: var indices })
+					when this.turnsManager.Current == playerId &&
+						player.CanPlaceCard(indices) &&
+						CanPlaceCard(player.GetCard(indices.First())) =>
+					() =>
 					{
-						CardIndices: var cardIndices,
-					} when this.turnsManager.Current == playerId &&
-						player.CanTakeUndercards(cardIndices) => () =>
-						{
-							if (player.RevealedCards.Count == 0)
-							{
-								int i = cardIndices[0];
+						var value = PlayHand(player, indices);
+						HandlePlayerWin(player);
+						bool pileDiscarded = ShouldDiscardPile(value);
 
-								player.Hand.Push(player.Undercards[i].Card);
-								player.Undercards.Remove(i);
+						if (pileDiscarded)
+						{
+							this.DiscardPile.Clear();
+						}
+						// If the player won, it was removed and the turn belongs to the next player
+						else if (!player.Won)
+						{
+							this.turnsManager.MoveNext();
+						}
+
+						if (value == Value.Eight && !pileDiscarded)
+						{
+							int otherPlayersCount = this.turnsManager.ActivePlayers.Count - 1;
+							// We jump the count of eights, plus 1 as the turn should have passed anyway
+							int turnsToJump = indices.Length % otherPlayersCount;
+
+							if (turnsToJump == 0)
+							{
+								this.turnsManager.Current = player.Id;
 							}
 							else
 							{
-								foreach (int i in cardIndices)
-								{
-									player.Hand.Push(player.RevealedCards[i]);
-									player.RevealedCards.Remove(i);
-								}
+								this.turnsManager.Jump(turnsToJump);
 							}
 						}
-					,
+					}
+				,
+				// When Player tries to add cards of the same value they got from deck, after finishing
+				// their turn
+				(GameState.GameOn, PlaceCard { CardIndices: var indices })
+					when this.turnsManager.Previous == playerId &&
+						player.CanPlaceCard(indices) &&
+						player.GetCard(indices.First()).Value == TopCard()?.Value =>
+					() =>
+					{
+						var value = PlayHand(player, indices);
+						HandlePlayerWin(player);
 
-					_ => null
-				},
+						if (ShouldDiscardPile(value))
+						{
+							this.DiscardPile.Clear();
+							this.turnsManager.Current = playerId.Value;
+						}
+						else if (value == Value.Eight)
+						{
+							this.turnsManager.Jump(indices.Length);
+						}
+					}
+				,
+				(GameState.GameOn, PlaceCard { CardIndices: var indices })
+					when player.CanPlaceCard(indices) &&
+						ShouldDiscardPileIfHadThese(indices.Select(i => player.GetCard(i))) =>
+					() =>
+					{
+						PlayHand(player, indices);
+						this.DiscardPile.Clear();
+						this.turnsManager.Current = player.Id;
+					}
+				,
+				(GameState.GameOn, AcceptDiscardPile)
+					when this.turnsManager.Current == playerId &&
+						player.Hand.Count > 0 =>
+					() =>
+					{
+						player.Hand.Push(this.DiscardPile);
+						this.DiscardPile.Clear();
+						this.turnsManager.MoveNext();
+					}
+				,
+				(GameState.GameOn, RevealUndercard { CardIndex: var cardIndex })
+					when player.CanRevealUndercard(cardIndex) => () =>
+					{
+						player.Undercards[cardIndex].IsRevealed = true;
+					}
+				,
+				(GameState.GameOn, TakeUndercards { CardIndices: var cardIndices })
+					when this.turnsManager.Current == playerId &&
+						player.CanTakeUndercards(cardIndices) =>
+					() =>
+					{
+						if (player.RevealedCards.Count == 0)
+						{
+							int i = cardIndices[0];
 
-				GameState.GameOver => null,
+							player.Hand.Push(player.Undercards[i].Card);
+							player.Undercards.Remove(i);
+						}
+						else
+						{
+							foreach (int i in cardIndices)
+							{
+								player.Hand.Push(player.RevealedCards[i]);
+								player.RevealedCards.Remove(i);
+							}
+						}
+					}
+				,
+
+				(GameState.GameOn, LeaveGame { PlayerId: var leavingPlayerId })
+					when this.turnsManager.ActivePlayers.Contains(leavingPlayerId) => () =>
+					{
+						RemovePlayer(leavingPlayerId);
+					}
+				,
+				(GameState.GameOn, _) => null,
+
+				// GameState.GameOver
+				(GameState.GameOver, _) => null,
 
 				_ => throw new Exception("Invalid game state"),
-			}; ;
+			};
+		}
+
+		private void RemovePlayer(int leavingPlayerId)
+		{
+			this.turnsManager.RemovePlayer(leavingPlayerId);
+			var leavingPlayer = this.players[leavingPlayerId];
+
+			leavingPlayer.DidLeaveGame = true;
+			leavingPlayer.Hand.Clear();
+			leavingPlayer.RevealedCards.Clear();
+
+			this.Deck.Add(
+				from undercard in leavingPlayer.Undercards.Values
+				where !undercard.IsRevealed
+				select undercard.Card
+			);
+			leavingPlayer.Undercards.Clear();
 		}
 
 		private void HandlePlayerWin(PlayerState player)

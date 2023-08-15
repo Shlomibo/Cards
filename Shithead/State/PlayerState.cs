@@ -11,9 +11,11 @@ namespace Shithead.State
 		public CardsDeck Hand { get; } = new CardsDeck();
 
 		public Dictionary<int, CardFace<Card>> Undercards { get; }
+		public bool DidLeaveGame { get; set; } = false;
 		public Dictionary<int, Card> RevealedCards { get; } = new();
 
 		public bool Won =>
+			!this.DidLeaveGame &&
 			!this.Hand.Any() &&
 			!this.RevealedCards.Any() &&
 			!this.Undercards.Any();

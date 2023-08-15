@@ -44,6 +44,16 @@ namespace Deck.Cards.FrenchSuited
 			this.deck.Add(item);
 		}
 
+		public void Add(params Card[]? cards)
+		{
+			this.deck.Add(cards);
+		}
+
+		public void Add(IEnumerable<Card> cards)
+		{
+			this.deck.Add(cards);
+		}
+
 		public void Clear()
 		{
 			this.deck.Clear();

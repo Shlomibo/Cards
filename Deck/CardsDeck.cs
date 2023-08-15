@@ -47,7 +47,21 @@ namespace Deck
 		#region Methods
 
 		public void Add(TCard card) =>
-			this.Push(card);
+			this.cards.Insert(0, card);
+
+
+		public void Add(params TCard[]? cards)
+		{
+			if (cards != null)
+			{
+				Add(cards.AsEnumerable());
+			}
+		}
+
+		public void Add(IEnumerable<TCard> cards)
+		{
+			this.cards.InsertRange(0, cards);
+		}
 
 		public void Clear() =>
 			this.cards.Clear();
@@ -107,6 +121,7 @@ namespace Deck
 			return card.Value;
 		}
 
+		// We are listing the cards in reverse, so pushing "adds" and adding "pushes"
 		public void Push(TCard card)
 		{
 			this.cards.Add(card);
