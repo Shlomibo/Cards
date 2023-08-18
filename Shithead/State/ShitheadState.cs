@@ -184,7 +184,6 @@ namespace Shithead.State
 						HandlePlayerWin(player);
 
 						this.turnsManager.Current = targetPlayerId;
-						this.turnsManager.MoveNext();
 					}
 				,
 				(GameState.GameOn, PlaceCard { CardIndices: var indices })

@@ -25,17 +25,11 @@
 			public Player(
 				int playerId,
 				Engine<TGameState, TSharedState, TPlayerState, TGameMove> engine,
-				TPlayerState state
-			)
+				TPlayerState state)
 			{
-				if (state == null)
-				{
-					throw new ArgumentNullException(nameof(state));
-				}
-
 				this.Engine = engine ?? throw new ArgumentNullException(nameof(engine));
 				this.PlayerId = playerId;
-				this.State = state;
+				this.State = state ?? throw new ArgumentNullException(nameof(state));
 
 				this.Engine.Updated += (_, args) => this.Updated?.Invoke(this, args);
 			}

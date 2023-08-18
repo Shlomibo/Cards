@@ -11,7 +11,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TurnsManagement", "TurnsMan
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shithead", "Shithead\Shithead.csproj", "{28B8DFB0-5BFB-49D0-9334-65FD6F0082C8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShitheadTester", "ShitheadTester\ShitheadTester.csproj", "{4A7CC0B6-F251-409C-954B-4FD91E6874F4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ShitheadTester", "ShitheadTester\ShitheadTester.csproj", "{4A7CC0B6-F251-409C-954B-4FD91E6874F4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameServer", "GameServer\GameServer.csproj", "{EA31F69F-E195-4A99-AD9B-A8019B4318C6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,6 +41,10 @@ Global
 		{4A7CC0B6-F251-409C-954B-4FD91E6874F4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4A7CC0B6-F251-409C-954B-4FD91E6874F4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4A7CC0B6-F251-409C-954B-4FD91E6874F4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EA31F69F-E195-4A99-AD9B-A8019B4318C6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EA31F69F-E195-4A99-AD9B-A8019B4318C6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EA31F69F-E195-4A99-AD9B-A8019B4318C6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EA31F69F-E195-4A99-AD9B-A8019B4318C6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
