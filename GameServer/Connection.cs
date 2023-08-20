@@ -18,6 +18,7 @@
 		private readonly Func<TSerializedMove, TGameMove> moveDeserializer;
 
 		public event EventHandler<StateUpdatedEventArgs<TSerializedState>>? StateUpdated;
+		public event EventHandler? Closed;
 
 		private Table<TGameState,
 			TSharedState,
@@ -65,6 +66,9 @@
 				{
 					this.table.GameUpdated -= OnGameUpdated;
 					this.table.RemovePlayer(this.connectionId);
+
+					this.Closed?.Invoke(this, EventArgs.Empty);
+					this.Closed = null;
 				}
 
 				// TODO: free unmanaged resources (unmanaged objects) and override finalizer

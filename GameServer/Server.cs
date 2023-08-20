@@ -30,7 +30,13 @@ namespace GameServer
 			this.moveDeserializer = moveDeserializer ?? throw new ArgumentNullException(nameof(moveDeserializer));
 		}
 
-		public Connection CreateTable(string tableName, string tableMasterName)
+		public Connection<
+			TGameState,
+			TSharedState,
+			TPlayerState,
+			TGameMove,
+			TSerializedState,
+			TSerializedMove> CreateTable(string tableName, string tableMasterName)
 		{
 			if (string.IsNullOrEmpty(tableName))
 			{
@@ -44,7 +50,56 @@ namespace GameServer
 			Table<TGameState, TSharedState, TPlayerState, TGameMove> table = new(tableName, tableMasterName);
 			this.tables.Add(tableName, table);
 
-			return table.TableMaster.ConnectionId;
+			return CreateConnection(table, table.TableMaster.ConnectionId);
+		}
+
+		public Connection<
+			TGameState,
+			TSharedState,
+			TPlayerState,
+			TGameMove,
+			TSerializedState,
+			TSerializedMove> JoinTable(string tableName, string playerName)
+		{
+			if (string.IsNullOrEmpty(tableName))
+			{
+				throw new ArgumentException($"'{nameof(tableName)}' cannot be null or empty.", nameof(tableName));
+			}
+
+			if (!this.tables.TryGetValue(tableName, out var table))
+			{
+				throw new ArgumentException($"The table '{tableName}' already exists", nameof(tableName));
+			}
+
+			if (table.GameStarted)
+			{
+				throw new InvalidOperationException("A game was already started");
+			}
+
+			var player = table.AddPlayer(playerName);
+
+			return CreateConnection(table, player.ConnectionId);
+		}
+
+		private Connection<
+			TGameState,
+			TSharedState,
+			TPlayerState,
+			TGameMove,
+			TSerializedState,
+			TSerializedMove> CreateConnection(
+				Table<TGameState, TSharedState, TPlayerState, TGameMove> table,
+				Guid connectionId)
+		{
+			var connection = new Connection<
+				TGameState,
+				TSharedState,
+				TPlayerState,
+				TGameMove,
+				TSerializedState,
+				TSerializedMove>(table, connectionId, this.stateSerializer, this.moveDeserializer);
+
+			return connection;
 		}
 	}
 }
