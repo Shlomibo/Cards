@@ -10,6 +10,7 @@ namespace GameServer
 		TPlayerState,
 		TGameMove>
 	{
+		private readonly HashSet<string> playerNames = new();
 		private readonly Dictionary<int, string> playerNamesByIds = new();
 		private readonly Dictionary<int, Guid> playerConnectionIdsByIds = new();
 		private readonly Dictionary<Guid, int> playerIdsByConnectionId = new();
@@ -60,11 +61,17 @@ namespace GameServer
 			}
 
 			this.TableName = tableName;
+			this.playerNames.Add(tableMasterName);
 			AddPlayerWithId(0, tableMasterName);
 		}
 
 		public Player AddPlayer(string name)
 		{
+			if (!this.playerNames.Add(name))
+			{
+				throw new ArgumentException("A player with the same name already exists", nameof(name));
+			}
+
 			int id = 1 + playerConnectionIdsByIds.Keys.Max();
 
 			return AddPlayerWithId(id, name);
@@ -140,6 +147,8 @@ namespace GameServer
 					new TableGameUpdateEventArgs<TGameState, TSharedState, TPlayerState, TGameMove>(
 						game.State,
 						game.Players.Select(player => (this[player.PlayerId], player.State))));
+
+			OnGameUpdated(this, EventArgs.Empty);
 		}
 
 		private Player AddPlayerWithId(int id, string name)
@@ -152,6 +161,15 @@ namespace GameServer
 
 			return this[id];
 		}
+
+		public Table AsTableDescriptor() =>
+			new(
+				this.TableMaster.AsDescriptor(),
+				players: from kv in this.playerNamesByIds
+						 let id = kv.Key
+						 where id != this.TableMaster.Id
+						 let name = kv.Value
+						 select new Table.Player(id, name));
 
 		public readonly struct Player : IEquatable<Player>
 		{
@@ -171,6 +189,9 @@ namespace GameServer
 				this.Name = name;
 				this.ConnectionId = connectionId;
 			}
+
+			public Table.Player AsDescriptor() =>
+				new(this.Id, this.Name);
 
 			public override string ToString() => $"({this.Id}): {this.Name}";
 

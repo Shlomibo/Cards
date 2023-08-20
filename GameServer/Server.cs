@@ -1,5 +1,6 @@
 ﻿using GameEngine;
 using GameServer.DST;
+using System.Diagnostics.CodeAnalysis;
 
 namespace GameServer
 {
@@ -79,6 +80,40 @@ namespace GameServer
 			var player = table.AddPlayer(playerName);
 
 			return CreateConnection(table, player.ConnectionId);
+		}
+
+		public void StartGame(string tableName, Guid masterConnectionId, TInitOptions options)
+		{
+			if (!this.tables.TryGetValue(tableName, out var table))
+			{
+				throw new ArgumentException($"Cannot find table [{tableName}]", nameof(tableName));
+			}
+
+			if (masterConnectionId != table.TableMaster.ConnectionId)
+			{
+				throw new InvalidOperationException("Only the table master can start a game");
+			}
+
+			if (!table.GameStarted)
+			{
+				table.SetGame(this.engineFactory(options));
+			}
+		}
+
+		public Table GetTable(string tableName) =>
+			this.tables[tableName].AsTableDescriptor();
+
+		public bool TryGetTable(string tableName, [MaybeNullWhen(false)] out Table table)
+		{
+			table = null;
+			bool hasTable = this.tables.TryGetValue(tableName, out var internalTable);
+
+			if (hasTable)
+			{
+				table = internalTable!.AsTableDescriptor();
+			}
+
+			return hasTable;
 		}
 
 		private Connection<
