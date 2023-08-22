@@ -12,7 +12,7 @@ namespace GameServer
 		TGameMove,
 		TSerializedState,
 		TSerializedMove>
-		where TSerializedState : IStateUpdate<object, object>
+		where TSerializedState : class, IState<object, object>
 		where TSerializedMove : IMove
 	{
 		private readonly Func<TInitOptions, Engine<TGameState, TSharedState, TPlayerState, TGameMove>>

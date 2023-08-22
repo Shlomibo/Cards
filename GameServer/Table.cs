@@ -16,6 +16,7 @@ namespace GameServer
 		private readonly Dictionary<Guid, int> playerIdsByConnectionId = new();
 		private Engine<TGameState, TSharedState, TPlayerState, TGameMove>? game;
 
+		public event EventHandler? TableUpdated;
 		public event EventHandler<TableGameUpdateEventArgs<
 			TGameState,
 			TSharedState,
@@ -86,6 +87,13 @@ namespace GameServer
 
 			this.playerConnectionIdsByIds.Remove(id);
 			this.playerNamesByIds.Remove(id);
+
+			OnTableUpdate();
+		}
+
+		private void OnTableUpdate()
+		{
+			this.TableUpdated?.Invoke(this, EventArgs.Empty);
 		}
 
 		public void RemovePlayer(Guid connectionId)
@@ -158,6 +166,8 @@ namespace GameServer
 			this.playerConnectionIdsByIds.Add(id, connectionId);
 			this.playerIdsByConnectionId.Add(connectionId, id);
 			this.playerNamesByIds.Add(id, name);
+
+			OnTableUpdate();
 
 			return this[id];
 		}
