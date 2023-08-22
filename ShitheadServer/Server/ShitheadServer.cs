@@ -75,7 +75,7 @@ namespace ShitheadServer.Server
 				StateUpdate,
 				ShitheadMove> connection)
 		{
-			var cancellation = CancellationTokenSource.CreateLinkedTokenSource();
+			var cancellation = new CancellationTokenSource();
 
 			try
 			{
