@@ -29,6 +29,12 @@ namespace ShitheadServer.Server
 				options => ShitheadGame.CreateGame(options.PlayersCount),
 				(sharedState, playerState) => new StateUpdate(sharedState, playerState),
 				move => move.ToGameMove());
+		private ILogger<ShitheadServer> Logger { get; }
+
+		public ShitheadServer(ILogger<ShitheadServer> logger)
+		{
+			this.Logger = logger;
+		}
 
 		public async Task CreateTable(string tableName, string masterName, WebSocket ws)
 		{
@@ -76,7 +82,7 @@ namespace ShitheadServer.Server
 			return Results.NoContent();
 		}
 
-		private static async Task HandlePlayerConnection(
+		private async Task HandlePlayerConnection(
 			WebSocket ws,
 			Connection<
 				ShitheadState,
@@ -100,7 +106,7 @@ namespace ShitheadServer.Server
 					}
 					catch (Exception ex)
 					{
-						Console.WriteLine(ex.ToString());
+						this.Logger.LogWarning("Failed to send game message!", ex);
 						cancellation.Cancel();
 						ws.Dispose();
 					}
@@ -133,7 +139,7 @@ namespace ShitheadServer.Server
 							}
 							catch (Exception ex)
 							{
-								Console.WriteLine("Error parsing message", ex);
+								this.Logger.LogWarning("Error parsing message: {error}", ex);
 							}
 							finally
 							{

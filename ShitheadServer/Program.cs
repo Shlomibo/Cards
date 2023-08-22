@@ -5,7 +5,11 @@ const string ROUTE_MASTER = "masterConnection";
 const string ROUTE_PLAYER_NAME = "playerName";
 
 var builder = WebApplication.CreateBuilder(args);
-builder.Logging.AddJsonConsole();
+builder.Logging.AddJsonConsole(options =>
+{
+	options.JsonWriterOptions = new System.Text.Json.JsonWriterOptions { Indented = true };
+	options.IncludeScopes = true;
+});
 builder.Services.AddSingleton<ShitheadServer.Server.ShitheadServer>();
 
 var app = builder.Build();
