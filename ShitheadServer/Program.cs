@@ -53,28 +53,22 @@ static async Task<IResult> JoinShitheadTable(
 		return Results.BadRequest();
 	}
 
-	using var ws = await context.WebSockets.AcceptWebSocketAsync();
-
-	await server.JoinTable(tableName, playerName, ws);
-
-	return Results.NoContent();
+	return await server.JoinTable(
+		tableName,
+		playerName,
+		() => context.WebSockets.AcceptWebSocketAsync());
 }
 
 static IResult StartGame(
 	HttpContext context,
-	[FromRoute(Name = ROUTE_TABLE)]string tableName,
-	[FromRoute(Name = ROUTE_MASTER)] string connIdStr,
+	[FromRoute(Name = ROUTE_TABLE)] string tableName,
+	[FromRoute(Name = ROUTE_MASTER)] Guid connId,
 	ShitheadServer.Server.ShitheadServer server)
 {
-
-	if (!context.WebSockets.IsWebSocketRequest ||
-		string.IsNullOrEmpty(tableName) ||
-		string.IsNullOrEmpty(connIdStr) ||
-		!Guid.TryParse(connIdStr, out var connId))
+	if (string.IsNullOrEmpty(tableName))
 	{
 		return Results.BadRequest();
 	}
 
-	server.StartGame(tableName, connId);
-	return Results.NoContent();
+	return server.StartGame(tableName, connId);
 }

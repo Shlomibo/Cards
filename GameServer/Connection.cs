@@ -20,7 +20,7 @@ namespace GameServer
 		private readonly Func<TSharedState, TPlayerState, TSerializedState> stateSerializer;
 		private readonly Func<TSerializedMove, TGameMove> moveDeserializer;
 		private EventHandler<StateUpdatedEventArgs<TSerializedState>>? stateUpdatedHandler;
-		private volatile StateUpdatedEventArgs<TSerializedState> lastGameState;
+		private StateUpdatedEventArgs<TSerializedState> lastGameState;
 
 		public event EventHandler<StateUpdatedEventArgs<TSerializedState>>? StateUpdated
 		{
@@ -60,7 +60,6 @@ namespace GameServer
 
 			this.table.GameUpdated += OnGameUpdated;
 			this.table.TableUpdated += OnTableUpdated;
-
 		}
 
 		public void PlayMove(TSerializedMove move) => this.table.PlayMove(

@@ -37,10 +37,21 @@ namespace ShitheadServer.Server
 		}
 
 
-		public async Task JoinTable(string tableName, string playerName, WebSocket ws)
+		public async Task<IResult> JoinTable(
+			string tableName,
+			string playerName,
+			Func<Task<WebSocket>> acceptSocket)
 		{
+			if (!this.server.CanJoinTable(tableName, playerName))
+			{
+				return Results.BadRequest();
+			}
+
+			using var ws = await acceptSocket();
 			using var connection = this.server.JoinTable(tableName, playerName);
 			await HandlePlayerConnection(ws, connection);
+
+			return Results.NoContent();
 		}
 
 		public IResult StartGame(string tableName, Guid masterConnection)
