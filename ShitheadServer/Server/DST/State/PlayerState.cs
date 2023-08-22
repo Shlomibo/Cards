@@ -1,6 +1,4 @@
-﻿using Shithead.State;
-using static Shithead.State.ShitheadState;
-using System.Text.Json.Serialization;
+﻿using static Shithead.State.ShitheadState;
 
 namespace ShitheadServer.Server.DST.State
 {
@@ -8,7 +6,7 @@ namespace ShitheadServer.Server.DST.State
 	{
 		private readonly ShitheadPlayerState state;
 
-		public GameState GameState => this.state.GameState;
+		public string GameState => this.state.GameState.ToString();
 		public int PlayerId => this.state.PlayerId;
 		public object[] Hand { get; }
 		public IReadOnlyDictionary<int, object> RevealedCards { get; }

@@ -109,7 +109,6 @@ namespace ShitheadServer.Server
 				while (ws.State is not (WebSocketState.Closed or WebSocketState.Aborted))
 				{
 					var currentBuffer = CreateBuffer();
-					receiveBuffers.Add(currentBuffer);
 
 					var data = await ws.ReceiveAsync(currentBuffer, cancellation.Token);
 
@@ -119,7 +118,11 @@ namespace ShitheadServer.Server
 					}
 					else
 					{
-						if (data.EndOfMessage)
+						if (!data.EndOfMessage)
+						{
+							receiveBuffers.Add(currentBuffer);
+						}
+						else
 						{
 							var fullData = GetFullData(receiveBuffers, currentBuffer, data);
 							var deserializedMove = JsonSerializer.Deserialize<ShitheadMove>(fullData, serializationOptions)!;
@@ -139,22 +142,23 @@ namespace ShitheadServer.Server
 
 		private static byte[] GetFullData(
 			List<byte[]> receiveBuffers,
-			byte[] currentBuffer,
+			byte[] lastBuffer,
 			WebSocketReceiveResult data)
 		{
-			Array.Resize(ref currentBuffer, data.Count);
+			Array.Resize(ref lastBuffer, data.Count);
 			byte[] fullData;
 
-			if (receiveBuffers.Count == 1)
+			if (receiveBuffers.Count == 0)
 			{
-				fullData = receiveBuffers[0];
+				fullData = lastBuffer;
 			}
 			else
 			{
-				fullData = new byte[receiveBuffers.Sum(buffer => buffer.Length)];
+				int fullDataSize = lastBuffer.Length + receiveBuffers.Sum(buffer => buffer.Length);
+				fullData = new byte[fullDataSize];
 				int targetIndex = 0;
 
-				foreach (var buffer in receiveBuffers)
+				foreach (var buffer in receiveBuffers.Append(lastBuffer))
 				{
 					Array.Copy(buffer, 0, fullData, targetIndex, buffer.Length);
 					targetIndex += buffer.Length;

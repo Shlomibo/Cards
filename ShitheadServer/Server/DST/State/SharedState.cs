@@ -1,5 +1,4 @@
-﻿using Shithead.State;
-using static Shithead.State.ShitheadState;
+﻿using static Shithead.State.ShitheadState;
 
 namespace ShitheadServer.Server.DST.State
 {
@@ -11,7 +10,7 @@ namespace ShitheadServer.Server.DST.State
 		public IReadOnlyList<int> ActivePlayers => this.state.ActivePlayers;
 		public int DeckSize => this.state.DeckSize;
 		public IReadOnlyList<object> DiscardPile { get; }
-		public GameState GameState => this.state.GameState;
+		public string GameState => this.state.GameState.ToString();
 		public int CurrentTurnPlayer => this.state.CurrentTurnPlayer;
 
 		public SharedState(SharedShitheadState state)
