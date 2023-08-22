@@ -8,6 +8,13 @@ namespace ShitheadServer.Server.DST.State
 
 		public IReadOnlyList<SharedPlayerState> Players { get; }
 		public IReadOnlyList<int> ActivePlayers => this.state.ActivePlayers;
+		public object? LastMove => this.state.LastMove is (var move, var playerId)
+			? new
+			{
+				playerId,
+				move = ShitheadMove.FromGameMove(move).ToJsonObject(),
+			}
+			: null;
 		public int DeckSize => this.state.DeckSize;
 		public IReadOnlyList<object> DiscardPile { get; }
 		public string GameState => this.state.GameState.ToString();

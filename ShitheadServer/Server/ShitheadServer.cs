@@ -12,7 +12,7 @@ namespace ShitheadServer.Server
 	public sealed class ShitheadServer
 	{
 		private const int BUFFER_SIZE = 0x1_0000; // 64 KiB
-		private static readonly JsonSerializerOptions serializationOptions = new JsonSerializerOptions
+		private static readonly JsonSerializerOptions serializationOptions = new()
 		{
 			PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
 			DictionaryKeyPolicy = JsonNamingPolicy.CamelCase,
@@ -124,11 +124,21 @@ namespace ShitheadServer.Server
 						}
 						else
 						{
-							var fullData = GetFullData(receiveBuffers, currentBuffer, data);
-							var deserializedMove = JsonSerializer.Deserialize<ShitheadMove>(fullData, serializationOptions)!;
+							try
+							{
+								var fullData = GetFullData(receiveBuffers, currentBuffer, data);
+								var deserializedMove = JsonSerializer.Deserialize<ShitheadMove>(fullData, serializationOptions)!;
 
-							connection.PlayMove(deserializedMove);
-							receiveBuffers.Clear();
+								connection.PlayMove(deserializedMove);
+							}
+							catch (Exception ex)
+							{
+								Console.WriteLine("Error parsing message", ex);
+							}
+							finally
+							{
+								receiveBuffers.Clear();
+							}
 						}
 					}
 				}

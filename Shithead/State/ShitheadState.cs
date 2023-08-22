@@ -18,7 +18,8 @@ namespace Shithead.State
 		private readonly PlayerState[] players;
 		private readonly TurnsManager turnsManager;
 		private static readonly CardComparer cardComparer = new();
-		private readonly object stateLock = new object();
+		private readonly object stateLock = new();
+		private (IShitheadMove move, int? playerId)? lastMove;
 		#endregion
 
 		#region Properties
@@ -90,6 +91,7 @@ namespace Shithead.State
 			{
 				var moveAction = GetMove(move, player);
 				moveAction?.Invoke();
+				this.lastMove = (move, player);
 
 				return moveAction != null;
 			}
