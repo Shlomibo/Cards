@@ -12,7 +12,7 @@ namespace ShitheadServer.Server
 	public sealed class ShitheadServer
 	{
 		private const int BUFFER_SIZE = 0x1_0000; // 64 KiB
-		private static readonly JsonSerializerOptions serializationOptions = new JsonSerializerOptions
+		private static readonly JsonSerializerOptions serializationOptions = new()
 		{
 			PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
 			DictionaryKeyPolicy = JsonNamingPolicy.CamelCase,
@@ -29,6 +29,12 @@ namespace ShitheadServer.Server
 				options => ShitheadGame.CreateGame(options.PlayersCount),
 				(sharedState, playerState) => new StateUpdate(sharedState, playerState),
 				move => move.ToGameMove());
+		private ILogger<ShitheadServer> Logger { get; }
+
+		public ShitheadServer(ILogger<ShitheadServer> logger)
+		{
+			this.Logger = logger;
+		}
 
 		public async Task CreateTable(string tableName, string masterName, WebSocket ws)
 		{
@@ -37,10 +43,21 @@ namespace ShitheadServer.Server
 		}
 
 
-		public async Task JoinTable(string tableName, string playerName, WebSocket ws)
+		public async Task<IResult> JoinTable(
+			string tableName,
+			string playerName,
+			Func<Task<WebSocket>> acceptSocket)
 		{
+			if (!this.server.CanJoinTable(tableName, playerName))
+			{
+				return Results.BadRequest();
+			}
+
+			using var ws = await acceptSocket();
 			using var connection = this.server.JoinTable(tableName, playerName);
 			await HandlePlayerConnection(ws, connection);
+
+			return Results.NoContent();
 		}
 
 		public IResult StartGame(string tableName, Guid masterConnection)
@@ -65,7 +82,7 @@ namespace ShitheadServer.Server
 			return Results.NoContent();
 		}
 
-		private static async Task HandlePlayerConnection(
+		private async Task HandlePlayerConnection(
 			WebSocket ws,
 			Connection<
 				ShitheadState,
@@ -75,7 +92,7 @@ namespace ShitheadServer.Server
 				StateUpdate,
 				ShitheadMove> connection)
 		{
-			var cancellation = CancellationTokenSource.CreateLinkedTokenSource();
+			var cancellation = new CancellationTokenSource();
 
 			try
 			{
@@ -89,7 +106,7 @@ namespace ShitheadServer.Server
 					}
 					catch (Exception ex)
 					{
-						Console.WriteLine(ex.ToString());
+						this.Logger.LogWarning("Failed to send game message!", ex);
 						cancellation.Cancel();
 						ws.Dispose();
 					}
@@ -98,7 +115,6 @@ namespace ShitheadServer.Server
 				while (ws.State is not (WebSocketState.Closed or WebSocketState.Aborted))
 				{
 					var currentBuffer = CreateBuffer();
-					receiveBuffers.Add(currentBuffer);
 
 					var data = await ws.ReceiveAsync(currentBuffer, cancellation.Token);
 
@@ -108,13 +124,27 @@ namespace ShitheadServer.Server
 					}
 					else
 					{
-						if (data.EndOfMessage)
+						if (!data.EndOfMessage)
 						{
-							var fullData = GetFullData(receiveBuffers, currentBuffer, data);
-							var deserializedMove = JsonSerializer.Deserialize<ShitheadMove>(fullData, serializationOptions)!;
+							receiveBuffers.Add(currentBuffer);
+						}
+						else
+						{
+							try
+							{
+								var fullData = GetFullData(receiveBuffers, currentBuffer, data);
+								var deserializedMove = JsonSerializer.Deserialize<ShitheadMove>(fullData, serializationOptions)!;
 
-							connection.PlayMove(deserializedMove);
-							receiveBuffers.Clear();
+								connection.PlayMove(deserializedMove);
+							}
+							catch (Exception ex)
+							{
+								this.Logger.LogWarning("Error parsing message: {error}", ex);
+							}
+							finally
+							{
+								receiveBuffers.Clear();
+							}
 						}
 					}
 				}
@@ -128,22 +158,23 @@ namespace ShitheadServer.Server
 
 		private static byte[] GetFullData(
 			List<byte[]> receiveBuffers,
-			byte[] currentBuffer,
+			byte[] lastBuffer,
 			WebSocketReceiveResult data)
 		{
-			Array.Resize(ref currentBuffer, data.Count);
+			Array.Resize(ref lastBuffer, data.Count);
 			byte[] fullData;
 
-			if (receiveBuffers.Count == 1)
+			if (receiveBuffers.Count == 0)
 			{
-				fullData = receiveBuffers[0];
+				fullData = lastBuffer;
 			}
 			else
 			{
-				fullData = new byte[receiveBuffers.Sum(buffer => buffer.Length)];
+				int fullDataSize = lastBuffer.Length + receiveBuffers.Sum(buffer => buffer.Length);
+				fullData = new byte[fullDataSize];
 				int targetIndex = 0;
 
-				foreach (var buffer in receiveBuffers)
+				foreach (var buffer in receiveBuffers.Append(lastBuffer))
 				{
 					Array.Copy(buffer, 0, fullData, targetIndex, buffer.Length);
 					targetIndex += buffer.Length;

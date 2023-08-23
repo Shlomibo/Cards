@@ -1,75 +1,78 @@
-using ShitheadServer.Server.DST;
+using Microsoft.AspNetCore.Mvc;
 
 const string ROUTE_TABLE = "table";
 const string ROUTE_MASTER = "masterConnection";
+const string ROUTE_PLAYER_NAME = "playerName";
 
 var builder = WebApplication.CreateBuilder(args);
-builder.Logging.AddJsonConsole();
+builder.Logging.AddJsonConsole(options =>
+{
+	options.JsonWriterOptions = new System.Text.Json.JsonWriterOptions { Indented = true };
+	options.IncludeScopes = true;
+});
 builder.Services.AddSingleton<ShitheadServer.Server.ShitheadServer>();
-
 
 var app = builder.Build();
 
-app.MapPost("/sheethead/create", CreateShitheadTable);
-app.MapPost($"/sheethead/{{{ROUTE_TABLE}}}/join", JoinShitheadTable);
-app.MapPost($"/sheethead/{{{ROUTE_TABLE}}}/{{{ROUTE_MASTER}}}/start", StartGame);
+app.UseWebSockets();
+string baseRoute = $"/shithead/{{{ROUTE_TABLE}}}";
+
+app.MapGet(baseRoute, () => "hello");
+app.MapGet(baseRoute + $"/create/{{{ROUTE_PLAYER_NAME}}}", CreateShitheadTable);
+app.MapGet(baseRoute + $"/join/{{{ROUTE_PLAYER_NAME}}}", JoinShitheadTable);
+app.MapPost(baseRoute + $"/start/{{{ROUTE_MASTER}}}", StartGame);
 
 app.Run();
 
 static async Task<IResult> CreateShitheadTable(
-	HttpContext contex,
+	HttpContext context,
+	[FromRoute(Name = ROUTE_TABLE)] string tableName,
+	[FromRoute(Name = ROUTE_PLAYER_NAME)] string tableMasterName,
 	ShitheadServer.Server.ShitheadServer server)
 {
-	var body = await contex.Request.ReadFromJsonAsync<CreateTableRequest>();
-
-	if (!contex.WebSockets.IsWebSocketRequest ||
-		string.IsNullOrEmpty(body?.TableName) ||
-		string.IsNullOrEmpty(body?.MasterName))
-	{
-		return Results.BadRequest();
-	}
-
-	using var ws = await contex.WebSockets.AcceptWebSocketAsync();
-
-	await server.CreateTable(body.TableName, body.MasterName, ws);
-
-	return Results.NoContent();
-}
-
-static async Task<IResult> JoinShitheadTable(HttpContext context, ShitheadServer.Server.ShitheadServer server)
-{
-	string? tableName = context.Request.RouteValues[ROUTE_TABLE] as string;
-	var body = await context.Request.ReadFromJsonAsync<JoinTableRequest>();
-
 	if (!context.WebSockets.IsWebSocketRequest ||
 		string.IsNullOrEmpty(tableName) ||
-		string.IsNullOrEmpty(body?.PlayerName))
+		string.IsNullOrEmpty(tableMasterName))
 	{
 		return Results.BadRequest();
 	}
 
 	using var ws = await context.WebSockets.AcceptWebSocketAsync();
 
-	await server.JoinTable(tableName, body.PlayerName, ws);
+	await server.CreateTable(tableName, tableMasterName, ws);
 
 	return Results.NoContent();
 }
 
-static IResult StartGame(
+static async Task<IResult> JoinShitheadTable(
 	HttpContext context,
+	[FromRoute(Name = ROUTE_TABLE)] string tableName,
+	[FromRoute] string playerName,
 	ShitheadServer.Server.ShitheadServer server)
 {
-	string? tableName = context.Request.RouteValues[ROUTE_TABLE] as string;
-	string? connIdStr = context.Request.RouteValues[ROUTE_MASTER] as string;
-
 	if (!context.WebSockets.IsWebSocketRequest ||
 		string.IsNullOrEmpty(tableName) ||
-		string.IsNullOrEmpty(connIdStr) ||
-		!Guid.TryParse(connIdStr, out var connId))
+		string.IsNullOrEmpty(playerName))
 	{
 		return Results.BadRequest();
 	}
 
-	server.StartGame(tableName, connId);
-	return Results.NoContent();
+	return await server.JoinTable(
+		tableName,
+		playerName,
+		() => context.WebSockets.AcceptWebSocketAsync());
+}
+
+static IResult StartGame(
+	HttpContext context,
+	[FromRoute(Name = ROUTE_TABLE)] string tableName,
+	[FromRoute(Name = ROUTE_MASTER)] Guid connId,
+	ShitheadServer.Server.ShitheadServer server)
+{
+	if (string.IsNullOrEmpty(tableName))
+	{
+		return Results.BadRequest();
+	}
+
+	return server.StartGame(tableName, connId);
 }

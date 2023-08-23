@@ -3,7 +3,7 @@ using Shithead.State;
 
 namespace ShitheadServer.Server.DST.State
 {
-	public sealed class StateUpdate : IStateUpdate<SharedState, PlayerState>
+	public sealed class StateUpdate : IState<SharedState, PlayerState>
 	{
 		public SharedState SharedState { get; }
 

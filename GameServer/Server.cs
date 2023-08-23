@@ -12,7 +12,7 @@ namespace GameServer
 		TGameMove,
 		TSerializedState,
 		TSerializedMove>
-		where TSerializedState : IStateUpdate<object, object>
+		where TSerializedState : class, IState<object, object>
 		where TSerializedMove : IMove
 	{
 		private readonly Func<TInitOptions, Engine<TGameState, TSharedState, TPlayerState, TGameMove>>
@@ -43,6 +43,12 @@ namespace GameServer
 			{
 				throw new ArgumentException($"'{nameof(tableName)}' cannot be null or empty.", nameof(tableName));
 			}
+
+			if (string.IsNullOrEmpty(tableMasterName))
+			{
+				throw new ArgumentException($"'{nameof(tableMasterName)}' cannot be null or empty.", nameof(tableMasterName));
+			}
+
 			if (this.tables.ContainsKey(tableName))
 			{
 				throw new ArgumentException($"The table '{tableName}' already exists", nameof(tableName));
@@ -52,6 +58,40 @@ namespace GameServer
 			this.tables.Add(tableName, table);
 
 			return CreateConnection(table, table.TableMaster.ConnectionId);
+		}
+
+		public bool CanJoinTable(string tableName, string playerName) =>
+			!string.IsNullOrEmpty(tableName) &&
+				!string.IsNullOrEmpty(playerName) &&
+				this.tables.TryGetValue(tableName, out var table) &&
+				!table.GameStarted;
+
+		public bool TryJoinTable(
+			string tableName,
+			string playerName,
+			[MaybeNullWhen(false)] out Connection<
+			TGameState,
+			TSharedState,
+			TPlayerState,
+			TGameMove,
+			TSerializedState,
+			TSerializedMove> connection)
+		{
+			connection = null;
+
+			if (CanJoinTable(tableName, playerName))
+			{
+				try
+				{
+					connection = JoinTable(tableName, playerName);
+				}
+				catch
+				{
+					return false;
+				}
+			}
+
+			return connection != null;
 		}
 
 		public Connection<
@@ -65,6 +105,11 @@ namespace GameServer
 			if (string.IsNullOrEmpty(tableName))
 			{
 				throw new ArgumentException($"'{nameof(tableName)}' cannot be null or empty.", nameof(tableName));
+			}
+
+			if (string.IsNullOrEmpty(playerName))
+			{
+				throw new ArgumentException($"'{nameof(playerName)}' cannot be null or empty.", nameof(playerName));
 			}
 
 			if (!this.tables.TryGetValue(tableName, out var table))

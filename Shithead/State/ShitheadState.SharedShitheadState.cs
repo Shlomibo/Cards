@@ -1,5 +1,6 @@
 ﻿using Deck;
 using Deck.Cards.FrenchSuited;
+using Shithead.ShitheadMove;
 using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 
@@ -17,6 +18,7 @@ namespace Shithead.State
 			public IReadonlyDeck<Card> DiscardPile { get; }
 			public GameState GameState => this.state.GameState;
 			public int CurrentTurnPlayer => this.state.turnsManager.Current;
+			public (IShitheadMove move, int? playerId)? LastMove => this.state.lastMove;
 
 			public SharedShitheadState(ShitheadState state)
 			{

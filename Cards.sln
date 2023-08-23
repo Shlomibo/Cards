@@ -17,11 +17,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GameServer", "GameServer\Ga
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ShitheadServer", "ShitheadServer\ShitheadServer.csproj", "{BDDB4C9E-307C-42C8-B089-1CAB108E8508}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{C65B1FE5-5991-44C6-A322-B81E2EB2A501}"
-	ProjectSection(SolutionItems) = preProject
-		LICENSE = LICENSE
-	EndProjectSection
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
