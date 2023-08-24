@@ -1,5 +1,5 @@
 ﻿using GameEngine;
-using GameServer.DST;
+using GameServer.DTO;
 using System.Diagnostics.CodeAnalysis;
 
 namespace GameServer

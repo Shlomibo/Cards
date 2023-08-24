@@ -1,4 +1,4 @@
-﻿namespace GameServer.DST
+﻿namespace GameServer.DTO
 {
 	public sealed class StateUpdate<TState>
 		where TState : class, IState<object, object>

@@ -1,6 +1,6 @@
 ﻿using Deck.Cards.FrenchSuited;
 
-namespace ShitheadServer.Server.DST.State
+namespace ShitheadServer.Server.DTO.State
 {
 	public static class CardExtensions
 	{

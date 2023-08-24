@@ -1,4 +1,4 @@
-﻿using GameServer.DST;
+﻿using GameServer.DTO;
 
 namespace GameServer
 {
@@ -56,7 +56,7 @@ namespace GameServer
 				new StateUpdate<TSerializedState>(
 					this.table.TableName,
 					new CurrentPlayer(this.Player.Id, this.Player.Name, this.Player.ConnectionId),
-					this.table.AsTableDescriptor().Players.Select(player => new DST.Player(player.Id, player.Name))));
+					this.table.AsTableDescriptor().Players.Select(player => new DTO.Player(player.Id, player.Name))));
 
 			this.table.GameUpdated += OnGameUpdated;
 			this.table.TableUpdated += OnTableUpdated;
@@ -87,7 +87,7 @@ namespace GameServer
 					this.table.TableName,
 					new CurrentPlayer(this.Player.Id, this.Player.Name, this.Player.ConnectionId),
 					this.table.AsTableDescriptor().Players.Select(player =>
-						new DST.Player(player.Id, player.Name)),
+						new DTO.Player(player.Id, player.Name)),
 					state));
 
 			this.lastGameState = gameStateUpdate;

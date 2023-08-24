@@ -7,10 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Server\DST\Movements\**" />
-    <Content Remove="Server\DST\Movements\**" />
-    <EmbeddedResource Remove="Server\DST\Movements\**" />
-    <None Remove="Server\DST\Movements\**" />
+    <Compile Remove="Server\DTO\Movements\**" />
+    <Content Remove="Server\DTO\Movements\**" />
+    <EmbeddedResource Remove="Server\DTO\Movements\**" />
+    <None Remove="Server\DTO\Movements\**" />
   </ItemGroup>
 
   <ItemGroup>
@@ -19,6 +19,10 @@
     <ProjectReference Include="..\GameServer\GameServer.csproj" />
     <ProjectReference Include="..\Shithead\Shithead.csproj" />
     <ProjectReference Include="..\TurnsManagement\TurnsManagement.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="wwwroot\" />
   </ItemGroup>
 
 </Project>

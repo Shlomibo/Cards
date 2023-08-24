@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc;
 
 const string ROUTE_TABLE = "table";
@@ -15,12 +16,24 @@ builder.Services.AddSingleton<ShitheadServer.Server.ShitheadServer>();
 var app = builder.Build();
 
 app.UseWebSockets();
+
+if (!app.Environment.IsDevelopment())
+{
+	app.UseExceptionHandler("/Error");
+	app.UseHsts();
+}
+
 string baseRoute = $"/shithead/{{{ROUTE_TABLE}}}";
 
 app.MapGet(baseRoute, () => "hello");
 app.MapGet(baseRoute + $"/create/{{{ROUTE_PLAYER_NAME}}}", CreateShitheadTable);
 app.MapGet(baseRoute + $"/join/{{{ROUTE_PLAYER_NAME}}}", JoinShitheadTable);
 app.MapPost(baseRoute + $"/start/{{{ROUTE_MASTER}}}", StartGame);
+
+app.UseStaticFiles(new StaticFileOptions
+{
+	HttpsCompression = HttpsCompressionMode.Compress,
+});
 
 app.Run();
 

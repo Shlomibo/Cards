@@ -1,7 +1,7 @@
-﻿using GameServer.DST;
+﻿using GameServer.DTO;
 using Shithead.ShitheadMove;
 
-namespace ShitheadServer.Server.DST
+namespace ShitheadServer.Server.DTO
 {
 	public sealed class ShitheadMove : IMove
 	{

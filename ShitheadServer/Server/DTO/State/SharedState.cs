@@ -1,6 +1,6 @@
 ﻿using static Shithead.State.ShitheadState;
 
-namespace ShitheadServer.Server.DST.State
+namespace ShitheadServer.Server.DTO.State
 {
 	public sealed class SharedState
 	{

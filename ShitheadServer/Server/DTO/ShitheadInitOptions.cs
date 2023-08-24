@@ -1,4 +1,4 @@
-﻿namespace ShitheadServer.Server.DST
+﻿namespace ShitheadServer.Server.DTO
 {
 	public sealed record ShitheadInitOptions(int PlayersCount)
 	{

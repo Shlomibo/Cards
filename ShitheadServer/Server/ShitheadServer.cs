@@ -2,8 +2,8 @@
 using Shithead;
 using Shithead.ShitheadMove;
 using Shithead.State;
-using ShitheadServer.Server.DST;
-using ShitheadServer.Server.DST.State;
+using ShitheadServer.Server.DTO;
+using ShitheadServer.Server.DTO.State;
 using System.Net.WebSockets;
 using System.Text.Json;
 

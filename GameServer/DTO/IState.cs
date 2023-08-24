@@ -1,4 +1,4 @@
-﻿namespace GameServer.DST
+﻿namespace GameServer.DTO
 {
 	public interface IState<out TShared, out TPlayer>
 	{
