@@ -12,8 +12,8 @@ export class TableMaster extends Player {
 		super(tableName, tableMasterName, ws, options);
 	}
 
-	public removePlayer(playerId: number): void {
-		this._send({
+	public async removePlayer(playerId: number): Promise<void> {
+		await this._send({
 			move: 'LeaveGame',
 			playerId,
 		} satisfies LeaveGame);

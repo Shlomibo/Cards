@@ -10,8 +10,19 @@ import {
 	UnsetRevealedCard,
 } from './ShitheadMove.js';
 import { ServerState, isServerState } from './ShitheadServerState.js';
-import { State } from './ShitheadState.js';
+import {
+	PlayerShitheadServerState,
+	PlayerShitheadState,
+	SharedShitheadPlayerServerState,
+	SharedShitheadPlayerState,
+	SharedShitheadServerState,
+	SharedShitheadState,
+	ShitheadState,
+	State,
+} from './ShitheadState.js';
 import { ShitheadOptions } from './common.js';
+
+const HIGH_WATERMARK = 7 * 1024;
 
 export class Player extends EventTarget {
 	#lastState: null | State = null;
@@ -30,8 +41,9 @@ export class Player extends EventTarget {
 				return;
 			}
 
-			this.#lastState = ev.data;
-			this.dispatchEvent(new ShitheadStateEvent(gameStateFromServerState(ev.data)));
+			const lastState = stateFromServerState(ev.data)
+			this.#lastState = lastState;
+			this.dispatchEvent(new ShitheadStateEvent(lastState));
 		});
 	}
 
@@ -39,71 +51,85 @@ export class Player extends EventTarget {
 		return this.#lastState;
 	}
 
-	public revealedCardSelection(cardIndex: number, targetIndex: number): void {
-		this._send({
+	public async revealedCardSelection(cardIndex: number, targetIndex: number): Promise<void> {
+		await this._send({
 			move: 'RevealedCardSelection',
 			cardIndex,
 			targetIndex,
 		} satisfies RevealedCardSelection);
 	}
 
-	public unsetRevealedCard(cardIndex: number): void {
-		this._send({
+	public async unsetRevealedCard(cardIndex: number): Promise<void> {
+		await this._send({
 			move: 'UnsetRevealedCard',
 			cardIndex,
 		} satisfies UnsetRevealedCard);
 	}
 
-	public revealUndercard(cardIndex: number): void {
-		this._send({
+	public async revealUndercard(cardIndex: number): Promise<void> {
+		await this._send({
 			move: 'RevealUndercard',
 			cardIndex,
 		} satisfies RevealUndercard);
 	}
 
-	public placeCard(cardIndex:number, ...cardIndices: number[]): void
-	public placeCard(...cardIndices: [number, ...number[]]): void {
-		this._send({
+	public placeCard(cardIndex: number, ...cardIndices: number[]): Promise<void>;
+	public async placeCard(...cardIndices: [number, ...number[]]): Promise<void> {
+		await this._send({
 			move: 'PlaceCard',
 			cardIndices,
 		} satisfies PlaceCard);
 	}
 
-	public takeUndercards(cardIndex: number, ...cardIndices: number[]): void
-	public takeUndercards(...cardIndices: [number, ...number[]]): void {
-		this._send({
+	public takeUndercards(cardIndex: number, ...cardIndices: number[]): Promise<void>
+	public async takeUndercards(...cardIndices: [number, ...number[]]): Promise<void> {
+		await this._send({
 			move: 'TakeUndercards',
 			cardIndices,
 		} satisfies TakeUndercards);
 	}
 
-	public placeJoker(playerId:number): void {
-		this._send({
+	public async placeJoker(playerId:number): Promise<void> {
+		await this._send({
 			move: 'PlaceJoker',
 			playerId,
 		} satisfies PlaceJoker);
 	}
 
-	public acceptSelectedRevealedCards(): void {
-		this._send({
+	public async acceptSelectedRevealedCards(): Promise<void> {
+		await this._send({
 			move: 'AcceptSelectedRevealedCards',
 		} satisfies AcceptSelectedRevealedCards);
 	}
 
-	public reselectRevealedCards(): void {
-		this._send({
+	public async reselectRevealedCards(): Promise<void> {
+		await this._send({
 			move: 'ReselectRevealedCards',
 		} satisfies ReselectRevealedCards);
 	}
 
-	public acceptDiscardPile(): void {
-		this._send({
+	public async acceptDiscardPile(): Promise<void> {
+		await this._send({
 			move: 'AcceptDiscardPile',
 		} satisfies AcceptDiscardPile);
 	}
 
-	protected _send(data: unknown): void {
-		return this._ws.send(JSON.stringify(data));
+	protected async _send(data: unknown): Promise<void> {
+		this._ws.send(JSON.stringify(data));
+
+		if (this._ws.bufferedAmount >= HIGH_WATERMARK) {
+			await new Promise<void>(async (res, rej) => {
+				while (this._ws.bufferedAmount > 0) {
+					if (this._ws.readyState !== WebSocket.OPEN) {
+						return rej(new Error('Socket was closed'));
+					}
+
+					await new Promise(res => setTimeout(res, 50));
+				}
+
+				res();
+			});
+		}
 	}
 }
 
@@ -113,6 +139,59 @@ export class ShitheadStateEvent extends Event {
 	}
 }
 
-function gameStateFromServerState(state: ServerState): State {
-	return state;
+function stateFromServerState({
+	gameState,
+	...state
+}: ServerState): State {
+	const tablePlayers = state.table;
+
+	return Object.assign(state, {
+		gameState: gameState && gameStateFromServerState(gameState),
+	});
+
+	function gameStateFromServerState({
+		sharedState,
+		playerState,
+	}: ServerState['gameState'] & {}): ShitheadState {
+		return {
+			sharedState: shareStateFromServerState(sharedState),
+			playerState: playerStateFromServerState(playerState),
+		};
+
+		function shareStateFromServerState({
+			players,
+			activePlayers,
+			lastMove,
+			currentTurnPlayer,
+			...sharedState
+		}: SharedShitheadServerState): SharedShitheadState {
+			return Object.assign(sharedState, {
+				players: players.map(sharedPlayerStateFromServerState),
+				activePlayers: activePlayers.map(id => tablePlayers[id]),
+				lastMove: lastMove && {
+					...lastMove,
+					player: lastMove.playerId !== null
+						? tablePlayers[lastMove.playerId]
+						: null,
+				},
+				currentTurnPlayer: tablePlayers[currentTurnPlayer],
+			});
+
+			function sharedPlayerStateFromServerState(
+				player: SharedShitheadPlayerServerState
+			): SharedShitheadPlayerState {
+				return {
+					...player,
+					name: tablePlayers[player.id].name,
+				};
+			}
+		}
+
+		function playerStateFromServerState(playerState: PlayerShitheadServerState): PlayerShitheadState {
+			return {
+				...playerState,
+				name: tablePlayers[playerState.playerId].name,
+			}
+		}
+	}
 }

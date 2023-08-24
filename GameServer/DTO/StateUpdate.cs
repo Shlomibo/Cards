@@ -25,11 +25,11 @@
 			CurrentPlayer currentPlayer,
 			IEnumerable<Player> players,
 			TState? state = null)
-			: this(tableName, currentPlayer, players.ToDictionary(player => player.PlayerId), state)
+			: this(tableName, currentPlayer, players.ToDictionary(player => player.Id), state)
 		{
 		}
 	}
 
-	public sealed record Player(int PlayerId, string PlayerName) { }
-	public sealed record CurrentPlayer(int PlayerId, string PlayerName, Guid ConnectionId) { }
+	public sealed record Player(int Id, string Name) { }
+	public sealed record CurrentPlayer(int Id, string Name, Guid ConnectionId) { }
 }

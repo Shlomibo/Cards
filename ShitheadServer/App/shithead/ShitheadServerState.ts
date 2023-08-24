@@ -32,18 +32,18 @@ export function isServerState(value: unknown): value is ServerState {
 }
 
 export interface TablePlayer {
-	playerId: number
-	playerName: string
+	id: number
+	name: string
 }
 
 export function isTablePlayer(value: unknown): value is TablePlayer {
 	return isObject(value) &&
 
-		'playerId' in value &&
-		typeof value.playerId === 'number' &&
+		'id' in value &&
+		typeof value.id === 'number' &&
 
-		'playerName' in value &&
-		typeof value.playerName === 'string';
+		'name' in value &&
+		typeof value.name === 'string';
 }
 
 export interface CurrentTablePlayer extends TablePlayer {
@@ -75,7 +75,7 @@ export function isShitheadState(value: unknown): value is ShitheadState {
 export interface SharedShitheadState {
 	players: SharedShitheadPlayerState[]
 	activePlayers: number[]
-	lastMove: Move | null
+	lastMove: LastMove | null
 	deckSize: number
 	discardPile: Card[]
 	gameState: GameState
@@ -94,7 +94,7 @@ export function isSharedShitheadState(value: unknown): value is SharedShitheadSt
 		value.activePlayers.every(player => typeof player === 'number') &&
 
 		'lastMove' in value &&
-		(value.lastMove === null || isMove(value.lastMove)) &&
+		(value.lastMove === null || isLastMove(value.lastMove)) &&
 
 		'deckSize' in value &&
 		typeof value.deckSize === 'number' &&
@@ -121,6 +121,21 @@ export type GameState = keyof typeof gameStates;
 export function isGameState(value: unknown): value is GameState {
 	return typeof value === 'string' &&
 		value in gameStates;
+}
+
+export interface LastMove {
+	playerId: null | number
+	move: Move
+}
+
+export function isLastMove(value: unknown): value is LastMove {
+	return isObject(value) &&
+
+		'playerId' in value &&
+		(value.playerId === null || typeof value.playerId === 'number') &&
+
+		'move' in value &&
+		isMove(value.move);
 }
 
 export interface SharedShitheadPlayerState {
