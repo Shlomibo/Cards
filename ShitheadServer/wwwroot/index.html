@@ -1,0 +1,32 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Shitty Shithead</title>
+
+    <link rel="stylesheet" href="style.css" />
+
+    <script type="module" src="js/shithead/index.js"></script>
+    <script type="module" src="js/shithead/common.js"></script>
+    <script type="module" src="js/shithead/Player.js"></script>
+    <script type="module" src="js/shithead/ShitheadMove.js"></script>
+    <script type="module" src="js/shithead/ShitheadServerState.js"></script>
+    <script type="module" src="js/shithead/ShitheadState.js"></script>
+    <script type="module" src="js/shithead/TableMaster.js"></script>
+
+    <script type="module" src="js/Shitty-Shithead/index.js"></script>
+</head>
+<body>
+    <h1>Shitty Shithead</h1>
+    <div id="shithead"></div>
+
+    <script>
+        (async function () {
+            const { createGame } = await import('./js/Shitty-Shithead/index.js');
+            const root = document.getElementById('shithead');
+
+            createGame(root);
+        })().catch(console.error);
+    </script>
+</body>
+</html>
