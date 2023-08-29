@@ -45,6 +45,7 @@ export class Player extends EventTarget {
 			this.#lastState = lastState;
 			this.dispatchEvent(new ShitheadStateEvent(lastState));
 		});
+		_ws.addEventListener('close', ev => this.dispatchEvent(ev));
 	}
 
 	public get lastState(): State | null {
@@ -130,8 +131,37 @@ export class Player extends EventTarget {
 				res();
 			});
 		}
+		this.addEventListener
+	}
+
+	public addEventListener(
+		type: 'close',
+		callback: StupidDOMEventListener<CloseEvent> | null,
+		options?: AddEventListenerOptions | boolean
+	): void;
+	public addEventListener(
+		type: 'state-update',
+		callback: ShitheadStateEventListener | null,
+		options?: AddEventListenerOptions | boolean
+	): void;
+	public addEventListener(
+		type: string,
+		callback: EventListenerOrEventListenerObject | null,
+		options?: AddEventListenerOptions | boolean
+	): void;
+	public addEventListener(
+		type: string,
+		callback: EventListenerOrEventListenerObject | null,
+		options?: AddEventListenerOptions | boolean
+	): void {
+		super.addEventListener(type, callback, options);
 	}
 }
+
+type StupidDOMEventListener<TEvent extends Event> =
+	| ((ev: TEvent) => void)
+	| { handleEvent: (ev: TEvent) => void };
+export type ShitheadStateEventListener = StupidDOMEventListener<ShitheadStateEvent>
 
 export class ShitheadStateEvent extends Event {
 	public constructor(public readonly state: State) {

@@ -1,2 +1,6 @@
 ﻿body {
 }
+
+.hidden {
+	display: none;
+}
