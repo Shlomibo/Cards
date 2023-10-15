@@ -9,11 +9,14 @@ export function isObject(value: unknown): value is object {
 	return value === Object(value);
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type Key = keyof any;
+
 export function isRecord<TValue>(
 	value: unknown,
 	propValueValidation: (x: unknown) => x is TValue,
-): value is Record<keyof any, TValue>;
-export function isRecord<TKey extends keyof any, TValue>(
+): value is Record<Key, TValue>;
+export function isRecord<TKey extends Key, TValue>(
 	value: unknown,
 	propKeyValidation: (x: unknown) => x is TKey,
 	propValueValidation: (x: unknown) => x is TValue,

@@ -1,8 +1,8 @@
-import { Player } from './Player.js';
-import { TableMaster } from './TableMaster.js';
-import { ShitheadOptions, ShitheadTableCreationOptions } from './common.js';
+import { Player } from './Player';
+import { TableMaster } from './TableMaster';
+import { ShitheadOptions, ShitheadTableCreationOptions } from './common';
 
-export {
+export type {
 	ShitheadOptions,
 	ShitheadTableCreationOptions,
 }

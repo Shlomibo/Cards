@@ -1,4 +1,4 @@
-import { isObject } from './common.js';
+import { isObject } from './common';
 
 export interface MoveBase {
 	move: string

@@ -1,4 +1,4 @@
-import { Move } from './ShitheadMove.js';
+import { Move } from './ShitheadMove';
 import {
 	ServerState,
 	SharedShitheadState as SharedShitheadServerState,
@@ -7,7 +7,7 @@ import {
     TablePlayer,
 } from './ShitheadServerState.js';
 
-export {
+export type {
 	ServerState,
 	SharedShitheadServerState,
 	PlayerShitheadServerState,

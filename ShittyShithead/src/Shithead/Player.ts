@@ -8,8 +8,8 @@ import {
 	RevealedCardSelection,
 	TakeUndercards,
 	UnsetRevealedCard,
-} from './ShitheadMove.js';
-import { ServerState, isServerState } from './ShitheadServerState.js';
+} from './ShitheadMove';
+import { ServerState, isServerState } from './ShitheadServerState';
 import {
 	PlayerShitheadServerState,
 	PlayerShitheadState,
@@ -19,8 +19,8 @@ import {
 	SharedShitheadState,
 	ShitheadState,
 	State,
-} from './ShitheadState.js';
-import { ShitheadOptions } from './common.js';
+} from './ShitheadState';
+import { ShitheadOptions } from './common';
 
 const HIGH_WATERMARK = 7 * 1024;
 
@@ -182,7 +182,7 @@ function stateFromServerState({
 	function gameStateFromServerState({
 		sharedState,
 		playerState,
-	}: ServerState['gameState'] & {}): ShitheadState {
+	}: ServerState['gameState'] & NonNullable<unknown>): ShitheadState {
 		return {
 			sharedState: shareStateFromServerState(sharedState),
 			playerState: playerStateFromServerState(playerState),

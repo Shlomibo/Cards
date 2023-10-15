@@ -1,5 +1,5 @@
-import { Move, isMove } from './ShitheadMove.js';
-import { isObject, isRecord } from './common.js';
+import { Move, isMove } from './ShitheadMove';
+import { isObject, isRecord } from './common';
 
 export type Numeric = `${number}`;
 

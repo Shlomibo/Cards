@@ -1,6 +1,6 @@
-import { Player } from './Player.js';
-import { LeaveGame } from './ShitheadMove.js';
-import { ShitheadTableCreationOptions } from './common.js';
+import { Player } from './Player';
+import { LeaveGame } from './ShitheadMove';
+import { ShitheadTableCreationOptions } from './common';
 
 export class TableMaster extends Player {
 	public constructor(
