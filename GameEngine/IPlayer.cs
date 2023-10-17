@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace GameEngine
+﻿namespace GameEngine
 {
 	public interface IPlayer<TSharedState, TState, TGameMove>
 	{

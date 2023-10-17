@@ -1,13 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Deck
+﻿namespace Deck
 {
 	public sealed class CardFace<TCard>
-		where TCard: new()
+		where TCard : new()
 	{
 		#region Fields
 
