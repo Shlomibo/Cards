@@ -4,7 +4,7 @@ import {
 	SharedShitheadState as SharedShitheadServerState,
 	PlayerShitheadState as PlayerShitheadServerState,
 	SharedShitheadPlayerState as SharedShitheadPlayerServerState,
-    TablePlayer,
+	TablePlayer,
 } from './ShitheadServerState.js';
 
 export type {

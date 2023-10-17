@@ -14,6 +14,8 @@ module.exports = {
       'warn',
       { allowConstantExport: true },
       ],
-    'no-async-promise-executor': 'off',
+      'no-async-promise-executor': 'off',
+      indent: ['error', 'tab'],
+      'eol-last': ['error', 'always'],
   },
 }

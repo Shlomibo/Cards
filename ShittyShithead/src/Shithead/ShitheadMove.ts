@@ -147,16 +147,16 @@ export function isMove(value: unknown): value is Move {
 	}
 
 	switch (value.move) {
-		case 'RevealedCardSelection': return isRevealedCardSelection(value);
-		case 'UnsetRevealedCard': return isUnsetRevealedCard(value);
-		case 'RevealUndercard': return isRevealUndercard(value);
-		case 'PlaceCard': return isPlaceCard(value);
-		case 'TakeUndercards': return isTakeUndercards(value);
-		case 'PlaceJoker': return isPlaceJoker(value);
-		case 'LeaveGame': return isLeaveGame(value);
-		case 'AcceptSelectedRevealedCards': return isAcceptSelectedRevealedCards(value);
-		case 'ReselectRevealedCards': return isReselectRevealedCards(value);
-		case 'AcceptDiscardPile': return isAcceptDiscardPile(value);
-		default: return false;
+	case 'RevealedCardSelection': return isRevealedCardSelection(value);
+	case 'UnsetRevealedCard': return isUnsetRevealedCard(value);
+	case 'RevealUndercard': return isRevealUndercard(value);
+	case 'PlaceCard': return isPlaceCard(value);
+	case 'TakeUndercards': return isTakeUndercards(value);
+	case 'PlaceJoker': return isPlaceJoker(value);
+	case 'LeaveGame': return isLeaveGame(value);
+	case 'AcceptSelectedRevealedCards': return isAcceptSelectedRevealedCards(value);
+	case 'ReselectRevealedCards': return isReselectRevealedCards(value);
+	case 'AcceptDiscardPile': return isAcceptDiscardPile(value);
+	default: return false;
 	}
 }
