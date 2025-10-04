@@ -1,9 +1,8 @@
-﻿namespace Shithead.State
+﻿namespace Shithead.State;
+
+public enum GameState
 {
-	public enum GameState
-	{
-		Init,
-		GameOn,
-		GameOver,
-	}
+	Init,
+	GameOn,
+	GameOver,
 }

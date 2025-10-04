@@ -3,6 +3,6 @@
 namespace ShitheadServer.Server;
 
 [Mapper]
-internal static class Mapper
+internal static partial class Mapper
 {
 }

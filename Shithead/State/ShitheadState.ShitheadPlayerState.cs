@@ -1,48 +1,46 @@
 ﻿using Deck;
 using Deck.Cards.FrenchSuited;
 
-namespace Shithead.State
+namespace Shithead.State;
+
+public sealed partial class ShitheadState
 {
-	public sealed partial class ShitheadState
+	public sealed class ShitheadPlayerState
 	{
-		public sealed class ShitheadPlayerState
+		private readonly ShitheadState state;
+
+		private PlayerState PlayerState => state.players[PlayerId];
+		private SharedPlayerState SharedPlayerState => state.SharedState.Players[PlayerId];
+
+		public GameState GameState => state.GameState;
+		public int PlayerId { get; }
+		public IReadonlyDeck<Card> Hand { get; }
+		public IReadOnlyDictionary<int, Card> RevealedCards => SharedPlayerState.RevealedCards;
+		public IReadOnlyDictionary<int, Card?> Undercards => SharedPlayerState.Undercards;
+		public bool Won => PlayerState.Won;
+		public bool RevealedCardsAccepted => PlayerState.RevealedCardsAccepted;
+
+		public ShitheadPlayerState(int playerId, ShitheadState state)
 		{
-			private readonly ShitheadState state;
+			PlayerId = playerId;
+			this.state = state;
+			Hand = PlayerState.Hand.AsReadonly();
+		}
 
-			private PlayerState PlayerState => this.state.players[this.PlayerId];
-			private SharedPlayerState SharedPlayerState => this.state.SharedState.Players[this.PlayerId];
-
-			public GameState GameState => this.state.GameState;
-			public int PlayerId { get; }
-			public IReadonlyDeck<Card> Hand { get; }
-			public IReadOnlyDictionary<int, Card> RevealedCards => this.SharedPlayerState.RevealedCards;
-			public IReadOnlyDictionary<int, Card?> Undercards => this.SharedPlayerState.Undercards;
-			public bool Won => this.PlayerState.Won;
-			public bool RevealedCardsAccepted => this.PlayerState.RevealedCardsAccepted;
-
-
-			public ShitheadPlayerState(int playerId, ShitheadState state)
+		public Card GetCard(int cardIndex)
+		{
+			if (Hand.Count > 0)
 			{
-				this.PlayerId = playerId;
-				this.state = state;
-				this.Hand = this.PlayerState.Hand.AsReadonly();
+				return Hand[cardIndex];
 			}
-
-			public Card GetCard(int cardIndex)
+			else if (RevealedCards.Count > 0)
 			{
-				if (this.Hand.Count > 0)
-				{
-					return this.Hand[cardIndex];
-				}
-				else if (this.RevealedCards.Count > 0)
-				{
-					return this.RevealedCards[cardIndex];
-				}
-				else
-				{
-					return this.Undercards[cardIndex] ??
-						throw new InvalidOperationException("The selected undercard is not revealed yet");
-				}
+				return RevealedCards[cardIndex];
+			}
+			else
+			{
+				return Undercards[cardIndex] ??
+					throw new InvalidOperationException("The selected undercard is not revealed yet");
 			}
 		}
 	}

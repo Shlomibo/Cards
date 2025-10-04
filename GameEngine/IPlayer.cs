@@ -1,16 +1,15 @@
-﻿namespace GameEngine
+﻿namespace GameEngine;
+
+public interface IPlayer<TSharedState, TState, TGameMove>
 {
-	public interface IPlayer<TSharedState, TState, TGameMove>
-	{
-		event EventHandler Updated;
+	event EventHandler Updated;
 
-		TSharedState SharedState { get; }
-		TState State { get; }
-		int PlayerId { get; }
+	TSharedState SharedState { get; }
+	TState State { get; }
+	int PlayerId { get; }
 
-		//TGameMove Actions { get; }
+	//TGameMove Actions { get; }
 
-		void PlayMove(TGameMove move);
-		bool IsValidMove(TGameMove move);
-	}
+	void PlayMove(TGameMove move);
+	bool IsValidMove(TGameMove move);
 }

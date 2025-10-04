@@ -1,6 +1,5 @@
-﻿namespace Shithead.ShitheadMove
+﻿namespace Shithead.ShitheadMove;
+
+public interface IShitheadMove
 {
-	public interface IShitheadMove
-	{
-	}
 }
