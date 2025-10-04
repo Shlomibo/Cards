@@ -28,7 +28,7 @@
     <ProjectReference Include="..\TurnsManagement\TurnsManagement.csproj" />
   </ItemGroup>
 
-	<ItemGroup>
+	<!--<ItemGroup>
 		<Folder Include="wwwroot\" />
 	</ItemGroup>
 
@@ -37,6 +37,6 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-  </ItemGroup>
+  </ItemGroup>-->
 
 </Project>
