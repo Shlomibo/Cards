@@ -1,192 +1,191 @@
 ﻿using GameServer.DTO;
 using Shithead.ShitheadMove;
 
-namespace ShitheadServer.Server.DTO
+namespace ShitheadServer.Server.DTO;
+
+public sealed class ShitheadMove : IMove
 {
-	public sealed class ShitheadMove : IMove
+	private const string SHITHEAD_MOVES_NAMESPACE = "Shithead.ShitheadMove.";
+
+	private static readonly IReadOnlySet<string> noPropertyMovements = new HashSet<string>
 	{
-		private const string SHITHEAD_MOVES_NAMESPACE = "Shithead.ShitheadMove.";
+		nameof(AcceptSelectedRevealedCards),
+		nameof(ReselectRevealedCards),
+		nameof(AcceptDiscardPile),
+	};
 
-		private static readonly IReadOnlySet<string> noPropertyMovements = new HashSet<string>
+	public string Move { get; set; } = "";
+	public int CardIndex { get; set; }
+	public int TargetIndex { get; set; }
+	public int[] CardIndices { get; set; } = Array.Empty<int>();
+	public int PlayerId { get; set; }
+
+	public IShitheadMove ToGameMove()
+	{
+		return Move switch
 		{
-			nameof(AcceptSelectedRevealedCards),
-			nameof(ReselectRevealedCards),
-			nameof(AcceptDiscardPile),
+			nameof(RevealedCardSelection) => new RevealedCardSelection
+			{
+				CardIndex = CardIndex,
+				TargetIndex = TargetIndex,
+			},
+
+			nameof(UnsetRevealedCard) => new UnsetRevealedCard
+			{
+				CardIndex = CardIndex,
+			},
+
+			nameof(AcceptSelectedRevealedCards) => new AcceptSelectedRevealedCards(),
+			nameof(ReselectRevealedCards) => new ReselectRevealedCards(),
+
+			nameof(PlaceCard) => new PlaceCard
+			{
+				CardIndices = CardIndices,
+			},
+
+			nameof(PlaceJoker) => new PlaceJoker
+			{
+				PlayerId = PlayerId,
+			},
+
+			nameof(AcceptDiscardPile) => new AcceptDiscardPile(),
+
+			nameof(RevealUndercard) => new RevealUndercard
+			{
+				CardIndex = CardIndex,
+			},
+
+			nameof(TakeUndercards) => new TakeUndercards
+			{
+				CardIndices = CardIndices,
+			},
+
+			nameof(LeaveGame) => new LeaveGame
+			{
+				PlayerId = PlayerId,
+			},
+
+			_ => throw new InvalidOperationException($"Unknown game move: {Move}"),
 		};
+	}
 
-		public string Move { get; set; } = "";
-		public int CardIndex { get; set; }
-		public int TargetIndex { get; set; }
-		public int[] CardIndices { get; set; } = Array.Empty<int>();
-		public int PlayerId { get; set; }
-
-		public IShitheadMove ToGameMove()
+	public static ShitheadMove FromGameMove(IShitheadMove move)
+	{
+		return move switch
 		{
-			return this.Move switch
+			RevealedCardSelection
 			{
-				nameof(RevealedCardSelection) => new RevealedCardSelection
-				{
-					CardIndex = this.CardIndex,
-					TargetIndex = this.TargetIndex,
-				},
+				CardIndex: int cardIndex,
+				TargetIndex: int targetIndex,
+			} => new ShitheadMove
+			{
+				Move = nameof(RevealedCardSelection),
+				CardIndex = cardIndex,
+				TargetIndex = targetIndex,
+			},
 
-				nameof(UnsetRevealedCard) => new UnsetRevealedCard
-				{
-					CardIndex = this.CardIndex,
-				},
+			UnsetRevealedCard
+			{
+				CardIndex: int cardIndex,
+			} => new ShitheadMove
+			{
+				Move = nameof(UnsetRevealedCard),
+				CardIndex = cardIndex,
+			},
 
-				nameof(AcceptSelectedRevealedCards) => new AcceptSelectedRevealedCards(),
-				nameof(ReselectRevealedCards) => new ReselectRevealedCards(),
+			PlaceCard
+			{
+				CardIndices: var cardIndices,
+			} => new ShitheadMove
+			{
+				Move = nameof(PlaceCard),
+				CardIndices = cardIndices,
+			},
 
-				nameof(PlaceCard) => new PlaceCard
-				{
-					CardIndices = this.CardIndices,
-				},
+			PlaceJoker
+			{
+				PlayerId: int playerId,
+			} => new ShitheadMove
+			{
+				Move = nameof(PlaceJoker),
+				PlayerId = playerId,
+			},
 
-				nameof(PlaceJoker) => new PlaceJoker
-				{
-					PlayerId = this.PlayerId,
-				},
+			RevealUndercard
+			{
+				CardIndex: int cardIndex
+			} => new ShitheadMove
+			{
+				Move = nameof(RevealUndercard),
+				CardIndex = cardIndex,
+			},
 
-				nameof(AcceptDiscardPile) => new AcceptDiscardPile(),
+			TakeUndercards
+			{
+				CardIndices: var cardIndices,
+			} => new ShitheadMove
+			{
+				Move = nameof(TakeUndercards),
+				CardIndices = cardIndices,
+			},
 
-				nameof(RevealUndercard) => new RevealUndercard
-				{
-					CardIndex = this.CardIndex,
-				},
+			LeaveGame
+			{
+				PlayerId: int playerId,
+			} => new ShitheadMove
+			{
+				Move = nameof(LeaveGame),
+				PlayerId = playerId,
+			},
 
-				nameof(TakeUndercards) => new TakeUndercards
-				{
-					CardIndices = this.CardIndices,
-				},
+			_ when noPropertyMovements.Contains(move.GetType().Name) => new ShitheadMove
+			{
+				Move = move.GetType().Name,
+			},
 
-				nameof(LeaveGame) => new LeaveGame
-				{
-					PlayerId = this.PlayerId,
-				},
+			_ => throw new InvalidOperationException($"Unknown game move: {move.GetType().FullName}"),
+		};
+	}
 
-				_ => throw new InvalidOperationException($"Unknown game move: {this.Move}"),
-			};
-		}
-
-		public static ShitheadMove FromGameMove(IShitheadMove move)
+	public object ToJsonObject()
+	{
+		return Move switch
 		{
-			return move switch
+			nameof(RevealedCardSelection) => new
 			{
-				RevealedCardSelection
-				{
-					CardIndex: int cardIndex,
-					TargetIndex: int targetIndex,
-				} => new ShitheadMove
-				{
-					Move = nameof(RevealedCardSelection),
-					CardIndex = cardIndex,
-					TargetIndex = targetIndex,
-				},
+				move = Move,
+				cardIndex = CardIndex,
+				targetIndex = TargetIndex,
+			},
 
-				UnsetRevealedCard
-				{
-					CardIndex: int cardIndex,
-				} => new ShitheadMove
-				{
-					Move = nameof(UnsetRevealedCard),
-					CardIndex = cardIndex,
-				},
-
-				PlaceCard
-				{
-					CardIndices: var cardIndices,
-				} => new ShitheadMove
-				{
-					Move = nameof(PlaceCard),
-					CardIndices = cardIndices,
-				},
-
-				PlaceJoker
-				{
-					PlayerId: int playerId,
-				} => new ShitheadMove
-				{
-					Move = nameof(PlaceJoker),
-					PlayerId = playerId,
-				},
-
-				RevealUndercard
-				{
-					CardIndex: int cardIndex
-				} => new ShitheadMove
-				{
-					Move = nameof(RevealUndercard),
-					CardIndex = cardIndex,
-				},
-
-				TakeUndercards
-				{
-					CardIndices: var cardIndices,
-				} => new ShitheadMove
-				{
-					Move = nameof(TakeUndercards),
-					CardIndices = cardIndices,
-				},
-
-				LeaveGame
-				{
-					PlayerId: int playerId,
-				} => new ShitheadMove
-				{
-					Move = nameof(LeaveGame),
-					PlayerId = playerId,
-				},
-
-				_ when noPropertyMovements.Contains(move.GetType().Name) => new ShitheadMove
-				{
-					Move = move.GetType().Name,
-				},
-
-				_ => throw new InvalidOperationException($"Unknown game move: {move.GetType().FullName}"),
-			};
-		}
-
-		public object ToJsonObject()
-		{
-			return this.Move switch
+			nameof(UnsetRevealedCard) or
+			nameof(RevealUndercard) => new
 			{
-				nameof(RevealedCardSelection) => new
-				{
-					move = this.Move,
-					cardIndex = this.CardIndex,
-					targetIndex = this.TargetIndex,
-				},
+				move = Move,
+				cardIndex = CardIndex,
+			},
 
-				nameof(UnsetRevealedCard) or
-				nameof(RevealUndercard) => new
-				{
-					move = this.Move,
-					cardIndex = this.CardIndex,
-				},
+			nameof(PlaceCard) or
+			nameof(TakeUndercards) => new
+			{
+				move = Move,
+				cardIndices = CardIndices,
+			},
 
-				nameof(PlaceCard) or
-				nameof(TakeUndercards) => new
-				{
-					move = this.Move,
-					cardIndices = this.CardIndices,
-				},
+			nameof(PlaceJoker) or
+			nameof(LeaveGame) => new
+			{
+				move = Move,
+				playerId = PlayerId,
+			},
 
-				nameof(PlaceJoker) or
-				nameof(LeaveGame) => new
-				{
-					move = this.Move,
-					playerId = this.PlayerId,
-				},
+			_ when noPropertyMovements.Contains(Move) => new
+			{
+				move = Move,
+			},
 
-				_ when noPropertyMovements.Contains(this.Move) => new
-				{
-					move = this.Move,
-				},
+			_ => throw new InvalidOperationException($"Unknown game move: {Move}"),
 
-				_ => throw new InvalidOperationException($"Unknown game move: {this.Move}"),
-
-			};
-		}
+		};
 	}
 }
