@@ -21,9 +21,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="App\**" />
     <Compile Remove="Server\DTO\Movements\**" />
+    <Content Remove="App\**" />
     <Content Remove="Server\DTO\Movements\**" />
+    <EmbeddedResource Remove="App\**" />
     <EmbeddedResource Remove="Server\DTO\Movements\**" />
+    <None Remove="App\**" />
     <None Remove="Server\DTO\Movements\**" />
   </ItemGroup>
 
@@ -36,7 +40,6 @@
   </ItemGroup>
 
 	<ItemGroup>
-		<Folder Include="App\Shitty-Shithead\" />
 		<Folder Include="wwwroot\" />
 	</ItemGroup>
 
