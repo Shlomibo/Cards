@@ -1,7 +1,6 @@
-﻿namespace GameServer.DTO
+﻿namespace GameServer.DTO;
+
+public interface IMove
 {
-	public interface IMove
-	{
-		string Move { get; }
-	}
+	string Move { get; }
 }

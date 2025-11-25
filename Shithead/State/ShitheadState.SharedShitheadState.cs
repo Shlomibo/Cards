@@ -1,135 +1,138 @@
 ﻿using Deck;
 using Deck.Cards.FrenchSuited;
-using Shithead.ShitheadMove;
+
 using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 
-namespace Shithead.State
+namespace Shithead.State;
+
+public sealed partial class ShitheadState
 {
-	public sealed partial class ShitheadState
-	{
-		public sealed class SharedShitheadState
-		{
-			private readonly ShitheadState state;
+    public sealed class SharedShitheadState
+    {
+        private readonly ShitheadState _state;
 
-			public IReadOnlyList<SharedPlayerState> Players { get; }
-			public IReadOnlyList<int> ActivePlayers => this.state.turnsManager.ActivePlayers;
-			public int DeckSize => this.state.Deck.Count;
-			public IReadonlyDeck<Card> DiscardPile { get; }
-			public GameState GameState => this.state.GameState;
-			public int CurrentTurnPlayer => this.state.turnsManager.Current;
-			public (IShitheadMove move, int? playerId)? LastMove => this.state.lastMove;
+        public IReadOnlyList<SharedPlayerState> Players { get; }
+        public IReadOnlyList<int> ActivePlayers => _state._turnsManager.ActivePlayers;
+        public int DeckSize => _state.Deck.Count;
+        public IReadonlyDeck<Card> DiscardPile { get; }
+        public GameState GameState => _state.GameState;
+        public int CurrentTurnPlayer => _state._turnsManager.Current;
+        public (ShitheadMove.ShitheadMove move, int? playerId)? LastMove => _state._lastMove;
 
-			public SharedShitheadState(ShitheadState state)
-			{
-				this.state = state;
-				this.Players = new PlayersView(this);
-				this.DiscardPile = state.DiscardPile.AsReadonly();
-			}
+        public SharedShitheadState(ShitheadState state)
+        {
+            _state = state;
+            Players = new PlayersView(this);
+            DiscardPile = state.DiscardPile.AsReadonly();
+        }
 
-			private sealed class PlayersView : IReadOnlyList<SharedPlayerState>
-			{
-				private readonly SharedShitheadState sharedState;
-				private readonly Lazy<SharedPlayerState[]> sharedPlayers;
+        private sealed class PlayersView : IReadOnlyList<SharedPlayerState>
+        {
+            private readonly SharedShitheadState _sharedState;
+            private readonly Lazy<SharedPlayerState[]> _sharedPlayers;
 
-				private SharedPlayerState[] Players => this.sharedPlayers.Value;
+            private SharedPlayerState[] Players => _sharedPlayers.Value;
 
-				public SharedPlayerState this[int index] => this.Players[index];
+            public SharedPlayerState this[int index] => Players[index];
 
-				public int Count => this.sharedState.state.players.Length;
+            public int Count => _sharedState._state._players.Length;
 
 
-				public PlayersView(SharedShitheadState sharedState)
-				{
-					this.sharedState = sharedState;
-					this.sharedPlayers = new Lazy<SharedPlayerState[]>(() =>
-					this.sharedState.state.players
-						.Select(player => new SharedPlayerState(this.sharedState.state, player.Id))
-						.ToArray());
-				}
+            public PlayersView(SharedShitheadState sharedState)
+            {
+                _sharedState = sharedState;
+                _sharedPlayers = new Lazy<SharedPlayerState[]>(
+                    () => [.. _sharedState._state._players
+                        .Select(player => new SharedPlayerState(_sharedState._state, player.Id))]);
+            }
 
-				public IEnumerator<SharedPlayerState> GetEnumerator() => (from player in this.Players
-																		  select player).GetEnumerator();
+            public IEnumerator<SharedPlayerState> GetEnumerator()
+            {
+                foreach (var player in Players)
+                {
+                    yield return player;
+                }
+            }
 
-				IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-			}
-		}
+            IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+        }
+    }
 
-		public sealed class SharedPlayerState
-		{
-			private readonly ShitheadState gameState;
+    public sealed class SharedPlayerState
+    {
+        private readonly ShitheadState _gameState;
 
-			private PlayerState Player => this.gameState.players[this.Id];
+        private PlayerState Player => _gameState._players[Id];
 
-			public bool Won => this.Player.Won;
+        public bool Won => Player.Won;
 
-			public IReadOnlyDictionary<int, Card> RevealedCards => this.Player.RevealedCards;
+        public IReadOnlyDictionary<int, Card> RevealedCards => Player.RevealedCards;
 
-			public IReadOnlyDictionary<int, Card?> Undercards { get; }
+        public IReadOnlyDictionary<int, Card?> Undercards { get; }
 
-			public int Id { get; }
+        public int Id { get; }
 
-			public int CardsCount => this.Player.Hand.Count;
-			public bool RevealedCardsAccepted => this.Player.RevealedCardsAccepted;
+        public int CardsCount => Player.Hand.Count;
+        public bool RevealedCardsAccepted => Player.RevealedCardsAccepted;
 
-			public SharedPlayerState(ShitheadState state, int id)
-			{
-				this.gameState = state;
-				this.Id = id;
-				this.Undercards = new UndercardsView(this);
-			}
+        public SharedPlayerState(ShitheadState state, int id)
+        {
+            _gameState = state;
+            Id = id;
+            Undercards = new UndercardsView(this);
+        }
 
-			private sealed class UndercardsView : IReadOnlyDictionary<int, Card?>
-			{
-				private readonly SharedPlayerState playerState;
+        private sealed class UndercardsView : IReadOnlyDictionary<int, Card?>
+        {
+            private readonly SharedPlayerState _playerState;
 
-				private Dictionary<int, CardFace<Card>> Undercards =>
-					this.playerState.Player.Undercards;
+            private Dictionary<int, CardFace<Card>> Undercards =>
+                _playerState.Player.Undercards;
 
-				public Card? this[int key] => UndercardValue(this.Undercards[key]);
+            public Card? this[int key] => UndercardValue(Undercards[key]);
 
-				public IEnumerable<int> Keys => this.Undercards.Keys;
+            public IEnumerable<int> Keys => Undercards.Keys;
 
-				public IEnumerable<Card?> Values => this.Undercards.Values.Select(UndercardValue);
+            public IEnumerable<Card?> Values => Undercards.Values.Select(UndercardValue);
 
-				public int Count => this.Undercards.Count;
+            public int Count => Undercards.Count;
 
-				public UndercardsView(SharedPlayerState playerState)
-				{
-					this.playerState = playerState;
-				}
+            public UndercardsView(SharedPlayerState playerState)
+            {
+                _playerState = playerState;
+            }
 
-				public bool ContainsKey(int key) => this.Undercards.ContainsKey(key);
+            public bool ContainsKey(int key) => Undercards.ContainsKey(key);
 
-				public IEnumerator<KeyValuePair<int, Card?>> GetEnumerator()
-				{
-					foreach (var kv in this.Undercards)
-					{
-						yield return new KeyValuePair<int, Card?>(kv.Key, UndercardValue(kv.Value));
-					}
-				}
+            public IEnumerator<KeyValuePair<int, Card?>> GetEnumerator()
+            {
+                foreach (var kv in Undercards)
+                {
+                    yield return new KeyValuePair<int, Card?>(kv.Key, UndercardValue(kv.Value));
+                }
+            }
 
-				public bool TryGetValue(int key, [MaybeNullWhen(false)] out Card? value)
-				{
-					value = default;
-					bool gotValue = false;
+            public bool TryGetValue(int key, [MaybeNullWhen(false)] out Card? value)
+            {
+                value = default;
+                bool gotValue = false;
 
-					if (this.Undercards.TryGetValue(key, out var card))
-					{
-						value = UndercardValue(card);
-						gotValue = true;
-					}
+                if (Undercards.TryGetValue(key, out var card))
+                {
+                    value = UndercardValue(card);
+                    gotValue = true;
+                }
 
-					return gotValue;
-				}
+                return gotValue;
+            }
 
-				IEnumerator IEnumerable.GetEnumerator() => this.GetEnumerator();
+            IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-				private static Card? UndercardValue(CardFace<Card> undercard) =>
-					undercard.IsRevealed
-						? undercard.Card
-						: null;
-			}
-		}
-	}
+            private static Card? UndercardValue(CardFace<Card> undercard) =>
+                undercard.IsRevealed
+                    ? undercard.Card
+                    : null;
+        }
+    }
 }

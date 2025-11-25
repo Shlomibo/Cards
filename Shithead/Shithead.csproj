@@ -12,4 +12,8 @@
     <ProjectReference Include="..\TurnsManagement\TurnsManagement.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="System.Interactive" />
+  </ItemGroup>
+
 </Project>

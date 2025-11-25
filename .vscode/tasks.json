@@ -1,92 +1,131 @@
 {
-	"version": "2.0.0",
-	"tasks": [
-		{
-			"type": "dotnet",
-			"task": "build",
-			"group": {
-				"kind": "build",
-				"isDefault": true
-			},
-			"problemMatcher": [
-				"$msCompile"
-			],
-			"label": "dotnet: build"
-		},
-		{
-			"label": "run",
-			"command": "dotnet",
-			"type": "process",
-			"isBackground": true,
-			"args": [
-				"run",
-				"--project",
-				"${workspaceFolder}/ShitheadTester.csproj",
-				"/property:GenerateFullPaths=true",
-				"/consoleloggerparameters:NoSummary"
-			],
-			"problemMatcher": {
-				"pattern": "$msCompile"
-			}
-		},
-		{
-			"label": "find-outdated-nugets",
-			"command": "dotnet",
-			"type": "process",
-			"args": [
-				"list",
-				"package",
-				"--outdated"
-			],
-			"problemMatcher": [],
-			"group": "none",
-			"presentation": {
-				"echo": false,
-				"reveal": "always",
-				"focus": false,
-				"panel": "dedicated",
-				"clear": false
-			}
-		},
-		{
-			"label": "update-nuget",
-			"command": "dotnet",
-			"type": "process",
-			"args": [
-				"add",
-				"${input:project}",
-				"package",
-				"${input:nuget-package}",
-				"--version",
-				"${input:nuget-version}"
-			],
-			"problemMatcher": [],
-			"group": "none",
-			"presentation": {
-				"echo": false,
-				"reveal": "never",
-				"focus": false,
-				"panel": "shared",
-				"clear": false
-			}
-		}
-	],
-	"inputs": [
-		{
-			"id": "project",
-			"description": "Select a project",
-			"default": "${workspaceFolder}/Deck.csproj",
-			"type": "promptString"
-		},
-		{
-			"id": "nuget-package",
-			"description": "Select package",
-			"type": "promptString"
-		},
-		{
-			"id": "nuget-version",
-			"description": "Select version",
-			"type": "promptString"
-		}
-	]
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "type": "dotnet",
+      "task": "build",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": [
+        "$msCompile"
+      ],
+      "label": "dotnet: build"
+    },
+    {
+      "label": "run",
+      "command": "dotnet",
+      "type": "process",
+      "isBackground": true,
+      "args": [
+        "run",
+        "--project",
+        "${workspaceFolder}/ShitheadTester.csproj",
+        "/property:GenerateFullPaths=true",
+        "/consoleloggerparameters:NoSummary"
+      ],
+      "problemMatcher": {
+        "pattern": "$msCompile"
+      }
+    },
+    {
+      "label": "find-outdated-nugets",
+      "command": "dotnet",
+      "type": "process",
+      "args": [
+        "list",
+        "package",
+        "--outdated"
+      ],
+      "problemMatcher": [],
+      "group": "none",
+      "presentation": {
+        "echo": false,
+        "reveal": "always",
+        "focus": false,
+        "panel": "dedicated",
+        "clear": false
+      }
+    },
+    {
+      "label": "update-nuget",
+      "command": "dotnet",
+      "type": "process",
+      "args": [
+        "add",
+        "${input:project}",
+        "package",
+        "${input:nuget-package}",
+        "--version",
+        "${input:nuget-version}"
+      ],
+      "problemMatcher": [],
+      "group": "none",
+      "presentation": {
+        "echo": false,
+        "reveal": "never",
+        "focus": false,
+        "panel": "shared",
+        "clear": false
+      }
+    },
+    {
+      "label": "search-package",
+      "command": "dotnet",
+      "type": "process",
+      "args": [
+        "package",
+        "search",
+        "${input:nuget-package}"
+      ],
+      "problemMatcher": [],
+      "group": "none",
+      "presentation": {
+        "echo": false,
+        "reveal": "always",
+        "focus": true,
+        "panel": "dedicated",
+        "clear": false
+      }
+    },
+    {
+      "label": "install-nuget",
+      "command": "dotnet",
+      "type": "process",
+      "args": [
+        "add",
+        "${input:project}",
+        "package",
+        "${input:nuget-package}"
+      ],
+      "problemMatcher": [],
+      "group": "none",
+      "presentation": {
+        "echo": false,
+        "reveal": "never",
+        "focus": false,
+        "panel": "shared",
+        "clear": false
+      }
+    }
+  ],
+  "inputs": [
+    {
+      "id": "project",
+      "description": "Select a project",
+      "default": "${workspaceFolder}/Deck.csproj",
+      "type": "promptString"
+    },
+    {
+      "id": "nuget-package",
+      "description": "Select package",
+      "type": "promptString"
+    },
+    {
+      "id": "nuget-version",
+      "description": "Select version",
+      "type": "promptString"
+    }
+  ]
 }

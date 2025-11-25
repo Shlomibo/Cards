@@ -1,33 +1,28 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace Deck;
 
-namespace Deck
+public sealed class CardFace<TCard>
+    where TCard : new()
 {
-	public sealed class CardFace<TCard>
-		where TCard: new()
-	{
-		#region Fields
+    #region Fields
 
-		private readonly TCard card;
-		#endregion
+#pragma warning disable IDE0032 // Use auto property
+    private readonly TCard _card;
+#pragma warning restore IDE0032 // Use auto property
+    #endregion
 
-		#region Properties
+    #region Properties
 
-		public TCard Card => this.IsRevealed
-			? this.card
-			: new TCard();
-		public bool IsRevealed { get; set; }
-		#endregion
+    public TCard Card => IsRevealed
+        ? _card
+        : new TCard();
+    public bool IsRevealed { get; set; }
+    #endregion
 
-		#region Ctors
-		public CardFace(TCard card, bool isRevealed = false)
-		{
-			this.card = card;
-			this.IsRevealed = isRevealed;
-		}
-		#endregion
-	}
+    #region Ctors
+    public CardFace(TCard card, bool isRevealed = false)
+    {
+        _card = card;
+        IsRevealed = isRevealed;
+    }
+    #endregion
 }

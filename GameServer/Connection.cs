@@ -1,137 +1,135 @@
 ﻿using GameServer.DTO;
 
-namespace GameServer
+namespace GameServer;
+
+public sealed class Connection<
+    TGameState,
+    TSharedState,
+    TPlayerState,
+    TGameMove,
+    TSerializedState,
+    TSerializedMove> : IDisposable
+    where TSerializedState : class, IState<object, object>
 {
-	public sealed class Connection<
-		TGameState,
-		TSharedState,
-		TPlayerState,
-		TGameMove,
-		TSerializedState,
-		TSerializedMove> : IDisposable
-		where TSerializedState : class, IState<object, object>
-	{
-		private bool isDisposed;
-		private readonly Table<TGameState,
-			TSharedState,
-			TPlayerState,
-			TGameMove> table;
-		private readonly Guid connectionId;
-		private readonly Func<TSharedState, TPlayerState, TSerializedState> stateSerializer;
-		private readonly Func<TSerializedMove, TGameMove> moveDeserializer;
-		private EventHandler<StateUpdatedEventArgs<TSerializedState>>? stateUpdatedHandler;
-		private StateUpdatedEventArgs<TSerializedState> lastGameState;
+    private bool _isDisposed;
+    private readonly Table<TGameState,
+        TSharedState,
+        TPlayerState,
+        TGameMove> _table;
+    private readonly Guid _connectionId;
+    private readonly Func<TSharedState, TPlayerState, TSerializedState> _stateSerializer;
+    private readonly Func<TSerializedMove, TGameMove> _moveDeserializer;
+    private EventHandler<StateUpdatedEventArgs<TSerializedState>>? _stateUpdatedHandler;
+    private StateUpdatedEventArgs<TSerializedState> _lastGameState;
 
-		public event EventHandler<StateUpdatedEventArgs<TSerializedState>>? StateUpdated
-		{
-			add
-			{
-				this.stateUpdatedHandler += value;
-				value?.Invoke(this, this.lastGameState);
-			}
-			remove { this.stateUpdatedHandler -= value; }
-		}
-		public event EventHandler? Closed;
+    public event EventHandler<StateUpdatedEventArgs<TSerializedState>>? StateUpdated
+    {
+        add
+        {
+            _stateUpdatedHandler += value;
+            value?.Invoke(this, _lastGameState);
+        }
+        remove => _stateUpdatedHandler -= value;
+    }
+    public event EventHandler? Closed;
 
-		private Table<TGameState,
-			TSharedState,
-			TPlayerState,
-			TGameMove>.Player Player
-		{ get; }
+    private Table<TGameState,
+        TSharedState,
+        TPlayerState,
+        TGameMove>.Player Player
+    { get; }
 
-		internal Connection(
-			Table<TGameState, TSharedState, TPlayerState, TGameMove> table,
-			Guid connectionId,
-			Func<TSharedState, TPlayerState, TSerializedState> stateSerializer,
-			Func<TSerializedMove, TGameMove> moveDeserializer)
-		{
-			this.table = table;
-			this.connectionId = connectionId;
-			this.stateSerializer = stateSerializer;
-			this.moveDeserializer = moveDeserializer;
+    internal Connection(
+        Table<TGameState, TSharedState, TPlayerState, TGameMove> table,
+        Guid connectionId,
+        Func<TSharedState, TPlayerState, TSerializedState> stateSerializer,
+        Func<TSerializedMove, TGameMove> moveDeserializer)
+    {
+        _table = table;
+        _connectionId = connectionId;
+        _stateSerializer = stateSerializer;
+        _moveDeserializer = moveDeserializer;
 
-			this.Player = this.table[this.connectionId];
+        Player = _table[_connectionId];
 
-			this.lastGameState = new StateUpdatedEventArgs<TSerializedState>(
-				new StateUpdate<TSerializedState>(
-					this.table.TableName,
-					new CurrentPlayer(this.Player.Id, this.Player.Name, this.Player.ConnectionId),
-					this.table.AsTableDescriptor().Players.Select(player => new DTO.Player(player.Id, player.Name))));
+        _lastGameState = new StateUpdatedEventArgs<TSerializedState>(
+            new StateUpdate<TSerializedState>(
+                _table.TableName,
+                new CurrentPlayer(Player.Id, Player.Name, Player.ConnectionId),
+                _table.AsTableDescriptor().Players.Select(player => new DTO.Player(player.Id, player.Name))));
 
-			this.table.GameUpdated += OnGameUpdated;
-			this.table.TableUpdated += OnTableUpdated;
-		}
+        _table.GameUpdated += OnGameUpdated;
+        _table.TableUpdated += OnTableUpdated;
+    }
 
-		public void PlayMove(TSerializedMove move) => this.table.PlayMove(
-			this.moveDeserializer(move),
-			this.Player.Id);
+    public void PlayMove(TSerializedMove move) => _table.PlayMove(
+        _moveDeserializer(move),
+        Player.Id);
 
-		private void OnGameUpdated(
-			object? sender,
-			TableGameUpdateEventArgs<
-				TGameState,
-				TSharedState,
-				TPlayerState,
-				TGameMove> args)
-		{
-			OnStateUpdated(this.stateSerializer(args.SharedState, args.PlayersStates[this.Player.Id]));
-		}
+    private void OnGameUpdated(
+        object? sender,
+        TableGameUpdateEventArgs<
+            TGameState,
+            TSharedState,
+            TPlayerState,
+            TGameMove> args)
+        =>
+        OnStateUpdated(_stateSerializer(args.SharedState, args.PlayersStates[Player.Id]));
 
-		private void OnTableUpdated(object? sender, EventArgs e) =>
-			OnStateUpdated(this.lastGameState.State.GameState);
+    private void OnTableUpdated(object? sender, EventArgs e) =>
+        OnStateUpdated(_lastGameState.State.GameState);
 
-		private void OnStateUpdated(TSerializedState? state)
-		{
-			var gameStateUpdate = new StateUpdatedEventArgs<TSerializedState>(
-				new StateUpdate<TSerializedState>(
-					this.table.TableName,
-					new CurrentPlayer(this.Player.Id, this.Player.Name, this.Player.ConnectionId),
-					this.table.AsTableDescriptor().Players.Select(player =>
-						new DTO.Player(player.Id, player.Name)),
-					state));
+    private void OnStateUpdated(TSerializedState? state)
+    {
+        StateUpdatedEventArgs<TSerializedState> gameStateUpdate = new(
+            new StateUpdate<TSerializedState>(
+                _table.TableName,
+                new CurrentPlayer(Player.Id, Player.Name, Player.ConnectionId),
+                _table.AsTableDescriptor().Players.Select(player =>
+                    new Player(player.Id, player.Name)),
+                state));
 
-			this.lastGameState = gameStateUpdate;
+        _lastGameState = gameStateUpdate;
 
-			this.stateUpdatedHandler?.Invoke(this, gameStateUpdate);
-		}
+        _stateUpdatedHandler?.Invoke(this, gameStateUpdate);
+    }
 
-		private void Dispose(bool disposing)
-		{
-			if (!this.isDisposed)
-			{
-				if (disposing)
-				{
-					this.table.GameUpdated -= OnGameUpdated;
-					this.table.RemovePlayer(this.connectionId);
+    private void Dispose(bool disposing)
+    {
+        if (!_isDisposed)
+        {
+            if (disposing)
+            {
+                _table.GameUpdated -= OnGameUpdated;
+                _table.RemovePlayer(_connectionId);
 
-					this.Closed?.Invoke(this, EventArgs.Empty);
-					this.Closed = null;
-				}
+                Closed?.Invoke(this, EventArgs.Empty);
+                Closed = null;
+            }
 
-				// TODO: free unmanaged resources (unmanaged objects) and override finalizer
-				// TODO: set large fields to null
-				isDisposed = true;
-			}
-		}
+            // TODO: free unmanaged resources (unmanaged objects) and override finalizer
+            // TODO: set large fields to null
+            _isDisposed = true;
+        }
+    }
 
-		void IDisposable.Dispose()
-		{
-			// Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-			Dispose(disposing: true);
-			GC.SuppressFinalize(this);
-		}
+    void IDisposable.Dispose()
+    {
+        // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+        Dispose(disposing: true);
+        GC.SuppressFinalize(this);
+    }
 
-		public void Close() => (this as IDisposable).Dispose();
-	}
+    public void Close() => (this as IDisposable).Dispose();
+}
 
-	public sealed class StateUpdatedEventArgs<TSerializedState> : EventArgs
-		where TSerializedState : class, IState<object, object>
-	{
-		public StateUpdate<TSerializedState> State { get; }
+public sealed class StateUpdatedEventArgs<TSerializedState>
+    where TSerializedState : class, IState<object, object>
+{
+    public StateUpdate<TSerializedState> State { get; }
 
-		public StateUpdatedEventArgs(StateUpdate<TSerializedState> state)
-		{
-			this.State = state;
-		}
-	}
+    public StateUpdatedEventArgs(StateUpdate<TSerializedState> state)
+    {
+        State = state;
+    }
 }

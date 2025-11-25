@@ -1,185 +1,172 @@
 ﻿using GameEngine;
+
 using GameServer.DTO;
+
 using System.Diagnostics.CodeAnalysis;
 
-namespace GameServer
+namespace GameServer;
+
+public class Server<
+    TInitOptions,
+    TGameState,
+    TSharedState,
+    TPlayerState,
+    TGameMove,
+    TSerializedState,
+    TSerializedMove>
+    where TSerializedState : class, IState<object, object>
+    where TSerializedMove : IMove
 {
-	public class Server<
-		TInitOptions,
-		TGameState,
-		TSharedState,
-		TPlayerState,
-		TGameMove,
-		TSerializedState,
-		TSerializedMove>
-		where TSerializedState : class, IState<object, object>
-		where TSerializedMove : IMove
-	{
-		private readonly Func<TInitOptions, Engine<TGameState, TSharedState, TPlayerState, TGameMove>>
-			engineFactory;
-		private readonly Func<TSharedState, TPlayerState, TSerializedState> stateSerializer;
-		private readonly Func<TSerializedMove, TGameMove> moveDeserializer;
-		private readonly Dictionary<string, Table<TGameState, TSharedState, TPlayerState, TGameMove>> tables = new();
+    private readonly Func<TInitOptions, Engine<TGameState, TSharedState, TPlayerState, TGameMove>>
+        _engineFactory;
+    private readonly Func<TSharedState, TPlayerState, TSerializedState> _stateSerializer;
+    private readonly Func<TSerializedMove, TGameMove> _moveDeserializer;
+    private readonly Dictionary<string, Table<TGameState, TSharedState, TPlayerState, TGameMove>> _tables = [ ];
 
-		public Server(
-			Func<TInitOptions, Engine<TGameState, TSharedState, TPlayerState, TGameMove>> engineFactory,
-			Func<TSharedState, TPlayerState, TSerializedState> stateSerializer,
-			Func<TSerializedMove, TGameMove> moveDeserializer)
-		{
-			this.engineFactory = engineFactory ?? throw new ArgumentNullException(nameof(engineFactory));
-			this.stateSerializer = stateSerializer ?? throw new ArgumentNullException(nameof(stateSerializer));
-			this.moveDeserializer = moveDeserializer ?? throw new ArgumentNullException(nameof(moveDeserializer));
-		}
+    public Server(
+        Func<TInitOptions, Engine<TGameState, TSharedState, TPlayerState, TGameMove>> engineFactory,
+        Func<TSharedState, TPlayerState, TSerializedState> stateSerializer,
+        Func<TSerializedMove, TGameMove> moveDeserializer)
+    {
+        _engineFactory = engineFactory ?? throw new ArgumentNullException(nameof(engineFactory));
+        _stateSerializer = stateSerializer ?? throw new ArgumentNullException(nameof(stateSerializer));
+        _moveDeserializer = moveDeserializer ?? throw new ArgumentNullException(nameof(moveDeserializer));
+    }
 
-		public Connection<
-			TGameState,
-			TSharedState,
-			TPlayerState,
-			TGameMove,
-			TSerializedState,
-			TSerializedMove> CreateTable(string tableName, string tableMasterName)
-		{
-			if (string.IsNullOrEmpty(tableName))
-			{
-				throw new ArgumentException($"'{nameof(tableName)}' cannot be null or empty.", nameof(tableName));
-			}
+    public Connection<
+        TGameState,
+        TSharedState,
+        TPlayerState,
+        TGameMove,
+        TSerializedState,
+        TSerializedMove> CreateTable(string tableName, string tableMasterName)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(tableName);
+        ArgumentNullException.ThrowIfNull(tableMasterName);
 
-			if (string.IsNullOrEmpty(tableMasterName))
-			{
-				throw new ArgumentException($"'{nameof(tableMasterName)}' cannot be null or empty.", nameof(tableMasterName));
-			}
+        if (_tables.ContainsKey(tableName))
+        {
+            throw new ArgumentException($"The table '{tableName}' already exists", nameof(tableName));
+        }
 
-			if (this.tables.ContainsKey(tableName))
-			{
-				throw new ArgumentException($"The table '{tableName}' already exists", nameof(tableName));
-			}
+        Table<TGameState, TSharedState, TPlayerState, TGameMove> table = new(tableName, tableMasterName);
+        _tables.Add(tableName, table);
 
-			Table<TGameState, TSharedState, TPlayerState, TGameMove> table = new(tableName, tableMasterName);
-			this.tables.Add(tableName, table);
+        return CreateConnection(table, table.TableMaster.ConnectionId);
+    }
 
-			return CreateConnection(table, table.TableMaster.ConnectionId);
-		}
+    public bool CanJoinTable(string tableName, string playerName) =>
+        !string.IsNullOrEmpty(tableName) &&
+            !string.IsNullOrEmpty(playerName) &&
+            _tables.TryGetValue(tableName, out var table) &&
+            !table.GameStarted;
 
-		public bool CanJoinTable(string tableName, string playerName) =>
-			!string.IsNullOrEmpty(tableName) &&
-				!string.IsNullOrEmpty(playerName) &&
-				this.tables.TryGetValue(tableName, out var table) &&
-				!table.GameStarted;
+    public bool TryJoinTable(
+        string tableName,
+        string playerName,
+        [MaybeNullWhen(false)] out Connection<
+            TGameState,
+            TSharedState,
+            TPlayerState,
+            TGameMove,
+            TSerializedState,
+            TSerializedMove> connection)
+    {
+        connection = null;
 
-		public bool TryJoinTable(
-			string tableName,
-			string playerName,
-			[MaybeNullWhen(false)] out Connection<
-			TGameState,
-			TSharedState,
-			TPlayerState,
-			TGameMove,
-			TSerializedState,
-			TSerializedMove> connection)
-		{
-			connection = null;
+        if (CanJoinTable(tableName, playerName))
+        {
+            try
+            {
+                connection = JoinTable(tableName, playerName);
+            }
+            catch
+            {
+                return false;
+            }
+        }
 
-			if (CanJoinTable(tableName, playerName))
-			{
-				try
-				{
-					connection = JoinTable(tableName, playerName);
-				}
-				catch
-				{
-					return false;
-				}
-			}
+        return connection != null;
+    }
 
-			return connection != null;
-		}
+    public Connection<
+        TGameState,
+        TSharedState,
+        TPlayerState,
+        TGameMove,
+        TSerializedState,
+        TSerializedMove> JoinTable(string tableName, string playerName)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(tableName);
+        ArgumentException.ThrowIfNullOrEmpty(playerName);
 
-		public Connection<
-			TGameState,
-			TSharedState,
-			TPlayerState,
-			TGameMove,
-			TSerializedState,
-			TSerializedMove> JoinTable(string tableName, string playerName)
-		{
-			if (string.IsNullOrEmpty(tableName))
-			{
-				throw new ArgumentException($"'{nameof(tableName)}' cannot be null or empty.", nameof(tableName));
-			}
+        if (!_tables.TryGetValue(tableName, out var table))
+        {
+            throw new ArgumentException($"The table '{tableName}' does not exist", nameof(tableName));
+        }
 
-			if (string.IsNullOrEmpty(playerName))
-			{
-				throw new ArgumentException($"'{nameof(playerName)}' cannot be null or empty.", nameof(playerName));
-			}
+        if (table.GameStarted)
+        {
+            throw new InvalidOperationException("A game was already started");
+        }
 
-			if (!this.tables.TryGetValue(tableName, out var table))
-			{
-				throw new ArgumentException($"The table '{tableName}' already exists", nameof(tableName));
-			}
+        var player = table.AddPlayer(playerName);
 
-			if (table.GameStarted)
-			{
-				throw new InvalidOperationException("A game was already started");
-			}
+        return CreateConnection(table, player.ConnectionId);
+    }
 
-			var player = table.AddPlayer(playerName);
+    public void StartGame(string tableName, Guid masterConnectionId, TInitOptions options)
+    {
+        if (!_tables.TryGetValue(tableName, out var table))
+        {
+            throw new ArgumentException($"Cannot find table [{tableName}]", nameof(tableName));
+        }
 
-			return CreateConnection(table, player.ConnectionId);
-		}
+        if (masterConnectionId != table.TableMaster.ConnectionId)
+        {
+            throw new InvalidOperationException("Only the table master can start a game");
+        }
 
-		public void StartGame(string tableName, Guid masterConnectionId, TInitOptions options)
-		{
-			if (!this.tables.TryGetValue(tableName, out var table))
-			{
-				throw new ArgumentException($"Cannot find table [{tableName}]", nameof(tableName));
-			}
+        if (!table.GameStarted)
+        {
+            table.SetGame(_engineFactory(options));
+        }
+    }
 
-			if (masterConnectionId != table.TableMaster.ConnectionId)
-			{
-				throw new InvalidOperationException("Only the table master can start a game");
-			}
+    public Table GetTable(string tableName) =>
+        _tables[tableName].AsTableDescriptor();
 
-			if (!table.GameStarted)
-			{
-				table.SetGame(this.engineFactory(options));
-			}
-		}
+    public bool TryGetTable(string tableName, [MaybeNullWhen(false)] out Table table)
+    {
+        table = null;
+        bool hasTable = _tables.TryGetValue(tableName, out var internalTable);
 
-		public Table GetTable(string tableName) =>
-			this.tables[tableName].AsTableDescriptor();
+        if (hasTable)
+        {
+            table = internalTable!.AsTableDescriptor();
+        }
 
-		public bool TryGetTable(string tableName, [MaybeNullWhen(false)] out Table table)
-		{
-			table = null;
-			bool hasTable = this.tables.TryGetValue(tableName, out var internalTable);
+        return hasTable;
+    }
 
-			if (hasTable)
-			{
-				table = internalTable!.AsTableDescriptor();
-			}
+    private Connection<
+        TGameState,
+        TSharedState,
+        TPlayerState,
+        TGameMove,
+        TSerializedState,
+        TSerializedMove> CreateConnection(
+            Table<TGameState, TSharedState, TPlayerState, TGameMove> table,
+            Guid connectionId)
+    {
+        var connection = new Connection<
+            TGameState,
+            TSharedState,
+            TPlayerState,
+            TGameMove,
+            TSerializedState,
+            TSerializedMove>(table, connectionId, _stateSerializer, _moveDeserializer);
 
-			return hasTable;
-		}
-
-		private Connection<
-			TGameState,
-			TSharedState,
-			TPlayerState,
-			TGameMove,
-			TSerializedState,
-			TSerializedMove> CreateConnection(
-				Table<TGameState, TSharedState, TPlayerState, TGameMove> table,
-				Guid connectionId)
-		{
-			var connection = new Connection<
-				TGameState,
-				TSharedState,
-				TPlayerState,
-				TGameMove,
-				TSerializedState,
-				TSerializedMove>(table, connectionId, this.stateSerializer, this.moveDeserializer);
-
-			return connection;
-		}
-	}
+        return connection;
+    }
 }

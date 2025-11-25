@@ -1,8 +1,7 @@
-﻿namespace GameServer.DTO
+﻿namespace GameServer.DTO;
+
+public interface IState<out TShared, out TPlayer>
 {
-	public interface IState<out TShared, out TPlayer>
-	{
-		TShared SharedState { get; }
-		TPlayer PlayerState { get; }
-	}
+	TShared SharedState { get; }
+	TPlayer PlayerState { get; }
 }

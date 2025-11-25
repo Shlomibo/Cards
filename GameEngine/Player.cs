@@ -1,53 +1,35 @@
-﻿namespace GameEngine
+﻿namespace GameEngine;
+
+#pragma warning disable IDE0040 // Add accessibility modifiers
+partial class Engine<TGameState, TSharedState, TPlayerState, TGameMove>
+#pragma warning restore IDE0040 // Add accessibility modifiers
 {
-	partial class Engine<TGameState, TSharedState, TPlayerState, TGameMove>
-	{
-		private class Player : IPlayer<TSharedState, TPlayerState, TGameMove>
-		{
-			#region Events
+    private class Player : IPlayer<TSharedState, TPlayerState, TGameMove>
+    {
+        public event EventHandler? Updated;
 
-			public event EventHandler? Updated;
-			#endregion
+        public int PlayerId { get; }
 
-			#region Properties
+        public TSharedState SharedState => Engine._state.SharedState;
 
-			public int PlayerId { get; }
+        public TPlayerState State { get; }
 
-			public TSharedState SharedState => this.Engine.state.SharedState;
+        public Engine<TGameState, TSharedState, TPlayerState, TGameMove> Engine { get; }
 
-			public TPlayerState State { get; }
+        public Player(
+            int playerId,
+            Engine<TGameState, TSharedState, TPlayerState, TGameMove> engine,
+            TPlayerState state)
+        {
+            Engine = engine ?? throw new ArgumentNullException(nameof(engine));
+            PlayerId = playerId;
+            State = state ?? throw new ArgumentNullException(nameof(state));
 
-			public Engine<TGameState, TSharedState, TPlayerState, TGameMove> Engine { get; }
-			#endregion
+            Engine.Updated += (_, args) => Updated?.Invoke(this, args);
+        }
 
-			#region Ctors
+        public void PlayMove(TGameMove move) => Engine.PlayMove(move, PlayerId);
 
-			public Player(
-				int playerId,
-				Engine<TGameState, TSharedState, TPlayerState, TGameMove> engine,
-				TPlayerState state)
-			{
-				this.Engine = engine ?? throw new ArgumentNullException(nameof(engine));
-				this.PlayerId = playerId;
-				this.State = state ?? throw new ArgumentNullException(nameof(state));
-
-				this.Engine.Updated += (_, args) => this.Updated?.Invoke(this, args);
-			}
-			#endregion
-
-			#region Methods
-
-			public void PlayMove(TGameMove move)
-			{
-				this.Engine.PlayMove(move, this.PlayerId);
-			}
-
-			public bool IsValidMove(TGameMove move)
-			{
-				return this.Engine.IsValidMove(move, this.PlayerId);
-			}
-
-			#endregion
-		}
-	}
+        public bool IsValidMove(TGameMove move) => Engine.IsValidMove(move, PlayerId);
+    }
 }

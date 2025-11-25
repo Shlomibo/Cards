@@ -1,219 +1,207 @@
 ﻿using System.Collections;
 
-namespace Deck
+namespace Deck;
+
+public sealed class CardsDeck<TCard> : IDeck<TCard>
+    where TCard : struct
 {
-	public sealed class CardsDeck<TCard> : IDeck<TCard>
-		where TCard : struct
-	{
-		#region Fields
+    #region Fields
 
-		private readonly List<TCard> cards;
+    private readonly List<TCard> _cards;
 
-		private readonly Random rand = new();
-		#endregion
+    private readonly Random _rand = new();
+    #endregion
 
-		#region Properties
+    #region Properties
 
-		public TCard this[int index]
-		{
-			get => this.cards[ReversedIndex(index)];
-			set => this.cards[ReversedIndex(index)] = value;
-		}
+    public TCard this[int index]
+    {
+        get => _cards[ReversedIndex(index)];
+        set => _cards[ReversedIndex(index)] = value;
+    }
 
-		public TCard? Top => this.Count == 0
-			? null
-			: this.cards[^1];
+    public TCard? Top => Count == 0
+        ? null
+        : _cards[^1];
 
-		public int Count => this.cards.Count;
+    public int Count => _cards.Count;
 
-		bool ICollection<TCard>.IsReadOnly => false;
-		#endregion
+    bool ICollection<TCard>.IsReadOnly => false;
+    #endregion
 
-		#region Ctors
+    #region Ctors
 
-		public CardsDeck()
-		{
-			this.cards = new List<TCard>();
-		}
+    public CardsDeck()
+    {
+        _cards = [ ];
+    }
 
-		public CardsDeck(IEnumerable<TCard> cards)
-		{
-			this.cards = cards is CardsDeck<TCard> deck
-				? new List<TCard>(deck.cards)
-				: new List<TCard>(cards.Reverse());
-		}
-		#endregion
+    public CardsDeck(IEnumerable<TCard> cards)
+    {
+        _cards = cards is CardsDeck<TCard> deck
+            ? [.. deck._cards]
+            : [.. cards.Reverse()];
+    }
+    #endregion
 
-		#region Methods
+    #region Methods
 
-		public void Add(TCard card) =>
-			this.cards.Insert(0, card);
+    public void Add(TCard card) =>
+        _cards.Insert(0, card);
 
 
-		public void Add(params TCard[]? cards)
-		{
-			if (cards != null)
-			{
-				Add(cards.AsEnumerable());
-			}
-		}
+    public void Add(params TCard[ ]? cards)
+    {
+        if (cards != null)
+        {
+            Add(cards.AsEnumerable());
+        }
+    }
 
-		public void Add(IEnumerable<TCard> cards)
-		{
-			this.cards.InsertRange(0, cards);
-		}
+    public void Add(IEnumerable<TCard> cards) => _cards.InsertRange(0, cards);
 
-		public void Clear() =>
-			this.cards.Clear();
+    public void Clear() =>
+        _cards.Clear();
 
-		public bool Contains(TCard card) =>
-			this.cards.Contains(card);
+    public bool Contains(TCard card) =>
+        _cards.Contains(card);
 
-		public void CopyTo(TCard[] array, int arrayIndex)
-		{
-			if (array is null)
-			{
-				throw new ArgumentNullException(nameof(array));
-			}
-			if (arrayIndex < 0)
-			{
-				throw new ArgumentOutOfRangeException(nameof(arrayIndex));
-			}
-			if (array.Length - arrayIndex < this.Count)
-			{
-				throw new ArgumentException(
-					"Destination array was not long enough. " +
-						"Check the destination index, length, and the array's lower bounds.",
-					nameof(array)
-				);
-			}
+    public void CopyTo(TCard[ ] array, int arrayIndex)
+    {
+        ArgumentNullException.ThrowIfNull(array);
+        ArgumentOutOfRangeException.ThrowIfNegative(arrayIndex);
 
-			for (int i = 0; i < this.Count; i++)
-			{
-				array[i + arrayIndex] = this[i];
-			}
-		}
+        if (array.Length - arrayIndex < Count)
+        {
+            throw new ArgumentException(
+                "Destination array was not long enough. " +
+                    "Check the destination index, length, and the array's lower bounds.",
+                nameof(array)
+            );
+        }
 
-		public IEnumerator<TCard> GetEnumerator()
-		{
-			for (int i = 0; i < this.Count; i++)
-			{
-				yield return this[i];
-			}
-		}
+        for (int i = 0; i < Count; i++)
+        {
+            array[i + arrayIndex] = this[i];
+        }
+    }
 
-		public int IndexOf(TCard card) =>
-			ReversedIndex(this.cards.LastIndexOf(card));
+    public IEnumerator<TCard> GetEnumerator()
+    {
+        for (int i = 0; i < Count; i++)
+        {
+            yield return this[i];
+        }
+    }
 
-		public void Insert(int index, TCard card) =>
-			this.cards.Insert(ReversedIndex(index), card);
+    public int IndexOf(TCard card) =>
+        ReversedIndex(_cards.LastIndexOf(card));
 
-		public TCard Pop()
-		{
-			if (this.Count == 0)
-			{
-				throw new InvalidOperationException("Deck is empty");
-			}
+    public void Insert(int index, TCard card) =>
+        _cards.Insert(ReversedIndex(index), card);
 
-			var card = this.Top!;
-			this.cards.RemoveAt(this.Count - 1);
+    public TCard Pop()
+    {
+        if (Count == 0)
+        {
+            throw new InvalidOperationException("Deck is empty");
+        }
 
-			return card.Value;
-		}
+        var card = Top!;
+        _cards.RemoveAt(Count - 1);
 
-		// We are listing the cards in reverse, so pushing "adds" and adding "pushes"
-		public void Push(TCard card)
-		{
-			this.cards.Add(card);
-		}
+        return card.Value;
+    }
 
-		public void Push(params TCard[]? cards)
-		{
-			if (cards != null)
-			{
-				Push(cards.AsEnumerable());
-			}
-		}
+    // We are listing the cards in reverse, so pushing "adds" and adding "pushes"
+    public void Push(TCard card) => _cards.Add(card);
 
-		public void Push(IEnumerable<TCard> cards)
-		{
-			foreach (var card in cards)
-			{
-				Push(card);
-			}
-		}
+    public void Push(params TCard[ ]? cards)
+    {
+        if (cards != null)
+        {
+            Push(cards.AsEnumerable());
+        }
+    }
 
-		public bool Remove(TCard card)
-		{
-			int lastIndex = this.cards.LastIndexOf(card);
+    public void Push(IEnumerable<TCard> cards)
+    {
+        foreach (var card in cards)
+        {
+            Push(card);
+        }
+    }
 
-			if (lastIndex == -1)
-			{
-				return false;
-			}
+    public bool Remove(TCard card)
+    {
+        int lastIndex = _cards.LastIndexOf(card);
 
-			this.cards.RemoveAt(lastIndex);
-			return true;
-		}
+        if (lastIndex == -1)
+        {
+            return false;
+        }
 
-		public void RemoveAt(int index) =>
-			this.cards.RemoveAt(ReversedIndex(index));
+        _cards.RemoveAt(lastIndex);
+        return true;
+    }
 
-		public void Shuffle()
-		{
-			if (this.cards.Count == 0)
-			{
-				return;
-			}
+    public void RemoveAt(int index) =>
+        _cards.RemoveAt(ReversedIndex(index));
 
-			var tempList = new LinkedList<TCard>(this.cards);
-			this.cards.Clear();
-			var node = tempList.First!;
+    public void Shuffle()
+    {
+        if (_cards.Count == 0)
+        {
+            return;
+        }
 
-			while (tempList.Count > 0)
-			{
-				int next = this.rand.Next(tempList.Count);
+        var tempList = new LinkedList<TCard>(_cards);
+        _cards.Clear();
+        var node = tempList.First!;
 
-				for (int i = 0; i < next; i++)
-				{
-					node = node.Next ?? tempList.First!;
-				}
+        while (tempList.Count > 0)
+        {
+            int next = _rand.Next(tempList.Count);
 
-				this.cards.Add(node.Value);
-				node = node.Next ?? tempList.First!;
+            for (int i = 0; i < next; i++)
+            {
+                node = node.Next ?? tempList.First!;
+            }
 
-				tempList.Remove(node.Previous ?? tempList.Last!);
-			}
-		}
+            _cards.Add(node.Value);
+            node = node.Next ?? tempList.First!;
 
-		IEnumerator IEnumerable.GetEnumerator() =>
-			GetEnumerator();
+            tempList.Remove(node.Previous ?? tempList.Last!);
+        }
+    }
 
-		public IReadonlyDeck<TCard> AsReadonly() => new ReadonlyDeck<TCard>(this);
+    IEnumerator IEnumerable.GetEnumerator() =>
+        GetEnumerator();
 
-		private int ReversedIndex(int index) =>
-			Math.Max(this.Count - index - 1, 0);
-		#endregion
-	}
+    public IReadonlyDeck<TCard> AsReadonly() => new ReadonlyDeck<TCard>(this);
 
-	public sealed class ReadonlyDeck<TCard> : IReadonlyDeck<TCard>
-		where TCard : struct
-	{
-		private readonly IDeck<TCard> deck;
+    private int ReversedIndex(int index) =>
+        Math.Max(Count - index - 1, 0);
+    #endregion
+}
 
-		public ReadonlyDeck(IDeck<TCard> deck)
-		{
-			this.deck = deck;
-		}
+public sealed class ReadonlyDeck<TCard> : IReadonlyDeck<TCard>
+    where TCard : struct
+{
+    private readonly IDeck<TCard> _deck;
 
-		public TCard this[int index] => this.deck[index];
+    public ReadonlyDeck(IDeck<TCard> deck)
+    {
+        _deck = deck;
+    }
 
-		public TCard? Top => this.deck.Top;
+    public TCard this[int index] => _deck[index];
 
-		public int Count => this.deck.Count;
+    public TCard? Top => _deck.Top;
 
-		public IEnumerator<TCard> GetEnumerator() => this.deck.GetEnumerator();
+    public int Count => _deck.Count;
 
-		IEnumerator IEnumerable.GetEnumerator() => this.GetEnumerator();
-	}
+    public IEnumerator<TCard> GetEnumerator() => _deck.GetEnumerator();
+
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }

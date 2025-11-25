@@ -1,136 +1,93 @@
 ﻿using System.Collections;
 
-namespace Deck.Cards.FrenchSuited
+namespace Deck.Cards.FrenchSuited;
+
+public sealed class CardsDeck : IDeck<Card>
 {
-	public sealed class CardsDeck : IDeck<Card>
-	{
-		private readonly CardsDeck<Card> deck;
+    private readonly CardsDeck<Card> _deck;
 
-		public CardsDeck()
-		{
-			this.deck = new CardsDeck<Card>();
-		}
+    public CardsDeck()
+    {
+        _deck = [ ];
+    }
 
-		public CardsDeck(IEnumerable<Card> cards)
-		{
-			this.deck = new CardsDeck<Card>(cards);
-		}
+    public CardsDeck(IEnumerable<Card> cards)
+    {
+        _deck = [.. cards];
+    }
 
-		#region Properties 
+    #region Properties
 
-		public Card this[int index]
-		{
-			get => this.deck[index];
-			set => this.deck[index] = value;
-		}
+    public Card this[int index]
+    {
+        get => _deck[index];
+        set => _deck[index] = value;
+    }
 
-		Card IReadOnlyList<Card>.this[int index] => this.deck[index];
+    Card IReadOnlyList<Card>.this[int index] => _deck[index];
 
-		public Card? Top => this.deck.Top;
+    public Card? Top => _deck.Top;
 
-		public int Count => this.deck.Count;
+    public int Count => _deck.Count;
 
-		bool ICollection<Card>.IsReadOnly => ((ICollection<Card>)this.deck).IsReadOnly;
-		#endregion
+    bool ICollection<Card>.IsReadOnly => ((ICollection<Card>)_deck).IsReadOnly;
+    #endregion
 
-		#region Methods
+    #region Methods
 
-		public static CardsDeck FullDeck(bool excludeJokers = false) =>
-			new(Card.AllCards(excludeJokers));
+    public static CardsDeck FullDeck(bool excludeJokers = false) =>
+        [.. Card.AllCards(excludeJokers)];
 
-		#region IDeck<Card> Methods
-		public void Add(Card item)
-		{
-			this.deck.Add(item);
-		}
+    #region IDeck<Card> Methods
+    public void Add(Card item) =>
+        _deck.Add(item);
 
-		public void Add(params Card[]? cards)
-		{
-			this.deck.Add(cards);
-		}
+    public void Add(params Card[ ]? cards) =>
+        _deck.Add(cards);
 
-		public void Add(IEnumerable<Card> cards)
-		{
-			this.deck.Add(cards);
-		}
+    public void Add(IEnumerable<Card> cards) =>
+        _deck.Add(cards);
 
-		public void Clear()
-		{
-			this.deck.Clear();
-		}
+    public void Clear() => _deck.Clear();
 
-		public bool Contains(Card item)
-		{
-			return this.deck.Contains(item);
-		}
+    public bool Contains(Card item) => _deck.Contains(item);
 
-		public void CopyTo(Card[] array, int arrayIndex)
-		{
-			this.deck.CopyTo(array, arrayIndex);
-		}
+    public void CopyTo(Card[ ] array, int arrayIndex) => _deck.CopyTo(array, arrayIndex);
 
-		public IEnumerator<Card> GetEnumerator()
-		{
-			return this.deck.GetEnumerator();
-		}
+    public IEnumerator<Card> GetEnumerator() => _deck.GetEnumerator();
 
-		public int IndexOf(Card item)
-		{
-			return this.deck.IndexOf(item);
-		}
+    public int IndexOf(Card item) => _deck.IndexOf(item);
 
-		public void Insert(int index, Card item)
-		{
-			this.deck.Insert(index, item);
-		}
+    public void Insert(int index, Card item) => _deck.Insert(index, item);
 
-		public Card Pop()
-		{
-			return this.deck.Pop();
-		}
+    public Card Pop() => _deck.Pop();
 
-		public void Push(Card card)
-		{
-			this.deck.Push(card);
-		}
+    public void Push(Card card) => _deck.Push(card);
 
-		public void Push(params Card[]? cards)
-		{
-			if (cards != null)
-			{
-				Push(cards.AsEnumerable());
-			}
-		}
+    public void Push(params Card[ ]? cards)
+    {
+        if (cards != null)
+        {
+            Push(cards.AsEnumerable());
+        }
+    }
 
-		public void Push(IEnumerable<Card> cards)
-		{
-			foreach (var card in cards)
-			{
-				Push(card);
-			}
-		}
+    public void Push(IEnumerable<Card> cards)
+    {
+        foreach (var card in cards)
+        {
+            Push(card);
+        }
+    }
 
-		public bool Remove(Card item)
-		{
-			return this.deck.Remove(item);
-		}
+    public bool Remove(Card item) => _deck.Remove(item);
 
-		public void RemoveAt(int index)
-		{
-			this.deck.RemoveAt(index);
-		}
+    public void RemoveAt(int index) => _deck.RemoveAt(index);
 
-		public void Shuffle()
-		{
-			this.deck.Shuffle();
-		}
+    public void Shuffle() => _deck.Shuffle();
 
-		IEnumerator IEnumerable.GetEnumerator()
-		{
-			return ((IEnumerable)this.deck).GetEnumerator();
-		}
-		public IReadonlyDeck<Card> AsReadonly() => new ReadonlyDeck<Card>(this);
-		#endregion
-		#endregion
-	}
+    IEnumerator IEnumerable.GetEnumerator() => ((IEnumerable)_deck).GetEnumerator();
+    public IReadonlyDeck<Card> AsReadonly() => new ReadonlyDeck<Card>(this);
+    #endregion
+    #endregion
 }
