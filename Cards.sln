@@ -15,8 +15,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ShitheadTester", "ShitheadT
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GameServer", "GameServer\GameServer.csproj", "{EA31F69F-E195-4A99-AD9B-A8019B4318C6}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ShitheadServer", "ShitheadServer\ShitheadServer.csproj", "{BDDB4C9E-307C-42C8-B089-1CAB108E8508}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -47,10 +45,6 @@ Global
 		{EA31F69F-E195-4A99-AD9B-A8019B4318C6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EA31F69F-E195-4A99-AD9B-A8019B4318C6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EA31F69F-E195-4A99-AD9B-A8019B4318C6}.Release|Any CPU.Build.0 = Release|Any CPU
-		{BDDB4C9E-307C-42C8-B089-1CAB108E8508}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{BDDB4C9E-307C-42C8-B089-1CAB108E8508}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{BDDB4C9E-307C-42C8-B089-1CAB108E8508}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{BDDB4C9E-307C-42C8-B089-1CAB108E8508}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
