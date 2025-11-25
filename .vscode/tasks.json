@@ -1,0 +1,30 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "dotnet",
+			"task": "build",
+			"group": "build",
+			"problemMatcher": [
+				"$msCompile"
+			],
+			"label": "dotnet: build"
+		},
+		{
+			"label": "run",
+			"command": "dotnet",
+			"type": "process",
+			"isBackground": true,
+			"args": [
+				"run",
+				"--project",
+				"${workspaceFolder}/ShitheadTester.csproj",
+				"/property:GenerateFullPaths=true",
+				"/consoleloggerparameters:NoSummary"
+			],
+			"problemMatcher": {
+				"pattern": "$msCompile"
+			}
+		}
+	]
+}
