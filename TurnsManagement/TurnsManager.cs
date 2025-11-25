@@ -1,6 +1,4 @@
-﻿using System.Diagnostics;
-
-namespace TurnsManagement;
+﻿namespace TurnsManagement;
 
 public sealed class TurnsManager : ITurnsManager
 {
