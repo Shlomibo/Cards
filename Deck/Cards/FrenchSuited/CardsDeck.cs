@@ -1,16 +1,22 @@
 ﻿using System.Collections;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Deck.Cards.FrenchSuited;
 
-public sealed class CardsDeck : IDeck<Card>
+/// <summary>
+/// A deck of French-suited playing cards.
+/// </summary>
+public sealed record CardsDeck : IDeck<Card>
 {
     private readonly CardsDeck<Card> _deck;
 
+    /// <inheritdoc cref="CardsDeck{TCard}.CardsDeck()"/>
     public CardsDeck()
     {
-        _deck = [ ];
+        _deck = [];
     }
 
+    /// <inheritdoc cref="CardsDeck{TCard}.CardsDeck(IEnumerable{TCard})"/>
     public CardsDeck(IEnumerable<Card> cards)
     {
         _deck = [.. cards];
@@ -18,6 +24,7 @@ public sealed class CardsDeck : IDeck<Card>
 
     #region Properties
 
+    /// <inheritdoc/>
     public Card this[int index]
     {
         get => _deck[index];
@@ -26,8 +33,10 @@ public sealed class CardsDeck : IDeck<Card>
 
     Card IReadOnlyList<Card>.this[int index] => _deck[index];
 
+    /// <inheritdoc/>
     public Card? Top => _deck.Top;
 
+    /// <inheritdoc/>
     public int Count => _deck.Count;
 
     bool ICollection<Card>.IsReadOnly => ((ICollection<Card>)_deck).IsReadOnly;
@@ -35,36 +44,45 @@ public sealed class CardsDeck : IDeck<Card>
 
     #region Methods
 
+    /// <inheritdoc/>
     public static CardsDeck FullDeck(bool excludeJokers = false) =>
         [.. Card.AllCards(excludeJokers)];
 
     #region IDeck<Card> Methods
+    /// <inheritdoc/>
     public void Add(Card item) =>
         _deck.Add(item);
 
-    public void Add(params Card[ ]? cards) =>
+    /// <inheritdoc/>
+    public void Add(params IEnumerable<Card> cards) =>
         _deck.Add(cards);
 
-    public void Add(IEnumerable<Card> cards) =>
-        _deck.Add(cards);
-
+    /// <inheritdoc/>
     public void Clear() => _deck.Clear();
 
+    /// <inheritdoc/>
     public bool Contains(Card item) => _deck.Contains(item);
 
-    public void CopyTo(Card[ ] array, int arrayIndex) => _deck.CopyTo(array, arrayIndex);
+    /// <inheritdoc/>
+    public void CopyTo(Card[] array, int arrayIndex) => _deck.CopyTo(array, arrayIndex);
 
+    /// <inheritdoc/>
     public IEnumerator<Card> GetEnumerator() => _deck.GetEnumerator();
 
+    /// <inheritdoc/>
     public int IndexOf(Card item) => _deck.IndexOf(item);
 
+    /// <inheritdoc/>
     public void Insert(int index, Card item) => _deck.Insert(index, item);
 
-    public Card Pop() => _deck.Pop();
+    /// <inheritdoc/>
+    public bool TryPop([MaybeNullWhen(false)] out Card card) => _deck.TryPop(out card);
 
+    /// <inheritdoc/>
     public void Push(Card card) => _deck.Push(card);
 
-    public void Push(params Card[ ]? cards)
+    /// <inheritdoc/>
+    public void Push(params Card[]? cards)
     {
         if (cards != null)
         {
@@ -72,6 +90,7 @@ public sealed class CardsDeck : IDeck<Card>
         }
     }
 
+    /// <inheritdoc/>
     public void Push(IEnumerable<Card> cards)
     {
         foreach (var card in cards)
@@ -80,13 +99,17 @@ public sealed class CardsDeck : IDeck<Card>
         }
     }
 
+    /// <inheritdoc/>
     public bool Remove(Card item) => _deck.Remove(item);
 
+    /// <inheritdoc/>
     public void RemoveAt(int index) => _deck.RemoveAt(index);
 
+    /// <inheritdoc/>
     public void Shuffle() => _deck.Shuffle();
 
     IEnumerator IEnumerable.GetEnumerator() => ((IEnumerable)_deck).GetEnumerator();
+    /// <inheritdoc/>
     public IReadonlyDeck<Card> AsReadonly() => new ReadonlyDeck<Card>(this);
     #endregion
     #endregion

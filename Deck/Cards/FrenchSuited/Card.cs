@@ -1,6 +1,6 @@
 ﻿namespace Deck.Cards.FrenchSuited;
 
-public struct Card : IEquatable<Card>
+public readonly record struct Card : IEquatable<Card>
 {
     public const int CardsCount = NoJokersCardsCount + 2;
     public const int NoJokersCardsCount = 52;
@@ -20,21 +20,17 @@ public struct Card : IEquatable<Card>
         Suit = suit;
     }
 
-
-    public readonly Card With(Value? value = null, Suit? suit = null) =>
-        GetCard(value ?? Value, suit ?? Suit ?? default);
-
     public static Color ColorBySuit(Suit suit) =>
         (Color)((int)suit & 0x2);
 
     public static Suit DefaultColorSuit(Color color) =>
         (Suit)(int)color;
 
-    public static Card GetCard(Value value, Suit suit) =>
+    public static Card Create(Value value, Suit suit) =>
         new(value, suit);
 
-    public static Card GetJoker(Color color) =>
-        GetCard(Value.Joker, DefaultColorSuit(color));
+    public static Card CreateJoker(Color color) =>
+        Create(Value.Joker, DefaultColorSuit(color));
 
     public static IEnumerable<Card> AllCards(bool excludeJokers = false)
     {
@@ -48,8 +44,8 @@ public struct Card : IEquatable<Card>
 
         if (!excludeJokers)
         {
-            yield return GetJoker(Color.Black);
-            yield return GetJoker(Color.Red);
+            yield return CreateJoker(Color.Black);
+            yield return CreateJoker(Color.Red);
         }
 
     }
@@ -58,21 +54,17 @@ public struct Card : IEquatable<Card>
     {
         for (var value = Value.Ace; value <= Value.King; value++)
         {
-            yield return GetCard(value, suit);
+            yield return Create(value, suit);
         }
     }
 
     public static IEnumerable<Card> AllSuits(Value value)
     {
-        yield return GetCard(value, FrenchSuited.Suit.Clubs);
-        yield return GetCard(value, FrenchSuited.Suit.Spades);
-        yield return GetCard(value, FrenchSuited.Suit.Diamonds);
-        yield return GetCard(value, FrenchSuited.Suit.Hearts);
+        yield return Create(value, FrenchSuited.Suit.Clubs);
+        yield return Create(value, FrenchSuited.Suit.Spades);
+        yield return Create(value, FrenchSuited.Suit.Diamonds);
+        yield return Create(value, FrenchSuited.Suit.Hearts);
     }
-
-    // override object.Equals
-    public override readonly bool Equals(object? obj) =>
-        obj is Card other && Equals(other);
 
     // override object.GetHashCode
     public override readonly int GetHashCode()
@@ -97,9 +89,9 @@ public struct Card : IEquatable<Card>
 
         return value == Value.Joker
             ? $"{Color} Joker"
-            : PrintValue() + PrintSuit();
+            : PrintValue(value) + PrintSuit(suit!.Value);
 
-        string PrintValue() =>
+        static string PrintValue(Value value) =>
             value switch
             {
                 Value.Joker => "Joker",
@@ -119,7 +111,7 @@ public struct Card : IEquatable<Card>
                 _ => throw new InvalidCastException("Invalid card value"),
             };
 
-        string PrintSuit() =>
+        static string PrintSuit(Suit suit) =>
             suit switch
             {
                 FrenchSuited.Suit.Hearts => "♥️",
@@ -129,12 +121,6 @@ public struct Card : IEquatable<Card>
                 _ => throw new InvalidCastException("Invalid card suit"),
             };
     }
-
-    public static bool operator ==(Card left, Card right) =>
-        left.Equals(right);
-
-    public static bool operator !=(Card left, Card right) =>
-        !(left == right);
 }
 
 public enum Suit

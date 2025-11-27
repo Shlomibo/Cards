@@ -1,41 +1,89 @@
 ﻿using System.Collections;
+using System.Diagnostics.CodeAnalysis;
+
+using Nito.Disposables;
 
 namespace Deck;
 
-public sealed class CardsDeck<TCard> : IDeck<TCard>
+/// <inheritdoc cref="IDeck{TCard}"/>
+public class CardsDeck<TCard> : IDeck<TCard>
     where TCard : struct
 {
     #region Fields
 
     private readonly List<TCard> _cards;
-
     private readonly Random _rand = new();
+    private readonly ReaderWriterLockSlim _lock = new();
     #endregion
 
     #region Properties
 
+    /// <inheritdoc/>
     public TCard this[int index]
     {
-        get => _cards[ReversedIndex(index)];
-        set => _cards[ReversedIndex(index)] = value;
+        get
+        {
+            using (ReadLock())
+            {
+                return _cards[ReversedIndex(index)];
+            }
+        }
+
+        set
+        {
+            using (WriteLock())
+            {
+                _cards[ReversedIndex(index)] = value;
+            }
+        }
     }
 
-    public TCard? Top => Count == 0
-        ? null
-        : _cards[^1];
+    /// <inheritdoc/>
+    public TCard? Top
+    {
+        get
+        {
+            using (ReadLock())
+            {
+                return Count == 0
+                    ? null
+                    : _cards[^1];
+            }
+        }
+    }
 
-    public int Count => _cards.Count;
+    /// <inheritdoc/>
+    public int Count
+    {
+        get
+        {
+            using (ReadLock())
+            {
+                return _cards.Count;
+            }
+        }
+    }
 
     bool ICollection<TCard>.IsReadOnly => false;
     #endregion
 
     #region Ctors
 
+    /// <summary>
+    /// Creates an empty deck.
+    /// </summary>
     public CardsDeck()
     {
-        _cards = [ ];
+        _cards = [];
     }
 
+    /// <summary>
+    /// Creates a deck with the given cards.
+    /// </summary>
+    /// <param name="cards">The cards to initialize the deck with.</param>
+    /// <remarks>
+    /// If <paramref name="cards"/> is another <see cref="CardsDeck{TCard}"/>, it is cloned.
+    /// </remarks>
     public CardsDeck(IEnumerable<TCard> cards)
     {
         _cards = cards is CardsDeck<TCard> deck
@@ -46,162 +94,249 @@ public sealed class CardsDeck<TCard> : IDeck<TCard>
 
     #region Methods
 
-    public void Add(TCard card) =>
-        _cards.Insert(0, card);
-
-
-    public void Add(params TCard[ ]? cards)
+    /// <inheritdoc/>
+    public void Add(TCard card)
     {
-        if (cards != null)
+        using (WriteLock())
         {
-            Add(cards.AsEnumerable());
+            _cards.Insert(0, card);
         }
     }
 
-    public void Add(IEnumerable<TCard> cards) => _cards.InsertRange(0, cards);
+    /// <inheritdoc/>
+    public void Add(params IEnumerable<TCard> cards)
+    {
+        using (WriteLock())
+        {
+            _cards.InsertRange(0, cards);
+        }
+    }
 
-    public void Clear() =>
-        _cards.Clear();
+    /// <inheritdoc/>
+    public void Clear()
+    {
+        using (WriteLock())
+        {
+            _cards.Clear();
+        }
+    }
 
-    public bool Contains(TCard card) =>
-        _cards.Contains(card);
+    /// <inheritdoc/>
+    public bool Contains(TCard card)
+    {
+        using (ReadLock())
+        {
+            return _cards.Contains(card);
+        }
+    }
 
-    public void CopyTo(TCard[ ] array, int arrayIndex)
+    /// <inheritdoc/>
+    public void CopyTo(TCard[] array, int arrayIndex)
     {
         ArgumentNullException.ThrowIfNull(array);
         ArgumentOutOfRangeException.ThrowIfNegative(arrayIndex);
 
-        if (array.Length - arrayIndex < Count)
+        using (ReadLock())
         {
-            throw new ArgumentException(
-                "Destination array was not long enough. " +
-                    "Check the destination index, length, and the array's lower bounds.",
-                nameof(array)
-            );
-        }
+            if (array.Length - arrayIndex < Count)
+            {
+                throw new ArgumentException(
+                    "Destination array was not long enough. " +
+                        "Check the destination index, length, and the array's lower bounds.",
+                    nameof(array)
+                );
+            }
 
-        for (int i = 0; i < Count; i++)
-        {
-            array[i + arrayIndex] = this[i];
+            for (int i = 0; i < Count; i++)
+            {
+                array[i + arrayIndex] = this[i];
+            }
         }
     }
 
+    /// <inheritdoc/>
     public IEnumerator<TCard> GetEnumerator()
     {
-        for (int i = 0; i < Count; i++)
+        using (ReadLock())
         {
-            yield return this[i];
+            for (int i = 0; i < Count; i++)
+            {
+                yield return this[i];
+            }
         }
     }
 
-    public int IndexOf(TCard card) =>
-        ReversedIndex(_cards.LastIndexOf(card));
-
-    public void Insert(int index, TCard card) =>
-        _cards.Insert(ReversedIndex(index), card);
-
-    public TCard Pop()
+    /// <inheritdoc/>
+    public int IndexOf(TCard card)
     {
-        if (Count == 0)
+        using (ReadLock())
         {
-            throw new InvalidOperationException("Deck is empty");
+            return ReversedIndex(_cards.LastIndexOf(card));
         }
+    }
 
-        var card = Top!;
-        _cards.RemoveAt(Count - 1);
+    /// <inheritdoc/>
+    public void Insert(int index, TCard card)
+    {
+        using (WriteLock())
+        {
+            _cards.Insert(ReversedIndex(index), card);
+        }
+    }
 
-        return card.Value;
+    /// <inheritdoc/>
+    public bool TryPop([MaybeNullWhen(false)] out TCard card)
+    {
+        using (UpgradeableReadLock())
+        {
+            if (Count == 0)
+            {
+                card = default;
+                return false;
+            }
+
+            card = this[Count - 1];
+
+            using (WriteLock())
+            {
+                _cards.RemoveAt(_cards.Count - 1);
+            }
+
+            return true;
+        }
     }
 
     // We are listing the cards in reverse, so pushing "adds" and adding "pushes"
-    public void Push(TCard card) => _cards.Add(card);
-
-    public void Push(params TCard[ ]? cards)
+    /// <inheritdoc/>
+    public void Push(TCard card)
     {
-        if (cards != null)
+        using (WriteLock())
         {
-            Push(cards.AsEnumerable());
+            _cards.Add(card);
         }
     }
 
-    public void Push(IEnumerable<TCard> cards)
+    /// <inheritdoc/>
+    public void Push(params IEnumerable<TCard> cards)
     {
-        foreach (var card in cards)
+        using (WriteLock())
         {
-            Push(card);
+            foreach (var card in cards)
+            {
+                _cards.Add(card);
+            }
         }
     }
 
+    /// <inheritdoc/>
     public bool Remove(TCard card)
     {
-        int lastIndex = _cards.LastIndexOf(card);
-
-        if (lastIndex == -1)
+        using (UpgradeableReadLock())
         {
-            return false;
-        }
+            int lastIndex = _cards.LastIndexOf(card);
 
-        _cards.RemoveAt(lastIndex);
-        return true;
+            if (lastIndex == -1)
+            {
+                return false;
+            }
+
+            using (WriteLock())
+            {
+                _cards.RemoveAt(lastIndex);
+            }
+            return true;
+        }
     }
 
-    public void RemoveAt(int index) =>
-        _cards.RemoveAt(ReversedIndex(index));
+    /// <inheritdoc/>
+    public void RemoveAt(int index)
+    {
+        using (WriteLock())
+        {
+            _cards.RemoveAt(ReversedIndex(index));
+        }
+    }
 
+    /// <inheritdoc/>
     public void Shuffle()
     {
-        if (_cards.Count == 0)
+        if (_cards.Count <= 1)
         {
             return;
         }
 
-        var tempList = new LinkedList<TCard>(_cards);
-        _cards.Clear();
-        var node = tempList.First!;
-
-        while (tempList.Count > 0)
+        using (WriteLock())
         {
-            int next = _rand.Next(tempList.Count);
-
-            for (int i = 0; i < next; i++)
+            for (int i = 0; i < _cards.Count; i++)
             {
-                node = node.Next ?? tempList.First!;
+                int j = _rand.Next(0, _cards.Count - 1);
+
+                if (j >= i)
+                {
+                    j++;
+                }
+
+                (_cards[i], _cards[j]) = (_cards[j], _cards[i]);
             }
-
-            _cards.Add(node.Value);
-            node = node.Next ?? tempList.First!;
-
-            tempList.Remove(node.Previous ?? tempList.Last!);
         }
     }
 
     IEnumerator IEnumerable.GetEnumerator() =>
         GetEnumerator();
 
+    /// <inheritdoc/>
     public IReadonlyDeck<TCard> AsReadonly() => new ReadonlyDeck<TCard>(this);
 
     private int ReversedIndex(int index) =>
         Math.Max(Count - index - 1, 0);
     #endregion
+
+    private IDisposable ReadLock()
+    {
+        _lock.EnterReadLock();
+        return new Disposable(() => _lock.ExitReadLock());
+    }
+
+    private IDisposable WriteLock()
+    {
+        _lock.EnterWriteLock();
+        return new Disposable(() => _lock.ExitWriteLock());
+    }
+
+    private IDisposable UpgradeableReadLock()
+    {
+        _lock.EnterUpgradeableReadLock();
+        return new Disposable(() => _lock.ExitUpgradeableReadLock());
+    }
 }
 
-public sealed class ReadonlyDeck<TCard> : IReadonlyDeck<TCard>
+/// <inheritdoc cref="IReadonlyDeck{TCard}"/>
+public class ReadonlyDeck<TCard> : IReadonlyDeck<TCard>
     where TCard : struct
 {
     private readonly IDeck<TCard> _deck;
 
+    /// <summary>
+    /// Creates a readonly wrapper around the given deck.
+    /// </summary>
+    /// <param name="deck">The cards deck to wrap.</param>
     public ReadonlyDeck(IDeck<TCard> deck)
     {
         _deck = deck;
     }
 
+    /// <inheritdoc/>
     public TCard this[int index] => _deck[index];
 
+    /// <inheritdoc/>
     public TCard? Top => _deck.Top;
 
+    /// <inheritdoc/>
     public int Count => _deck.Count;
 
+    /// <inheritdoc/>
     public IEnumerator<TCard> GetEnumerator() => _deck.GetEnumerator();
 
+    /// <inheritdoc/>
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }
