@@ -9,7 +9,7 @@ public sealed class Connection<
     TGameMove,
     TSerializedState,
     TSerializedMove> : IDisposable
-    where TSerializedState : class, IState<object, object>
+    where TSerializedState : State
 {
     private bool _isDisposed;
     private readonly Table<TGameState,
@@ -77,7 +77,7 @@ public sealed class Connection<
         OnStateUpdated(_stateSerializer(args.SharedState, args.PlayersStates[Player.Id]));
 
     private void OnTableUpdated(object? sender, EventArgs e) =>
-        OnStateUpdated(_lastGameState.State.GameState);
+        OnStateUpdated((TSerializedState)(object)_lastGameState.State);
 
     private void OnStateUpdated(TSerializedState? state)
     {
@@ -124,7 +124,7 @@ public sealed class Connection<
 }
 
 public sealed class StateUpdatedEventArgs<TSerializedState>
-    where TSerializedState : class, IState<object, object>
+    where TSerializedState : State
 {
     public StateUpdate<TSerializedState> State { get; }
 

@@ -1,23 +1,27 @@
-﻿using Deck.Cards.FrenchSuited;
+﻿using Deck;
+using Deck.Cards.FrenchSuited;
 
 using GameEngine;
 
-using Shithead.ShitheadMove;
+using Shithead.Moves;
 
 using TurnsManagement;
 
 namespace Shithead.State;
 
+/// <summary>
+/// The state of a Shithead game.
+/// </summary>
 public sealed partial class ShitheadState : IState<
     ShitheadState,
     ShitheadState.SharedShitheadState,
     ShitheadState.ShitheadPlayerState,
-    ShitheadMove.ShitheadMove>
+    Move>
 {
     private const int MIN_PLAYERS_COUNT = 3;
     private const int MIN_HAND_CARDS = 3;
     private const int DEALT_CARDS = 6;
-    private static readonly int _suitSize = Enum.GetNames<Suit>().Length;
+    private static readonly int SuitSize = Enum.GetNames<Suit>().Length;
 
     #region Fields
 
@@ -25,23 +29,46 @@ public sealed partial class ShitheadState : IState<
     private readonly TurnsManager _turnsManager;
     private static readonly CardComparer CardComparer = new();
     private readonly object _stateLock = new();
-    private (ShitheadMove.ShitheadMove move, int? playerId)? _lastMove;
+    private (Move move, int? playerId)? _lastMove;
+    private (Move move, int? playerId)? _lastPlayedMove;
     #endregion
 
     #region Properties
 
+    /// <summary>
+    /// Gets the number of players in the game.
+    /// </summary>
     public int PlayersCount { get; private set; }
 
-    ShitheadState IState<ShitheadState, SharedShitheadState, ShitheadPlayerState, ShitheadMove.ShitheadMove>.GameState => this;
+    ShitheadState IState<ShitheadState, SharedShitheadState, ShitheadPlayerState, Move>.GameState => this;
+
+    /// <summary>
+    /// Gets the current state of the game.
+    /// </summary>
     public GameState GameState { get; private set; } = GameState.Init;
 
+    /// <summary>
+    /// Gets the state that is visible to all players.
+    /// </summary>
     public SharedShitheadState SharedState { get; }
+
+    /// <summary>
+    /// Gets the deck of cards used in the game.
+    /// </summary>
     public CardsDeck Deck { get; } = CardsDeck.FullDeck();
+
+    /// <summary>
+    /// Gets the discard pile.
+    /// </summary>
     public CardsDeck DiscardPile { get; } = [];
     #endregion
 
     #region Constructors
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ShitheadState"/> class.
+    /// </summary>
+    /// <param name="playersCount">The initial count of players in the game.</param>
     public ShitheadState(int playersCount)
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(playersCount, MIN_PLAYERS_COUNT);
@@ -67,13 +94,29 @@ public sealed partial class ShitheadState : IState<
 
     #region Methods
 
+    /// <summary>
+    /// Gets the state that is visible to the specified player.
+    /// </summary>
+    /// <param name="playerId">The id of the player.</param>
+    /// <returns>The state which is only visible to the <paramref name="playerId"/> player.</returns>
     public ShitheadPlayerState GetPlayerState(int playerId) =>
         new(playerId, this);
 
+    /// <summary>
+    /// Determines whether the game is over.
+    /// </summary>
     public bool IsGameOver() =>
         GameState == GameState.GameOver;
 
-    public bool IsValidMove(ShitheadMove.ShitheadMove move, int? player = null)
+    /// <summary>
+    /// Determines whether the specified move is valid.
+    /// </summary>
+    /// <param name="move">The move to check.</param>
+    /// <param name="player">The player that acts.</param>
+    /// <returns>
+    /// <see langword="true"/> if the move is valid; otherwise, <see langword="false"/>.
+    /// </returns>
+    public bool IsValidMove(Move move, int? player = null)
     {
         lock (_stateLock)
         {
@@ -81,7 +124,15 @@ public sealed partial class ShitheadState : IState<
         }
     }
 
-    public bool PlayMove(ShitheadMove.ShitheadMove move, int? player = null)
+    /// <summary>
+    /// Plays the specified move.
+    /// </summary>
+    /// <param name="move">The move to play.</param>
+    /// <param name="player">The player that acts.</param>
+    /// <returns>
+    /// <see langword="true"/> if the move was legal; otherwise, <see langword="false"/>.
+    /// </returns>
+    public bool PlayMove(Move move, int? player = null)
     {
         lock (_stateLock)
         {
@@ -89,7 +140,15 @@ public sealed partial class ShitheadState : IState<
             moveAction?.Invoke();
             _lastMove = (move, player);
 
-            return moveAction != null;
+            if (moveAction == null)
+            {
+                return false;
+            }
+            else
+            {
+                _lastPlayedMove = _lastMove;
+                return true;
+            }
         }
     }
 
@@ -116,7 +175,7 @@ public sealed partial class ShitheadState : IState<
                 select (int?)player.Id).FirstOrDefault() ?? 0;
     }
 
-    private Action? GetMove(ShitheadMove.ShitheadMove move, int? playerId = null)
+    private Action? GetMove(Move move, int? playerId = null)
     {
         if (playerId is null)
         {
@@ -339,9 +398,9 @@ public sealed partial class ShitheadState : IState<
 
     private bool ShouldDiscardPile(Value cardValue)
     {
-        var top = DiscardPile.Take(_suitSize).ToArray();
+        var top = DiscardPile.Take(SuitSize).ToArray();
 
-        return cardValue == Value.Ten || (top.Length == _suitSize &&
+        return cardValue == Value.Ten || (top.Length == SuitSize &&
             top.All(discard => discard.Value == cardValue));
     }
 
@@ -349,10 +408,10 @@ public sealed partial class ShitheadState : IState<
     {
         var top = cards
             .Concat(DiscardPile)
-            .Take(_suitSize)
+            .Take(SuitSize)
             .ToArray();
 
-        if (top.Length < _suitSize)
+        if (top.Length < SuitSize)
         {
             return false;
         }

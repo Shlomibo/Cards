@@ -4,19 +4,15 @@
 /// A card face that can be revealed or hidden.
 /// </summary>
 /// <typeparam name="TCard">The type of the card.</typeparam>
-public record CardFace<TCard>
+public sealed record CardFace<TCard>
     where TCard : struct
 {
-#pragma warning disable IDE0032 // Use auto property
-    private readonly TCard _card;
-#pragma warning restore IDE0032 // Use auto property
-
     /// <summary>
     /// Gets the card if it is revealed;<br/>
     /// Otherwise, returns the default value.
     /// </summary>
     public TCard Card => IsRevealed
-        ? _card
+        ? field
         : default;
 
     /// <summary>
@@ -31,7 +27,19 @@ public record CardFace<TCard>
     /// <param name="isRevealed"></param>
     public CardFace(TCard card, bool isRevealed = false)
     {
-        _card = card;
+        Card = card;
         IsRevealed = isRevealed;
     }
+
+    /// <summary>
+    /// Converts the card face to the underlying card.
+    /// </summary>
+    /// <param name="cardFace">The card face to convert.</param>
+    public static explicit operator TCard(CardFace<TCard> cardFace) => cardFace.Card;
+
+    /// <summary>
+    /// Converts the card to a hidden card face.
+    /// </summary>
+    /// <param name="card">The card to convert.</param>
+    public static implicit operator CardFace<TCard>(TCard card) => new(card);
 }

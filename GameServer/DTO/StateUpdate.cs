@@ -1,31 +1,22 @@
 ﻿namespace GameServer.DTO;
 
-public sealed class StateUpdate<TState>
-    where TState : class, IState<object, object>
+public sealed record StateUpdate<TState>(
+    string TableName,
+    CurrentPlayer CurrentPlayer,
+    IReadOnlyDictionary<int, Player> Table,
+    TState? State = null)
+    where TState : State
 {
-    public string TableName { get; }
-    public CurrentPlayer CurrentPlayer { get; }
-    public IReadOnlyDictionary<int, Player> Table { get; }
-    public TState? GameState { get; }
-
-    public StateUpdate(
-        string tableName,
-        CurrentPlayer currentPlayer,
-        IReadOnlyDictionary<int, Player> table,
-        TState? state = null)
-    {
-        TableName = tableName;
-        CurrentPlayer = currentPlayer;
-        Table = table;
-        GameState = state;
-    }
-
     public StateUpdate(
         string tableName,
         CurrentPlayer currentPlayer,
         IEnumerable<Player> players,
         TState? state = null)
-        : this(tableName, currentPlayer, players.ToDictionary(player => player.PlayerId), state)
+        : this(
+            tableName,
+            currentPlayer,
+            players.ToDictionary(player => player.PlayerId),
+            state)
     {
     }
 }

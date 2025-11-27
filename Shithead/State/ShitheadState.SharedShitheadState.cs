@@ -8,18 +8,57 @@ namespace Shithead.State;
 
 public sealed partial class ShitheadState
 {
+    /// <summary>
+    /// The state of the Shithead game that is shared among all players.
+    /// </summary>
     public sealed class SharedShitheadState
     {
         private readonly ShitheadState _state;
 
+        /// <summary>
+        /// Gets the players in the game.
+        /// </summary>
         public IReadOnlyList<SharedPlayerState> Players { get; }
-        public IReadOnlyList<int> ActivePlayers => _state._turnsManager.ActivePlayers;
-        public int DeckSize => _state.Deck.Count;
-        public IReadonlyDeck<Card> DiscardPile { get; }
-        public GameState GameState => _state.GameState;
-        public int CurrentTurnPlayer => _state._turnsManager.Current;
-        public (ShitheadMove.ShitheadMove move, int? playerId)? LastMove => _state._lastMove;
 
+        /// <summary>
+        /// Gets the ids of the players that are still playing.
+        /// </summary>
+        public IReadOnlyList<int> ActivePlayers => _state._turnsManager.ActivePlayers;
+
+        /// <summary>
+        /// Gets the size of the deck.
+        /// </summary>
+        public int DeckSize => _state.Deck.Count;
+
+        /// <summary>
+        /// Gets the discard pile.
+        /// </summary>
+        public IReadonlyDeck<Card> DiscardPile { get; }
+
+        /// <summary>
+        /// Gets the current game state.
+        /// </summary>
+        public GameState GameState => _state.GameState;
+
+        /// <summary>
+        /// Gets the id of the player whose turn it is.
+        /// </summary>
+        public int CurrentTurnPlayer => _state._turnsManager.Current;
+
+        /// <summary>
+        /// Gets the last attempted move in the game.
+        /// </summary>
+        public (Moves.Move move, int? playerId)? LastMove => _state._lastMove;
+
+        /// <summary>
+        /// Gets the last played move in the game.
+        /// </summary>
+        public (Moves.Move move, int? playerId)? LastPlayedMove => _state._lastPlayedMove;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SharedShitheadState"/> class.
+        /// </summary>
+        /// <param name="state">The game's state.</param>
         public SharedShitheadState(ShitheadState state)
         {
             _state = state;
@@ -59,23 +98,52 @@ public sealed partial class ShitheadState
         }
     }
 
+    /// <summary>
+    /// The state of a Shithead game player that is visible to other players.
+    /// </summary>
     public sealed class SharedPlayerState
     {
         private readonly ShitheadState _gameState;
 
         private PlayerState Player => _gameState._players[Id];
 
+        /// <summary>
+        /// Gets a value indicating whether the player has won the game.
+        /// </summary>
         public bool Won => Player.Won;
 
+        /// <summary>
+        /// Gets the player's revealed cards.
+        /// </summary>
         public IReadOnlyDictionary<int, Card> RevealedCards => Player.RevealedCards;
 
+        /// <summary>
+        /// Gets the player's undercards if they are revealed.
+        /// </summary>
         public IReadOnlyDictionary<int, Card?> Undercards { get; }
 
+        /// <summary>
+        /// Gets the Id of the player.
+        /// </summary>
         public int Id { get; }
 
+        /// <summary>
+        /// Gets the number of cards in the player's hand.
+        /// </summary>
         public int CardsCount => Player.Hand.Count;
+
+        /// <summary>
+        /// Gets a value indicating whether the player has accepted their revealed cards selection.
+        /// </summary>
         public bool RevealedCardsAccepted => Player.RevealedCardsAccepted;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SharedPlayerState"/> class.
+        /// </summary>
+        /// <param name="state">The game's state.</param>
+        /// <param name="id">
+        /// The id of the player that the current <see cref="SharedPlayerState"/> views.
+        /// </param>
         public SharedPlayerState(ShitheadState state, int id)
         {
             _gameState = state;

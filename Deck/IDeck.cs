@@ -51,15 +51,6 @@ public interface IDeck<TCard> : IList<TCard>, IReadonlyDeck<TCard>
 	void Add(params IEnumerable<TCard> cards);
 
     /// <summary>
-    /// Pops the top card from the deck.
-    /// </summary>
-    /// <returns>The top card.</returns>
-	TCard Pop() =>
-        TryPop(out TCard card)
-            ? card
-            : throw new InvalidOperationException("The deck is empty.");
-
-    /// <summary>
     /// Tries to pop the top card from the deck.
     /// </summary>
     /// <param name="card">Contains the poped card if there was any card to pop.</param>
@@ -79,4 +70,21 @@ public interface IDeck<TCard> : IList<TCard>, IReadonlyDeck<TCard>
     /// </summary>
     /// <returns>A read-only view of the deck.</returns>
 	IReadonlyDeck<TCard> AsReadonly();
+}
+
+/// <summary>
+/// Provides extension methods for <see cref="IDeck{TCard}"/>.
+/// </summary>
+public static class DeckExtensions
+{
+    /// <summary>
+    /// Pops the top card from the deck.
+    /// </summary>
+    /// <typeparam name="TCard">The type of cards in the deck.</typeparam>
+    /// <returns>The top card.</returns>
+    public static TCard Pop<TCard>(this IDeck<TCard> deck)
+        where TCard : struct =>
+        deck.TryPop(out TCard card)
+            ? card
+            : throw new InvalidOperationException("The deck is empty.");
 }

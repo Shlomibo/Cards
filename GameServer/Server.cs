@@ -14,14 +14,14 @@ public class Server<
     TGameMove,
     TSerializedState,
     TSerializedMove>
-    where TSerializedState : class, IState<object, object>
-    where TSerializedMove : IMove
+    where TSerializedState : State
+    where TSerializedMove : Move
 {
     private readonly Func<TInitOptions, Engine<TGameState, TSharedState, TPlayerState, TGameMove>>
         _engineFactory;
     private readonly Func<TSharedState, TPlayerState, TSerializedState> _stateSerializer;
     private readonly Func<TSerializedMove, TGameMove> _moveDeserializer;
-    private readonly Dictionary<string, Table<TGameState, TSharedState, TPlayerState, TGameMove>> _tables = [ ];
+    private readonly Dictionary<string, Table<TGameState, TSharedState, TPlayerState, TGameMove>> _tables = [];
 
     public Server(
         Func<TInitOptions, Engine<TGameState, TSharedState, TPlayerState, TGameMove>> engineFactory,

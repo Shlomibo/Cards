@@ -1,18 +1,19 @@
-﻿namespace TurnsManagement;
+﻿using System.Diagnostics;
 
+namespace TurnsManagement;
+
+/// <inheritdoc cref="ITurnsManager"/>
 public sealed class TurnsManager : ITurnsManager
 {
-    #region Fields
-
     private int _currentPlayerIndex;
     private readonly List<int> _activePlayers;
-    #endregion
 
-    #region Properties
-
+    /// <inheritdoc/>
     public int PlayersCount { get; }
+    /// <inheritdoc/>
     public IReadOnlyList<int> ActivePlayers => _activePlayers;
 
+    /// <inheritdoc/>
     public int Current
     {
         get => GetPlayer(_currentPlayerIndex);
@@ -23,21 +24,26 @@ public sealed class TurnsManager : ITurnsManager
         };
     }
 
+    /// <inheritdoc/>
     public int Previous =>
         Direction == TurnsDirection.Up
         ? GetPlayer(_currentPlayerIndex - 1)
         : GetPlayer(_currentPlayerIndex + 1);
 
+    /// <inheritdoc/>
     public int Next =>
         Direction == TurnsDirection.Up
         ? GetPlayer(_currentPlayerIndex + 1)
         : GetPlayer(_currentPlayerIndex - 1);
 
+    /// <inheritdoc/>
     public TurnsDirection Direction { get; set; }
-    #endregion
 
-    #region Ctors
-
+    /// <summary>
+    /// Initializes a new instance of the <see cref="TurnsManager"/> class.
+    /// </summary>
+    /// <param name="playersCount">The initial number of playing players.</param>
+    /// <param name="direction">The initial playing direction.</param>
     public TurnsManager(int playersCount, TurnsDirection? direction = null)
     {
         if (playersCount <= 0)
@@ -53,10 +59,8 @@ public sealed class TurnsManager : ITurnsManager
             Direction = direction.Value;
         }
     }
-    #endregion
 
-    #region Methods
-
+    /// <inheritdoc/>
     public int Jump(int skippedTurns, TurnsDirection? direction = null)
     {
         if (skippedTurns < 0)
@@ -94,8 +98,10 @@ public sealed class TurnsManager : ITurnsManager
         return Current;
     }
 
+    /// <inheritdoc/>
     public int MoveNext() => Jump(1);
 
+    /// <inheritdoc/>
     public TurnsDirection SwitchDirection() =>
         Direction = Direction switch
         {
@@ -104,6 +110,7 @@ public sealed class TurnsManager : ITurnsManager
             _ => throw new InvalidOperationException("Invalid direction"),
         };
 
+    /// <inheritdoc/>
     public void RemovePlayer(int playerId)
     {
         _activePlayers.Remove(playerId);
@@ -144,5 +151,4 @@ public sealed class TurnsManager : ITurnsManager
 
         return _activePlayers[index];
     }
-    #endregion
 }

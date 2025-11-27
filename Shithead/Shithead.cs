@@ -1,21 +1,19 @@
-﻿using GameEngine;
-
-using Shithead.State;
+﻿using Shithead.State;
 
 namespace Shithead;
 
+/// <summary>
+/// Utilities for creating and managing Shithead games.
+/// </summary>
 public static class ShitheadGame
 {
-    public static Engine<
-        ShitheadState,
-        ShitheadState.SharedShitheadState,
-        ShitheadState.ShitheadPlayerState,
-                ShitheadMove.ShitheadMove> CreateGame(int playersCount)
+    /// <summary>
+    /// Creates a new Shithead game engine with the specified number of players.
+    /// </summary>
+    /// <param name="playersCount">The number of players.</param>
+    /// <returns>A newly initialized game engine.</returns>
+    public static ShitheadEngine CreateGame(int playersCount)
     {
-        return new Engine<
-                        ShitheadState,
-                        ShitheadState.SharedShitheadState,
-                        ShitheadState.ShitheadPlayerState,
-                        ShitheadMove.ShitheadMove>(new ShitheadState(playersCount));
+        return new(new ShitheadState(playersCount));
     }
 }
