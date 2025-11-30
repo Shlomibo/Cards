@@ -153,7 +153,7 @@ public class CardsDeck<TCard> : IDeck<TCard>
 
         using (ReadLock())
         {
-            if (array.Length - arrayIndex < Count)
+            if (array.Length - arrayIndex < _cards.Count)
             {
                 throw new ArgumentException(
                     "Destination array was not long enough. " +
@@ -162,9 +162,9 @@ public class CardsDeck<TCard> : IDeck<TCard>
                 );
             }
 
-            for (int i = 0; i < Count; i++)
+            for (int i = 0; i < _cards.Count; i++)
             {
-                array[i + arrayIndex] = this[i];
+                array[i + arrayIndex] = GetCardAt(i);
             }
         }
     }
