@@ -186,7 +186,11 @@ public class CardsDeck<TCard> : IDeck<TCard>
     {
         using (ReadLock())
         {
-            return ReversedIndex(_cards.LastIndexOf(card));
+            return _cards.LastIndexOf(card) switch
+            {
+                -1 => -1,
+                int index => ReversedIndex(index),
+            };
         }
     }
 
