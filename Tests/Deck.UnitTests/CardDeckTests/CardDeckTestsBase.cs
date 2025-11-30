@@ -1,9 +1,13 @@
 ﻿using Moq;
 
+using NUnit.Framework.Internal;
+
 namespace Deck.UnitTests.CardDeckTests;
 
 public abstract class CardDeckTestsBase
 {
+    protected static Randomizer Random => TestContext.CurrentContext.Random;
+
     protected static IEnumerable<RandomCard> CreateCards(int count)
     {
         HashSet<RandomCard> cards = [];
