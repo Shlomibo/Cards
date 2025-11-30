@@ -41,4 +41,28 @@ public class AddTests : CardDeckTestsBase
 
         x.TestSubject.Should().BeEquivalentTo([.. cards, newCard]);
     }
+
+    [Test]
+    public void WhenAddingMultipleItems()
+    {
+        RandomCard[] cards = [.. CreateCards(10)];
+        using var x = CreateTestData(cards.Reverse());
+        RandomCard[] newCards = [.. CreateCards(3)];
+
+        x.TestSubject.Add(newCards);
+
+        x.TestSubject.Should().BeEquivalentTo([.. newCards, .. cards]);
+    }
+
+    [Test]
+    public void WhenAddingNothing()
+    {
+        RandomCard[] cards = [.. CreateCards(10)];
+        using var x = CreateTestData(cards.Reverse());
+        RandomCard[] newCards = [];
+
+        x.TestSubject.Add(newCards);
+
+        x.TestSubject.Should().BeEquivalentTo(cards);
+    }
 }
