@@ -199,7 +199,13 @@ public class CardsDeck<TCard> : IDeck<TCard>
     {
         using (WriteLock())
         {
-            _cards.Insert(ReversedIndex(index), card);
+            int targetIndex = index switch
+            {
+                0 => _cards.Count,
+                _ => ReversedIndex(index - 1),
+            };
+
+            _cards.Insert(targetIndex, card);
         }
     }
 
