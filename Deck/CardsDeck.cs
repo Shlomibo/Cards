@@ -12,8 +12,8 @@ public class CardsDeck<TCard> : IDeck<TCard>
     #region Fields
 
     private readonly List<TCard> _cards;
-    private readonly Random _rand = new();
-    private readonly ReaderWriterLockSlim _lock = new();
+    private readonly Random _rand;
+    private readonly ReaderWriterLockSlim _lock;
     #endregion
 
     #region Properties
@@ -25,7 +25,7 @@ public class CardsDeck<TCard> : IDeck<TCard>
         {
             using (ReadLock())
             {
-                return _cards[ReversedIndex(index)];
+                return GetCardAt(index);
             }
         }
 
@@ -33,7 +33,7 @@ public class CardsDeck<TCard> : IDeck<TCard>
         {
             using (WriteLock())
             {
-                _cards[ReversedIndex(index)] = value;
+                SetCardAt(index, value);
             }
         }
     }
@@ -73,8 +73,8 @@ public class CardsDeck<TCard> : IDeck<TCard>
     /// Creates an empty deck.
     /// </summary>
     public CardsDeck()
+        : this([], null, null)
     {
-        _cards = [];
     }
 
     /// <summary>
@@ -85,10 +85,25 @@ public class CardsDeck<TCard> : IDeck<TCard>
     /// If <paramref name="cards"/> is another <see cref="CardsDeck{TCard}"/>, it is cloned.
     /// </remarks>
     public CardsDeck(IEnumerable<TCard> cards)
+        : this(
+            cards is CardsDeck<TCard> deck
+                ? deck._cards
+                : cards.Reverse(),
+            null,
+            null)
     {
-        _cards = cards is CardsDeck<TCard> deck
-            ? [.. deck._cards]
-            : [.. cards.Reverse()];
+
+    }
+
+    internal CardsDeck(
+        IEnumerable<TCard> cards,
+        Random? random,
+        ReaderWriterLockSlim? @lock)
+    {
+        _cards = [.. cards];
+
+        _rand = random ?? Random.Shared;
+        _lock = @lock ?? new ReaderWriterLockSlim();
     }
     #endregion
 
@@ -159,9 +174,9 @@ public class CardsDeck<TCard> : IDeck<TCard>
     {
         using (ReadLock())
         {
-            for (int i = 0; i < Count; i++)
+            for (int i = 0; i < _cards.Count; i++)
             {
-                yield return this[i];
+                yield return GetCardAt(i);
             }
         }
     }
@@ -189,17 +204,17 @@ public class CardsDeck<TCard> : IDeck<TCard>
     {
         using (UpgradeableReadLock())
         {
-            if (Count == 0)
+            if (_cards.Count == 0)
             {
                 card = default;
                 return false;
             }
 
-            card = this[Count - 1];
+            card = GetCardAt(0);
 
             using (WriteLock())
             {
-                _cards.RemoveAt(_cards.Count - 1);
+                _cards.RemoveAt(ReversedIndex(0));
             }
 
             return true;
@@ -287,8 +302,16 @@ public class CardsDeck<TCard> : IDeck<TCard>
     /// <inheritdoc/>
     public IReadonlyDeck<TCard> AsReadonly() => new ReadonlyDeck<TCard>(this);
 
-    private int ReversedIndex(int index) =>
-        Math.Max(Count - index - 1, 0);
+    private int ReversedIndex(int index) => index switch
+    {
+        < 0 => throw new IndexOutOfRangeException(),
+        _ when index >= _cards.Count => throw new IndexOutOfRangeException(),
+        _ => _cards.Count - index - 1
+    };
+
+    private void SetCardAt(int index, TCard value) => _cards[ReversedIndex(index)] = value;
+
+    private TCard GetCardAt(int index) => _cards[ReversedIndex(index)];
     #endregion
 
     private IDisposable ReadLock()
