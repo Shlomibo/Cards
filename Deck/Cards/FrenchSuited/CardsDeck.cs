@@ -82,17 +82,13 @@ public sealed record CardsDeck : IDeck<Card>
     public void Push(Card card) => _deck.Push(card);
 
     /// <inheritdoc/>
-    public void Push(params Card[]? cards)
+    public void Push(params IEnumerable<Card>? cards)
     {
-        if (cards != null)
+        if (cards == null)
         {
-            Push(cards.AsEnumerable());
+            return;
         }
-    }
 
-    /// <inheritdoc/>
-    public void Push(IEnumerable<Card> cards)
-    {
         foreach (var card in cards)
         {
             Push(card);

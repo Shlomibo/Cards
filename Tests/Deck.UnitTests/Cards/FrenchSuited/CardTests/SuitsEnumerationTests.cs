@@ -32,8 +32,8 @@ public class SuitsEnumerationTests
         var allSuits = Card.AllSuits(Value.Joker)
             .ToArray();
 
-        Card[] expectedCards = [.. Enum.GetValues<Color>()
-                .Select(c => Card.GetJoker(c))];
+        IEnumerable<Card> expectedCards = Enum.GetValues<Color>()
+                .Select(c => Card.GetJoker(c));
 
         foreach (var expectedCard in expectedCards)
         {

@@ -158,17 +158,13 @@ public readonly record struct Card : IEquatable<Card>
     }
 
     /// <inheritdoc/>
-    public readonly bool Equals(Card other)
+    public readonly bool Equals(Card other) => (this, other) switch
     {
-        if (Value != other.Value)
-        {
-            return false;
-        }
-
-        return Value != Value.Joker
-            ? Suit == other.Suit
-            : Color == other.Color;
-    }
+        ({ Value: var thisVal }, { Value: var otherVal }) when thisVal != otherVal => false,
+        ({ Value: var value, Color: var thisColor }, { Color: var otherColor }) when value == Value.Joker =>
+            thisColor == otherColor,
+        ({ Suit: var thisSuit }, { Suit: var otherSuit }) => thisSuit == otherSuit,
+    };
 
     /// <inheritdoc/>
     public override string ToString()
