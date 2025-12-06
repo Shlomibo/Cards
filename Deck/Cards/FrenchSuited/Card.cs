@@ -72,7 +72,7 @@ public readonly record struct Card : IEquatable<Card>
     /// <param name="value">The value of the card.</param>
     /// <param name="suit">The suit of the card.</param>
     /// <returns>A card with the specified <paramref name="value"/> and <paramref name="suit"/>.</returns>
-    public static Card CreateCard(Value value, Suit suit)
+    public static Card GetCard(Value value, Suit suit)
     {
         return new Card(value, suit);
     }
@@ -83,7 +83,7 @@ public readonly record struct Card : IEquatable<Card>
     /// <param name="color">The color of the joker.</param>
     /// <returns>A joker card.</returns>
     public static Card GetJoker(Color color) =>
-        CreateCard(Value.Joker, DefaultColorSuit(color));
+        GetCard(Value.Joker, DefaultColorSuit(color));
 
     /// <summary>
     /// Enumerates all cards in a standard French-suited deck.
@@ -125,7 +125,7 @@ public readonly record struct Card : IEquatable<Card>
     {
         for (var value = Value.Ace; value <= Value.King; value++)
         {
-            yield return CreateCard(value, suit);
+            yield return GetCard(value, suit);
         }
     }
 
@@ -143,10 +143,10 @@ public readonly record struct Card : IEquatable<Card>
             yield break;
         }
 
-        yield return CreateCard(value, FrenchSuited.Suit.Clubs);
-        yield return CreateCard(value, FrenchSuited.Suit.Spades);
-        yield return CreateCard(value, FrenchSuited.Suit.Diamonds);
-        yield return CreateCard(value, FrenchSuited.Suit.Hearts);
+        yield return GetCard(value, FrenchSuited.Suit.Clubs);
+        yield return GetCard(value, FrenchSuited.Suit.Spades);
+        yield return GetCard(value, FrenchSuited.Suit.Diamonds);
+        yield return GetCard(value, FrenchSuited.Suit.Hearts);
     }
 
     /// <inheritdoc/>
