@@ -62,6 +62,7 @@ public sealed class PlayerState
     /// <param name="id">The player's id.</param>
     public PlayerState(ICollection<Card> undercards, int id)
     {
+        ArgumentNullException.ThrowIfNull(undercards);
         if (undercards.Count != UndercardsCount)
         {
             throw new ArgumentException($"Undercards count is {UndercardsCount}", nameof(undercards));
@@ -71,6 +72,17 @@ public sealed class PlayerState
         Undercards = undercards
             .Select((card, index) => KeyValuePair.Create(index, (CardFace<Card>)card))
             .ToDictionary();
+    }
+
+    internal PlayerState(
+        ICollection<Card> undercards,
+        int id,
+        CardsDeck hand,
+        Dictionary<int, Card> revealedCards)
+        : this(undercards, id)
+    {
+        Hand = hand ?? throw new ArgumentNullException(nameof(hand));
+        RevealedCards = revealedCards ?? throw new ArgumentNullException(nameof(revealedCards));
     }
 
     /// <summary>

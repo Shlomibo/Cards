@@ -26,7 +26,7 @@ public sealed partial class ShitheadState : IState<
     #region Fields
 
     private readonly PlayerState[] _players;
-    private readonly TurnsManager _turnsManager;
+    private readonly ITurnsManager _turnsManager;
     private static readonly CardComparer CardComparer = new();
     private readonly object _stateLock = new();
     private (Move move, int? playerId)? _lastMove;
@@ -89,6 +89,27 @@ public sealed partial class ShitheadState : IState<
             ))];
 
         Deal();
+    }
+
+    internal ShitheadState(
+        ITurnsManager turnsManager,
+        CardsDeck deck,
+        PlayerState[] players,
+        GameState gameState)
+    {
+        ArgumentNullException.ThrowIfNull(players);
+        if (players.Length != PlayersCount)
+        {
+            throw new ArgumentException("Turns manager and players count have different players count");
+        }
+
+        _turnsManager = turnsManager ?? throw new ArgumentNullException(nameof(turnsManager));
+        PlayersCount = turnsManager.PlayersCount;
+        Deck = deck ?? throw new ArgumentNullException(nameof(deck));
+        _players = players;
+        GameState = gameState;
+
+        SharedState = new SharedShitheadState(this);
     }
     #endregion
 
