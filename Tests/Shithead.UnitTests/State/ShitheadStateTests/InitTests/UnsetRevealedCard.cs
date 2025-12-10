@@ -9,55 +9,19 @@ using Shithead.Moves;
 
 namespace Shithead.UnitTests.State.ShitheadStateTests.InitTests;
 
-internal class RevealedCardsPlacement : InitTestsBase
+internal class UnsetRevealedCardTests : InitTestsBase
 {
     [Test]
-    public void WhenPlayerPutsARevealedCard()
+    public void WhenPlayerUnsetARevealedCard()
     {
+        const int HAND_SIZE = 4;
         var deck = CardsDeck.FullShuffledDeck();
-
-        var testSubject = GetTestSubject(
-            [
-                new PlayerData(
-                    DealHand(deck, 6),
-                    RevealedCards: [],
-                    DealUndercards(deck)),
-                new PlayerData(
-                    DealHand(deck, 6),
-                    RevealedCards: [],
-                    DealUndercards(deck))],
-            deck);
-
-        var player = testSubject.PlayerStates[0];
-        var originalHand = player.Hand.ToArray();
-        int cardIndex = Random.Next(originalHand.Length);
-        int targetIndex = Random.Next(3);
-
-        SetRevealedCard move = new(cardIndex, targetIndex);
-
-        testSubject.IsValidMove(move, player.Id).Should().BeTrue("the move is valid");
-        player.Hand.Should().BeEquivalentTo(originalHand, "move not played yet");
-        player.RevealedCards.Should().BeEmpty();
-
-        testSubject.PlayMove(move, player.Id).Should().BeTrue("the played move is valid");
-        player.Hand.Should().BeEquivalentTo(
-            originalHand.Where((_, i) => i != cardIndex),
-            "the card was removed from hand");
-        player.RevealedCards.Should().ContainKey(targetIndex)
-            .WhoseValue.Should().Be(originalHand[cardIndex], "card is placed in revealed cards");
-
-        testSubject.LastMove.Should().BeEquivalentTo((move, player.Id));
-        testSubject.LastPlayedMove.Should().BeEquivalentTo((move, player.Id));
-    }
-
-    [Test]
-    public void WhenPlayerPutsARevealedCardOnTopOfOther()
-    {
-        const int HAND_SIZE = 5;
-
-        var deck = CardsDeck.FullShuffledDeck();
-        int cardIndex = Random.Next(HAND_SIZE);
-        int targetIndex = Random.Next(3);
+        int cardIndex = Random.Next(3);
+        int otherRevealedCard = cardIndex switch
+        {
+            3 => 0,
+            _ => cardIndex + 1,
+        };
 
         var testSubject = GetTestSubject(
             [
@@ -65,7 +29,8 @@ internal class RevealedCardsPlacement : InitTestsBase
                     DealHand(deck, HAND_SIZE),
                     new Dictionary<int, Card>
                     {
-                        [targetIndex] = deck.Pop(),
+                        [cardIndex] = deck.Pop(),
+                        [otherRevealedCard] = deck.Pop(),
                     },
                     DealUndercards(deck)),
                 new PlayerData(
@@ -78,7 +43,57 @@ internal class RevealedCardsPlacement : InitTestsBase
         var originalHand = player.Hand.ToArray();
         var originalRevealed = player.RevealedCards.ToDictionary();
 
-        SetRevealedCard move = new(cardIndex, targetIndex);
+        UnsetRevealedCard move = new(cardIndex);
+
+        testSubject.IsValidMove(move, player.Id).Should().BeTrue("the move is valid");
+        player.Hand.Should().BeEquivalentTo(originalHand, "move not played yet");
+        player.RevealedCards.Should().BeEquivalentTo(originalRevealed);
+
+        testSubject.PlayMove(move, player.Id).Should().BeTrue("the played move is valid");
+        player.Hand.Should().BeEquivalentTo(
+            originalHand.Append(originalRevealed[cardIndex]),
+            "the card was added to hand");
+        player.RevealedCards.Should().ContainSingle("only one revealed card is left");
+        player.RevealedCards.Should().ContainKey(otherRevealedCard)
+            .WhoseValue.Should().Be(originalRevealed[otherRevealedCard], "only the other card remains");
+
+        testSubject.LastMove.Should().BeEquivalentTo((move, player.Id));
+        testSubject.LastPlayedMove.Should().BeEquivalentTo((move, player.Id));
+    }
+
+    [Test]
+    public void WhenPlayerUnsetAnEmptyRevealedCard()
+    {
+        const int HAND_SIZE = 5;
+
+        var deck = CardsDeck.FullShuffledDeck();
+        int targetIndex = Random.Next(3);
+        int otherIndex = targetIndex switch
+        {
+            3 => 0,
+            _ => targetIndex + 1,
+        };
+
+        var testSubject = GetTestSubject(
+            [
+                new PlayerData(
+                    DealHand(deck, HAND_SIZE),
+                    new Dictionary<int, Card>
+                    {
+                        [otherIndex] = deck.Pop(),
+                    },
+                    DealUndercards(deck)),
+                new PlayerData(
+                    DealHand(deck, 6),
+                    RevealedCards: [],
+                    DealUndercards(deck))],
+            deck);
+
+        var player = testSubject.PlayerStates[0];
+        var originalHand = player.Hand.ToArray();
+        var originalRevealed = player.RevealedCards.ToDictionary();
+
+        UnsetRevealedCard move = new(targetIndex);
 
         testSubject.IsValidMove(move, player.Id).Should().BeFalse("the move is invalid");
         player.Hand.Should().BeEquivalentTo(originalHand, "move not played yet");
@@ -93,52 +108,22 @@ internal class RevealedCardsPlacement : InitTestsBase
     }
 
     [Test]
-    public void WhenPlayerPutsARevealedCardIn4thPosition()
+    public void WhenPlayerUnsetARevealedCardIn4thPosition()
     {
+        const int HAND_SIZE = 5;
+
         var deck = CardsDeck.FullShuffledDeck();
-
-        var testSubject = GetTestSubject(
-            [
-                new PlayerData(
-                    DealHand(deck, 6),
-                    RevealedCards: [],
-                    DealUndercards(deck)),
-                new PlayerData(
-                    DealHand(deck, 6),
-                    RevealedCards: [],
-                    DealUndercards(deck))],
-            deck);
-
-        var player = testSubject.PlayerStates[0];
-        var originalHand = player.Hand.ToArray();
-        var originalRevealed = player.RevealedCards.ToDictionary();
-        int cardIndex = Random.Next(originalHand.Length);
         int targetIndex = 4;
-
-        SetRevealedCard move = new(cardIndex, targetIndex);
-
-        testSubject.IsValidMove(move, player.Id).Should().BeFalse("the move is invalid");
-        player.Hand.Should().BeEquivalentTo(originalHand, "move not played yet");
-        player.RevealedCards.Should().BeEmpty();
-
-        testSubject.PlayMove(move, player.Id).Should().BeFalse("the played move is invalid");
-        player.Hand.Should().BeEquivalentTo(originalHand, "move not valid to play");
-        player.RevealedCards.Should().BeEquivalentTo(originalRevealed);
-
-        testSubject.LastMove.Should().BeEquivalentTo((move, player.Id));
-        testSubject.LastPlayedMove.Should().BeNull();
-    }
-
-    [Test]
-    public void WhenPlayerPutsARevealedCardInNegativePosition()
-    {
-        var deck = CardsDeck.FullShuffledDeck();
+        int otherIndex = Random.Next(3);
 
         var testSubject = GetTestSubject(
             [
                 new PlayerData(
-                    DealHand(deck, 6),
-                    RevealedCards: [],
+                    DealHand(deck, HAND_SIZE),
+                    new Dictionary<int, Card>
+                    {
+                        [otherIndex] = deck.Pop(),
+                    },
                     DealUndercards(deck)),
                 new PlayerData(
                     DealHand(deck, 6),
@@ -149,14 +134,12 @@ internal class RevealedCardsPlacement : InitTestsBase
         var player = testSubject.PlayerStates[0];
         var originalHand = player.Hand.ToArray();
         var originalRevealed = player.RevealedCards.ToDictionary();
-        int cardIndex = Random.Next(originalHand.Length);
-        int targetIndex = -1;
 
-        SetRevealedCard move = new(cardIndex, targetIndex);
+        UnsetRevealedCard move = new(targetIndex);
 
         testSubject.IsValidMove(move, player.Id).Should().BeFalse("the move is invalid");
         player.Hand.Should().BeEquivalentTo(originalHand, "move not played yet");
-        player.RevealedCards.Should().BeEmpty();
+        player.RevealedCards.Should().BeEquivalentTo(originalRevealed);
 
         testSubject.PlayMove(move, player.Id).Should().BeFalse("the played move is invalid");
         player.Hand.Should().BeEquivalentTo(originalHand, "move not valid to play");
@@ -167,15 +150,22 @@ internal class RevealedCardsPlacement : InitTestsBase
     }
 
     [Test]
-    public void WhenPlayerPutsARevealedCardFromNegativeIndex()
+    public void WhenPlayerUnsetARevealedCardInNegativePosition()
     {
+        const int HAND_SIZE = 5;
+
         var deck = CardsDeck.FullShuffledDeck();
+        int targetIndex = -Random.Next(3);
+        int otherIndex = Random.Next(3);
 
         var testSubject = GetTestSubject(
             [
                 new PlayerData(
-                    DealHand(deck, 6),
-                    RevealedCards: [],
+                    DealHand(deck, HAND_SIZE),
+                    new Dictionary<int, Card>
+                    {
+                        [otherIndex] = deck.Pop(),
+                    },
                     DealUndercards(deck)),
                 new PlayerData(
                     DealHand(deck, 6),
@@ -186,14 +176,12 @@ internal class RevealedCardsPlacement : InitTestsBase
         var player = testSubject.PlayerStates[0];
         var originalHand = player.Hand.ToArray();
         var originalRevealed = player.RevealedCards.ToDictionary();
-        int cardIndex = -Random.Next(1, originalHand.Length);
-        int targetIndex = Random.Next(3);
 
-        SetRevealedCard move = new(cardIndex, targetIndex);
+        UnsetRevealedCard move = new(targetIndex);
 
         testSubject.IsValidMove(move, player.Id).Should().BeFalse("the move is invalid");
         player.Hand.Should().BeEquivalentTo(originalHand, "move not played yet");
-        player.RevealedCards.Should().BeEmpty();
+        player.RevealedCards.Should().BeEquivalentTo(originalRevealed);
 
         testSubject.PlayMove(move, player.Id).Should().BeFalse("the played move is invalid");
         player.Hand.Should().BeEquivalentTo(originalHand, "move not valid to play");
@@ -204,52 +192,26 @@ internal class RevealedCardsPlacement : InitTestsBase
     }
 
     [Test]
-    public void WhenPlayerPutsARevealedCardFromBeyondTheHand()
+    public void WhenPlayerUnsetARevealedCardAfterAcceptingRevealedCards()
     {
+        const int HAND_SIZE = 4;
         var deck = CardsDeck.FullShuffledDeck();
+        int cardIndex = Random.Next(3);
+        int otherRevealedCard = cardIndex switch
+        {
+            3 => 0,
+            _ => cardIndex + 1,
+        };
 
         var testSubject = GetTestSubject(
             [
                 new PlayerData(
-                    DealHand(deck, 6),
-                    RevealedCards: [],
-                    DealUndercards(deck)),
-                new PlayerData(
-                    DealHand(deck, 6),
-                    RevealedCards: [],
-                    DealUndercards(deck))],
-            deck);
-
-        var player = testSubject.PlayerStates[0];
-        var originalHand = player.Hand.ToArray();
-        var originalRevealed = player.RevealedCards.ToDictionary();
-        int cardIndex = originalHand.Length;
-        int targetIndex = Random.Next(3);
-
-        SetRevealedCard move = new(cardIndex, targetIndex);
-
-        testSubject.IsValidMove(move, player.Id).Should().BeFalse("the move is invalid");
-        player.Hand.Should().BeEquivalentTo(originalHand, "move not played yet");
-        player.RevealedCards.Should().BeEmpty();
-
-        testSubject.PlayMove(move, player.Id).Should().BeFalse("the played move is invalid");
-        player.Hand.Should().BeEquivalentTo(originalHand, "move not valid to play");
-        player.RevealedCards.Should().BeEquivalentTo(originalRevealed);
-
-        testSubject.LastMove.Should().BeEquivalentTo((move, player.Id));
-        testSubject.LastPlayedMove.Should().BeNull();
-    }
-
-    [Test]
-    public void WhenPlayerPutsARevealedCardAfterAcceptingRevealedCards()
-    {
-        var deck = CardsDeck.FullShuffledDeck();
-
-        var testSubject = GetTestSubject(
-            [
-                new PlayerData(
-                    DealHand(deck, 6),
-                    RevealedCards: [],
+                    DealHand(deck, HAND_SIZE),
+                    new Dictionary<int, Card>
+                    {
+                        [cardIndex] = deck.Pop(),
+                        [otherRevealedCard] = deck.Pop(),
+                    },
                     DealUndercards(deck)),
                 new PlayerData(
                     DealHand(deck, 6),
@@ -261,14 +223,12 @@ internal class RevealedCardsPlacement : InitTestsBase
         player.RevealedCardsAccepted = true;
         var originalHand = player.Hand.ToArray();
         var originalRevealed = player.RevealedCards.ToDictionary();
-        int cardIndex = Random.Next(originalHand.Length);
-        int targetIndex = Random.Next(3);
 
-        SetRevealedCard move = new(cardIndex, targetIndex);
+        UnsetRevealedCard move = new(cardIndex);
 
         testSubject.IsValidMove(move, player.Id).Should().BeFalse("the move is invalid");
         player.Hand.Should().BeEquivalentTo(originalHand, "move not played yet");
-        player.RevealedCards.Should().BeEmpty();
+        player.RevealedCards.Should().BeEquivalentTo(originalRevealed);
 
         testSubject.PlayMove(move, player.Id).Should().BeFalse("the played move is invalid");
         player.Hand.Should().BeEquivalentTo(originalHand, "move not valid to play");

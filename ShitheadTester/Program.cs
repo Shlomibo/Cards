@@ -94,7 +94,7 @@ while (state.GameState == GameState.Init)
                     selectedTarget < 0 ||
                     selectedTarget > 2);
 
-                player.PlayMove(new RevealedCardSelection(selectedCard, selectedTarget));
+                player.PlayMove(new SetRevealedCard(selectedCard, selectedTarget));
 
                 Console.WriteLine(PrintPlayer(player.State));
             }

@@ -6,7 +6,7 @@
 /// </summary>
 /// <param name="CardIndex">Card index in player deck.</param>
 /// <param name="TargetIndex">The revealed card index to send the card to</param>
-public sealed record RevealedCardSelection(
+public sealed record SetRevealedCard(
     int CardIndex,
     int TargetIndex) : Move;
 

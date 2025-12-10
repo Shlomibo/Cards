@@ -222,7 +222,7 @@ public sealed partial class ShitheadState : IState<
         return (GameState, move) switch
         {
             // GameState.Init
-            (GameState.Init, RevealedCardSelection { CardIndex: var index, TargetIndex: var target })
+            (GameState.Init, SetRevealedCard { CardIndex: var index, TargetIndex: var target })
                 when player.CanSetRevealedCard(index, target) => () =>
                 {
                     var card = player.Hand[index];
