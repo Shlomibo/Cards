@@ -54,7 +54,7 @@ public sealed partial class ShitheadState : IState<
     /// <summary>
     /// Gets the current state of the game.
     /// </summary>
-    public GameState GameState { get; private set; } = GameState.Init;
+    public GameState GameState { get; internal set; } = GameState.Init;
 
     /// <summary>
     /// Gets the state that is visible to all players.

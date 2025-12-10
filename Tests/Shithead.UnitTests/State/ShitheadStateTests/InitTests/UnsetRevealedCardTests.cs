@@ -9,7 +9,7 @@ using Shithead.Moves;
 
 namespace Shithead.UnitTests.State.ShitheadStateTests.InitTests;
 
-internal class UnsetRevealedCardTests : InitTestsBase
+public class UnsetRevealedCardTests : InitTestsBase
 {
     [Test]
     public void WhenPlayerUnsetARevealedCard()
@@ -45,20 +45,23 @@ internal class UnsetRevealedCardTests : InitTestsBase
 
         UnsetRevealedCard move = new(cardIndex);
 
-        testSubject.IsValidMove(move, player.Id).Should().BeTrue("the move is valid");
-        player.Hand.Should().BeEquivalentTo(originalHand, "move not played yet");
-        player.RevealedCards.Should().BeEquivalentTo(originalRevealed);
-
-        testSubject.PlayMove(move, player.Id).Should().BeTrue("the played move is valid");
-        player.Hand.Should().BeEquivalentTo(
-            originalHand.Append(originalRevealed[cardIndex]),
-            "the card was added to hand");
-        player.RevealedCards.Should().ContainSingle("only one revealed card is left");
-        player.RevealedCards.Should().ContainKey(otherRevealedCard)
-            .WhoseValue.Should().Be(originalRevealed[otherRevealedCard], "only the other card remains");
-
-        testSubject.LastMove.Should().BeEquivalentTo((move, player.Id));
-        testSubject.LastPlayedMove.Should().BeEquivalentTo((move, player.Id));
+        ValidateValidMove(
+            testSubject,
+            player,
+            move,
+            () =>
+            {
+                player.Hand.Should().BeEquivalentTo(
+                    originalHand.Append(originalRevealed[cardIndex]),
+                    "the card was added to hand");
+                player.RevealedCards.Should().ContainSingle("only one revealed card is left");
+                player.RevealedCards.Should().ContainKey(otherRevealedCard)
+                    .WhoseValue.Should().Be(
+                        originalRevealed[otherRevealedCard],
+                        "only the other card remains");
+            },
+            originalHand,
+            originalRevealed);
     }
 
     [Test]
@@ -95,16 +98,7 @@ internal class UnsetRevealedCardTests : InitTestsBase
 
         UnsetRevealedCard move = new(targetIndex);
 
-        testSubject.IsValidMove(move, player.Id).Should().BeFalse("the move is invalid");
-        player.Hand.Should().BeEquivalentTo(originalHand, "move not played yet");
-        player.RevealedCards.Should().BeEquivalentTo(originalRevealed);
-
-        testSubject.PlayMove(move, player.Id).Should().BeFalse("the played move is invalid");
-        player.Hand.Should().BeEquivalentTo(originalHand, "move not valid to play");
-        player.RevealedCards.Should().BeEquivalentTo(originalRevealed);
-
-        testSubject.LastMove.Should().BeEquivalentTo((move, player.Id));
-        testSubject.LastPlayedMove.Should().BeNull();
+        ValidateInvalidMove(testSubject, player, move, originalHand, originalRevealed);
     }
 
     [Test]
@@ -137,16 +131,7 @@ internal class UnsetRevealedCardTests : InitTestsBase
 
         UnsetRevealedCard move = new(targetIndex);
 
-        testSubject.IsValidMove(move, player.Id).Should().BeFalse("the move is invalid");
-        player.Hand.Should().BeEquivalentTo(originalHand, "move not played yet");
-        player.RevealedCards.Should().BeEquivalentTo(originalRevealed);
-
-        testSubject.PlayMove(move, player.Id).Should().BeFalse("the played move is invalid");
-        player.Hand.Should().BeEquivalentTo(originalHand, "move not valid to play");
-        player.RevealedCards.Should().BeEquivalentTo(originalRevealed);
-
-        testSubject.LastMove.Should().BeEquivalentTo((move, player.Id));
-        testSubject.LastPlayedMove.Should().BeNull();
+        ValidateInvalidMove(testSubject, player, move, originalHand, originalRevealed);
     }
 
     [Test]
@@ -155,7 +140,7 @@ internal class UnsetRevealedCardTests : InitTestsBase
         const int HAND_SIZE = 5;
 
         var deck = CardsDeck.FullShuffledDeck();
-        int targetIndex = -Random.Next(3);
+        int targetIndex = -Random.Next(1, 3);
         int otherIndex = Random.Next(3);
 
         var testSubject = GetTestSubject(
@@ -179,16 +164,7 @@ internal class UnsetRevealedCardTests : InitTestsBase
 
         UnsetRevealedCard move = new(targetIndex);
 
-        testSubject.IsValidMove(move, player.Id).Should().BeFalse("the move is invalid");
-        player.Hand.Should().BeEquivalentTo(originalHand, "move not played yet");
-        player.RevealedCards.Should().BeEquivalentTo(originalRevealed);
-
-        testSubject.PlayMove(move, player.Id).Should().BeFalse("the played move is invalid");
-        player.Hand.Should().BeEquivalentTo(originalHand, "move not valid to play");
-        player.RevealedCards.Should().BeEquivalentTo(originalRevealed);
-
-        testSubject.LastMove.Should().BeEquivalentTo((move, player.Id));
-        testSubject.LastPlayedMove.Should().BeNull();
+        ValidateInvalidMove(testSubject, player, move, originalHand, originalRevealed);
     }
 
     [Test]
@@ -226,15 +202,6 @@ internal class UnsetRevealedCardTests : InitTestsBase
 
         UnsetRevealedCard move = new(cardIndex);
 
-        testSubject.IsValidMove(move, player.Id).Should().BeFalse("the move is invalid");
-        player.Hand.Should().BeEquivalentTo(originalHand, "move not played yet");
-        player.RevealedCards.Should().BeEquivalentTo(originalRevealed);
-
-        testSubject.PlayMove(move, player.Id).Should().BeFalse("the played move is invalid");
-        player.Hand.Should().BeEquivalentTo(originalHand, "move not valid to play");
-        player.RevealedCards.Should().BeEquivalentTo(originalRevealed);
-
-        testSubject.LastMove.Should().BeEquivalentTo((move, player.Id));
-        testSubject.LastPlayedMove.Should().BeNull();
+        ValidateInvalidMove(testSubject, player, move, originalHand, originalRevealed);
     }
 }

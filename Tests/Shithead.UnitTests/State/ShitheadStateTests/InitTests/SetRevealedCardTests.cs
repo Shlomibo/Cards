@@ -9,7 +9,7 @@ using Shithead.Moves;
 
 namespace Shithead.UnitTests.State.ShitheadStateTests.InitTests;
 
-internal class RevealedCardsPlacementTests : InitTestsBase
+public class SetRevealedCardTests : InitTestsBase
 {
     [Test]
     public void WhenPlayerPutsARevealedCard()
@@ -35,19 +35,22 @@ internal class RevealedCardsPlacementTests : InitTestsBase
 
         SetRevealedCard move = new(cardIndex, targetIndex);
 
-        testSubject.IsValidMove(move, player.Id).Should().BeTrue("the move is valid");
-        player.Hand.Should().BeEquivalentTo(originalHand, "move not played yet");
-        player.RevealedCards.Should().BeEmpty();
-
-        testSubject.PlayMove(move, player.Id).Should().BeTrue("the played move is valid");
-        player.Hand.Should().BeEquivalentTo(
-            originalHand.Where((_, i) => i != cardIndex),
-            "the card was removed from hand");
-        player.RevealedCards.Should().ContainKey(targetIndex)
-            .WhoseValue.Should().Be(originalHand[cardIndex], "card is placed in revealed cards");
-
-        testSubject.LastMove.Should().BeEquivalentTo((move, player.Id));
-        testSubject.LastPlayedMove.Should().BeEquivalentTo((move, player.Id));
+        ValidateValidMove(
+            testSubject,
+            player,
+            move,
+            () =>
+            {
+                player.Hand.Should().BeEquivalentTo(
+                    originalHand.Where((_, i) => i != cardIndex),
+                    "the card was removed from hand");
+                player.RevealedCards.Should().ContainKey(targetIndex)
+                    .WhoseValue.Should().Be(
+                        originalHand[cardIndex],
+                        "card is placed in revealed cards");
+            },
+            originalHand,
+            []);
     }
 
     [Test]
@@ -80,16 +83,7 @@ internal class RevealedCardsPlacementTests : InitTestsBase
 
         SetRevealedCard move = new(cardIndex, targetIndex);
 
-        testSubject.IsValidMove(move, player.Id).Should().BeFalse("the move is invalid");
-        player.Hand.Should().BeEquivalentTo(originalHand, "move not played yet");
-        player.RevealedCards.Should().BeEquivalentTo(originalRevealed);
-
-        testSubject.PlayMove(move, player.Id).Should().BeFalse("the played move is invalid");
-        player.Hand.Should().BeEquivalentTo(originalHand, "move not valid to play");
-        player.RevealedCards.Should().BeEquivalentTo(originalRevealed);
-
-        testSubject.LastMove.Should().BeEquivalentTo((move, player.Id));
-        testSubject.LastPlayedMove.Should().BeNull();
+        ValidateInvalidMove(testSubject, player, move, originalHand, originalRevealed);
     }
 
     [Test]
@@ -117,16 +111,7 @@ internal class RevealedCardsPlacementTests : InitTestsBase
 
         SetRevealedCard move = new(cardIndex, targetIndex);
 
-        testSubject.IsValidMove(move, player.Id).Should().BeFalse("the move is invalid");
-        player.Hand.Should().BeEquivalentTo(originalHand, "move not played yet");
-        player.RevealedCards.Should().BeEmpty();
-
-        testSubject.PlayMove(move, player.Id).Should().BeFalse("the played move is invalid");
-        player.Hand.Should().BeEquivalentTo(originalHand, "move not valid to play");
-        player.RevealedCards.Should().BeEquivalentTo(originalRevealed);
-
-        testSubject.LastMove.Should().BeEquivalentTo((move, player.Id));
-        testSubject.LastPlayedMove.Should().BeNull();
+        ValidateInvalidMove(testSubject, player, move, originalHand, originalRevealed);
     }
 
     [Test]
@@ -154,16 +139,7 @@ internal class RevealedCardsPlacementTests : InitTestsBase
 
         SetRevealedCard move = new(cardIndex, targetIndex);
 
-        testSubject.IsValidMove(move, player.Id).Should().BeFalse("the move is invalid");
-        player.Hand.Should().BeEquivalentTo(originalHand, "move not played yet");
-        player.RevealedCards.Should().BeEmpty();
-
-        testSubject.PlayMove(move, player.Id).Should().BeFalse("the played move is invalid");
-        player.Hand.Should().BeEquivalentTo(originalHand, "move not valid to play");
-        player.RevealedCards.Should().BeEquivalentTo(originalRevealed);
-
-        testSubject.LastMove.Should().BeEquivalentTo((move, player.Id));
-        testSubject.LastPlayedMove.Should().BeNull();
+        ValidateInvalidMove(testSubject, player, move, originalHand, originalRevealed);
     }
 
     [Test]
@@ -191,16 +167,7 @@ internal class RevealedCardsPlacementTests : InitTestsBase
 
         SetRevealedCard move = new(cardIndex, targetIndex);
 
-        testSubject.IsValidMove(move, player.Id).Should().BeFalse("the move is invalid");
-        player.Hand.Should().BeEquivalentTo(originalHand, "move not played yet");
-        player.RevealedCards.Should().BeEmpty();
-
-        testSubject.PlayMove(move, player.Id).Should().BeFalse("the played move is invalid");
-        player.Hand.Should().BeEquivalentTo(originalHand, "move not valid to play");
-        player.RevealedCards.Should().BeEquivalentTo(originalRevealed);
-
-        testSubject.LastMove.Should().BeEquivalentTo((move, player.Id));
-        testSubject.LastPlayedMove.Should().BeNull();
+        ValidateInvalidMove(testSubject, player, move, originalHand, originalRevealed);
     }
 
     [Test]
@@ -228,16 +195,7 @@ internal class RevealedCardsPlacementTests : InitTestsBase
 
         SetRevealedCard move = new(cardIndex, targetIndex);
 
-        testSubject.IsValidMove(move, player.Id).Should().BeFalse("the move is invalid");
-        player.Hand.Should().BeEquivalentTo(originalHand, "move not played yet");
-        player.RevealedCards.Should().BeEmpty();
-
-        testSubject.PlayMove(move, player.Id).Should().BeFalse("the played move is invalid");
-        player.Hand.Should().BeEquivalentTo(originalHand, "move not valid to play");
-        player.RevealedCards.Should().BeEquivalentTo(originalRevealed);
-
-        testSubject.LastMove.Should().BeEquivalentTo((move, player.Id));
-        testSubject.LastPlayedMove.Should().BeNull();
+        ValidateInvalidMove(testSubject, player, move, originalHand, originalRevealed);
     }
 
     [Test]
@@ -266,15 +224,6 @@ internal class RevealedCardsPlacementTests : InitTestsBase
 
         SetRevealedCard move = new(cardIndex, targetIndex);
 
-        testSubject.IsValidMove(move, player.Id).Should().BeFalse("the move is invalid");
-        player.Hand.Should().BeEquivalentTo(originalHand, "move not played yet");
-        player.RevealedCards.Should().BeEmpty();
-
-        testSubject.PlayMove(move, player.Id).Should().BeFalse("the played move is invalid");
-        player.Hand.Should().BeEquivalentTo(originalHand, "move not valid to play");
-        player.RevealedCards.Should().BeEquivalentTo(originalRevealed);
-
-        testSubject.LastMove.Should().BeEquivalentTo((move, player.Id));
-        testSubject.LastPlayedMove.Should().BeNull();
+        ValidateInvalidMove(testSubject, player, move, originalHand, originalRevealed);
     }
 }
