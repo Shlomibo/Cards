@@ -100,6 +100,7 @@ public sealed class PlayerState
         && RevealedCards.Count < UndercardsCount
         && cardIndex >= 0
         && cardIndex < Hand.Count
+        && IsValidUndercardTarget(target)
         && !RevealedCards.ContainsKey(target);
 
     /// <summary>
@@ -306,4 +307,7 @@ public sealed class PlayerState
                 .FirstOrDefault() ?? -1;
         }
     }
+
+    private static bool IsValidUndercardTarget(int target) =>
+        target is >= 0 and <= UndercardsCount;
 }

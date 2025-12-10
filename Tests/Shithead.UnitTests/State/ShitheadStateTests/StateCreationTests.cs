@@ -19,6 +19,39 @@ public class StateCreationTests
     protected static Randomizer Random => TestContext.Random;
 
     [Test]
+    public void WhenCreatingAGameStateWithNegativePlayersCount()
+    {
+        int playersCount = -Random.Next(3, 6);
+        var deck = CardsDeck.FullDeck();
+
+        var creation = () => new ShitheadState(playersCount, deck);
+
+        creation.Should().Throw<ArgumentOutOfRangeException>("players count was out of range");
+    }
+
+    [Test]
+    public void WhenCreatingAGameStateWithZeroPlayers()
+    {
+        int playersCount = 0;
+        var deck = CardsDeck.FullDeck();
+
+        var creation = () => new ShitheadState(playersCount, deck);
+
+        creation.Should().Throw<ArgumentOutOfRangeException>("players count was out of range");
+    }
+
+    [Test]
+    public void WhenCreatingAGameStateWithOnePlayer()
+    {
+        int playersCount = 1;
+        var deck = CardsDeck.FullDeck();
+
+        var creation = () => new ShitheadState(playersCount, deck);
+
+        creation.Should().Throw<ArgumentOutOfRangeException>("players count was out of range");
+    }
+
+    [Test]
     public void WhenCreatingAGameStateWithInsufficientCards()
     {
         int playersCount = Random.Next(3, 6);
