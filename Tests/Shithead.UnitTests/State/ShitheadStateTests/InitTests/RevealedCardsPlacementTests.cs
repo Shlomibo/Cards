@@ -9,7 +9,7 @@ using Shithead.Moves;
 
 namespace Shithead.UnitTests.State.ShitheadStateTests.InitTests;
 
-internal class RevealedCardsPlacement : InitTestsBase
+internal class RevealedCardsPlacementTests : InitTestsBase
 {
     [Test]
     public void WhenPlayerPutsARevealedCard()
