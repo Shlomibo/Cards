@@ -12,7 +12,7 @@ public sealed partial class ShitheadState
     {
         private readonly ShitheadState _state;
 
-        private PlayerState PlayerState => _state._players[PlayerId];
+        private PlayerState PlayerState => _state.PlayerStates[PlayerId];
         private SharedPlayerState SharedPlayerState => _state.SharedState.Players[PlayerId];
 
         /// <summary>

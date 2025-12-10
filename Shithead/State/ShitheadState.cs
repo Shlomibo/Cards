@@ -22,18 +22,27 @@ public sealed partial class ShitheadState : IState<
     private const int MIN_HAND_CARDS = 3;
     private const int DEALT_CARDS = 6;
     private static readonly int SuitSize = Enum.GetNames<Suit>().Length;
+    private static readonly CardComparer CardComparer = new();
 
     #region Fields
 
-    private readonly PlayerState[] _players;
     private readonly ITurnsManager _turnsManager;
-    private static readonly CardComparer CardComparer = new();
-    private readonly object _stateLock = new();
-    private (Move move, int? playerId)? _lastMove;
-    private (Move move, int? playerId)? _lastPlayedMove;
+    private readonly Lock _stateLock = new();
     #endregion
 
     #region Properties
+
+    internal PlayerState[] PlayerStates { get; }
+
+    /// <summary>
+    /// Gets the last move that was played
+    /// </summary>
+    public (Move move, int? playerId)? LastPlayedMove { get; private set; }
+
+    /// <summary>
+    /// Gets the last move that was attempted
+    /// </summary>
+    public (Move move, int? playerId)? LastMove { get; private set; }
 
     /// <summary>
     /// Gets the number of players in the game.
@@ -55,7 +64,7 @@ public sealed partial class ShitheadState : IState<
     /// <summary>
     /// Gets the deck of cards used in the game.
     /// </summary>
-    public CardsDeck Deck { get; } = CardsDeck.FullDeck();
+    public CardsDeck Deck { get; }
 
     /// <summary>
     /// Gets the discard pile.
@@ -69,9 +78,14 @@ public sealed partial class ShitheadState : IState<
     /// Initializes a new instance of the <see cref="ShitheadState"/> class.
     /// </summary>
     /// <param name="playersCount">The initial count of players in the game.</param>
-    public ShitheadState(int playersCount)
+    /// <param name="playingCards">The cards to play with</param>
+    public ShitheadState(int playersCount, CardsDeck? playingCards = null)
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(playersCount, MIN_PLAYERS_COUNT);
+
+        Deck = playingCards is [_, ..]
+            ? playingCards
+            : CardsDeck.FullDeck();
 
         int maxPlayersCount = Deck.Count / (DEALT_CARDS + PlayerState.UndercardsCount);
         ArgumentOutOfRangeException.ThrowIfGreaterThan(playersCount, maxPlayersCount);
@@ -81,7 +95,7 @@ public sealed partial class ShitheadState : IState<
         Deck.Shuffle();
         SharedState = new SharedShitheadState(this);
         _turnsManager = new TurnsManager(playersCount);
-        _players = [.. Enumerable
+        PlayerStates = [.. Enumerable
             .Range(0, playersCount)
             .Select(id => new PlayerState(
                 [.. Enumerable.Range(0, PlayerState.UndercardsCount).Select(_ => Deck.Pop())],
@@ -92,10 +106,10 @@ public sealed partial class ShitheadState : IState<
     }
 
     internal ShitheadState(
-        ITurnsManager turnsManager,
         CardsDeck deck,
         PlayerState[] players,
-        GameState gameState)
+        GameState gameState,
+        ITurnsManager? turnsManager = null)
     {
         ArgumentNullException.ThrowIfNull(players);
         if (players.Length != PlayersCount)
@@ -103,10 +117,10 @@ public sealed partial class ShitheadState : IState<
             throw new ArgumentException("Turns manager and players count have different players count");
         }
 
-        _turnsManager = turnsManager ?? throw new ArgumentNullException(nameof(turnsManager));
-        PlayersCount = turnsManager.PlayersCount;
+        _turnsManager = turnsManager ?? new TurnsManager(players.Length);
+        PlayersCount = _turnsManager.PlayersCount;
         Deck = deck ?? throw new ArgumentNullException(nameof(deck));
-        _players = players;
+        PlayerStates = players;
         GameState = gameState;
 
         SharedState = new SharedShitheadState(this);
@@ -159,7 +173,7 @@ public sealed partial class ShitheadState : IState<
         {
             var moveAction = GetMove(move, player);
             moveAction?.Invoke();
-            _lastMove = (move, player);
+            LastMove = (move, player);
 
             if (moveAction == null)
             {
@@ -167,7 +181,7 @@ public sealed partial class ShitheadState : IState<
             }
             else
             {
-                _lastPlayedMove = _lastMove;
+                LastPlayedMove = LastMove;
                 return true;
             }
         }
@@ -177,7 +191,7 @@ public sealed partial class ShitheadState : IState<
     {
         for (int i = 0; i < DEALT_CARDS; i++)
         {
-            foreach (var player in _players)
+            foreach (var player in PlayerStates)
             {
                 player.Hand.Push(Deck.Pop());
             }
@@ -186,7 +200,7 @@ public sealed partial class ShitheadState : IState<
 
     private int SelectStartingPlayer()
     {
-        return (from player in _players
+        return (from player in PlayerStates
                 let lowestCard = (from card in player.Hand
                                   where !CardComparer.WildCards.Contains(card.Value)
                                   orderby card.Value ascending
@@ -203,7 +217,7 @@ public sealed partial class ShitheadState : IState<
             return null;
         }
 
-        var player = _players[playerId.Value];
+        var player = PlayerStates[playerId.Value];
 
         return (GameState, move) switch
         {
@@ -231,7 +245,7 @@ public sealed partial class ShitheadState : IState<
                 {
                     player.RevealedCardsAccepted = true;
 
-                    if (_players.All(player => player.RevealedCardsAccepted))
+                    if (PlayerStates.All(player => player.RevealedCardsAccepted))
                     {
                         _turnsManager.Current = SelectStartingPlayer();
                         GameState = GameState.GameOn;
@@ -253,7 +267,7 @@ public sealed partial class ShitheadState : IState<
                 () =>
                 {
                     player.RemoveJoker();
-                    var targetPlayer = _players[targetPlayerId];
+                    var targetPlayer = PlayerStates[targetPlayerId];
 
                     targetPlayer.Hand.Push(DiscardPile);
                     DiscardPile.Clear();
@@ -390,7 +404,7 @@ public sealed partial class ShitheadState : IState<
     private void RemovePlayer(int leavingPlayerId)
     {
         _turnsManager.RemovePlayer(leavingPlayerId);
-        var leavingPlayer = _players[leavingPlayerId];
+        var leavingPlayer = PlayerStates[leavingPlayerId];
 
         leavingPlayer.DidLeaveGame = true;
         leavingPlayer.Hand.Clear();

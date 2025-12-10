@@ -44,9 +44,28 @@ public sealed record CardsDeck : IDeck<Card>
 
     #region Methods
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Returns a new full deck of cards.
+    /// </summary>
+    /// <param name="excludeJokers">
+    /// <see langword="true"/> to include Jokers; otherwise, <see langword="false"/>.
+    /// </param>
     public static CardsDeck FullDeck(bool excludeJokers = false) =>
         [.. Card.AllCards(excludeJokers)];
+
+    /// <summary>
+    /// Returns a new full shuffled deck of cards.
+    /// </summary>
+    /// <param name="excludeJokers">
+    /// <see langword="true"/> to include Jokers; otherwise, <see langword="false"/>.
+    /// </param>
+    public static CardsDeck FullShuffledDeck(bool excludeJokers = false)
+    {
+        var deck = FullDeck(excludeJokers);
+        deck.Shuffle();
+
+        return deck;
+    }
 
     #region IDeck<Card> Methods
     /// <inheritdoc/>

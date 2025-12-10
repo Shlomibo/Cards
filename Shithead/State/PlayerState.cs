@@ -75,12 +75,13 @@ public sealed class PlayerState
     }
 
     internal PlayerState(
-        ICollection<Card> undercards,
         int id,
         CardsDeck hand,
-        Dictionary<int, Card> revealedCards)
-        : this(undercards, id)
+        Dictionary<int, Card> revealedCards,
+        Dictionary<int, CardFace<Card>> undercards)
     {
+        Id = id;
+        Undercards = undercards;
         Hand = hand ?? throw new ArgumentNullException(nameof(hand));
         RevealedCards = revealedCards ?? throw new ArgumentNullException(nameof(revealedCards));
     }

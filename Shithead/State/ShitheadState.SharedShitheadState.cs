@@ -48,12 +48,12 @@ public sealed partial class ShitheadState
         /// <summary>
         /// Gets the last attempted move in the game.
         /// </summary>
-        public (Moves.Move move, int? playerId)? LastMove => _state._lastMove;
+        public (Moves.Move move, int? playerId)? LastMove => _state.LastMove;
 
         /// <summary>
         /// Gets the last played move in the game.
         /// </summary>
-        public (Moves.Move move, int? playerId)? LastPlayedMove => _state._lastPlayedMove;
+        public (Moves.Move move, int? playerId)? LastPlayedMove => _state.LastPlayedMove;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SharedShitheadState"/> class.
@@ -75,14 +75,14 @@ public sealed partial class ShitheadState
 
             public SharedPlayerState this[int index] => Players[index];
 
-            public int Count => _sharedState._state._players.Length;
+            public int Count => _sharedState._state.PlayerStates.Length;
 
 
             public PlayersView(SharedShitheadState sharedState)
             {
                 _sharedState = sharedState;
                 _sharedPlayers = new Lazy<SharedPlayerState[]>(
-                    () => [.. _sharedState._state._players
+                    () => [.. _sharedState._state.PlayerStates
                         .Select(player => new SharedPlayerState(_sharedState._state, player.Id))]);
             }
 
@@ -105,7 +105,7 @@ public sealed partial class ShitheadState
     {
         private readonly ShitheadState _gameState;
 
-        private PlayerState Player => _gameState._players[Id];
+        private PlayerState Player => _gameState.PlayerStates[Id];
 
         /// <summary>
         /// Gets a value indicating whether the player has won the game.
