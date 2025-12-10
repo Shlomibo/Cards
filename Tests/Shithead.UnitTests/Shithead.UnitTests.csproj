@@ -30,8 +30,4 @@
     <Using Include="NUnit.Framework" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="State/ShitheadStateTests/GameOnTests/" />
-  </ItemGroup>
-
 </Project>
