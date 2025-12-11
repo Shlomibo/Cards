@@ -487,7 +487,7 @@ public sealed partial class ShitheadState : IState<
     {
         var cardValue = card.Value;
 
-        if (!Enum.IsDefined(cardValue))
+        if (!Enum.IsDefined(cardValue) || cardValue is Value.Joker)
         {
             return false;
         }

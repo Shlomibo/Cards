@@ -183,7 +183,7 @@ public readonly record struct Card : IEquatable<Card>
         };
 
         static string CharFor(string suitAce, Value value) =>
-            new([suitAce[0], (char)(suitAce[1] + (int)value), default]);
+            new([suitAce[0], (char)(suitAce[1] + (int)value - 1)]);
 
         static string SuitAce(Suit suit) =>
             suit switch

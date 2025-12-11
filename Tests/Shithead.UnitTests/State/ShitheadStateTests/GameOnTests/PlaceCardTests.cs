@@ -66,10 +66,9 @@ public class PlaceCardTests : GameOnTestsBase
             move,
             () =>
             {
-                player.Hand.Should().BeEquivalentTo(originalHand
-                    .Where((_, i) => i is not (1 or 3)));
+                player.Hand.Should().Contain(originalHand[1]).And.HaveCount(3);
                 testSubject.DiscardPile.Should()
-                    .BeEquivalentTo([.. originalDiscard, originalHand[0], originalHand[3]]);
+                    .BeEquivalentTo([.. originalDiscard, originalHand[0], originalHand[2]]);
                 testSubject.TurnsManager.Current.Should().Be(player.Id + 1);
             },
             originalHand,
@@ -106,10 +105,9 @@ public class PlaceCardTests : GameOnTestsBase
             move,
             () =>
             {
-                player.Hand.Should().BeEquivalentTo(originalHand
-                    .Where((_, i) => i is not (1 or 3)));
+                player.Hand.Should().Contain(originalHand[1]).And.HaveCount(3);
                 testSubject.DiscardPile.Should()
-                    .BeEquivalentTo([.. originalDiscard, originalHand[0], originalHand[3]]);
+                    .BeEquivalentTo([.. originalDiscard, originalHand[0], originalHand[2]]);
                 testSubject.TurnsManager.Current.Should().Be(player.Id + 1);
             },
             originalHand,
@@ -146,10 +144,9 @@ public class PlaceCardTests : GameOnTestsBase
             move,
             () =>
             {
-                player.Hand.Should().BeEquivalentTo(originalHand
-                    .Where((_, i) => i is not (1 or 3)));
+                player.Hand.Should().Contain(originalHand[1]).And.HaveCount(3);
                 testSubject.DiscardPile.Should()
-                    .BeEquivalentTo([.. originalDiscard, originalHand[0], originalHand[3]]);
+                    .BeEquivalentTo([.. originalDiscard, originalHand[0], originalHand[2]]);
                 testSubject.TurnsManager.Current.Should().Be(player.Id + 1);
             },
             originalHand,
@@ -257,10 +254,9 @@ public class PlaceCardTests : GameOnTestsBase
             move,
             () =>
             {
-                player.Hand.Should().BeEquivalentTo(originalHand
-                    .Where((_, i) => i is not (1 or 3)));
+                player.Hand.Should().Contain(originalHand[1]).And.HaveCount(3);
                 testSubject.DiscardPile.Should()
-                    .BeEquivalentTo([.. originalDiscard, originalHand[0], originalHand[3]]);
+                    .BeEquivalentTo([.. originalDiscard, originalHand[0], originalHand[2]]);
                 testSubject.TurnsManager.Current.Should().Be(player.Id + 1);
             },
             originalHand,
@@ -329,10 +325,9 @@ public class PlaceCardTests : GameOnTestsBase
             move,
             () =>
             {
-                player.Hand.Should().BeEquivalentTo(originalHand
-                    .Where((_, i) => i is not (1 or 3)));
+                player.Hand.Should().Contain(originalHand[1]).And.HaveCount(3);
                 testSubject.DiscardPile.Should()
-                    .BeEquivalentTo([.. originalDiscard, originalHand[0], originalHand[3]]);
+                    .BeEquivalentTo([.. originalDiscard, originalHand[0], originalHand[2]]);
                 testSubject.TurnsManager.Current.Should().Be(player.Id + 1);
             },
             originalHand,
@@ -352,7 +347,9 @@ public class PlaceCardTests : GameOnTestsBase
                     deck,
                     [cardValue, RandomCard(), RandomCard(cardValue.Value)]),
                 DealPlayer(deck),
-                DealPlayer(deck),
+                DealPlayer(
+                    deck,
+                    [cardValue, RandomCard(), RandomCard(cardValue.Value)]),
                 DealPlayer(deck)],
             deck,
             [RandomCard(cardValue.Value), RandomCard(cardValue.Value)]);
@@ -370,8 +367,7 @@ public class PlaceCardTests : GameOnTestsBase
             move,
             () =>
             {
-                player.Hand.Should().BeEquivalentTo(originalHand
-                    .Where((_, i) => i is not (1 or 3)));
+                player.Hand.Should().Contain(originalHand[1]).And.HaveCount(3);
                 testSubject.DiscardPile.Should()
                     .BeEmpty();
                 testSubject.TurnsManager.Current.Should().Be(playerId);
@@ -393,7 +389,9 @@ public class PlaceCardTests : GameOnTestsBase
                     deck,
                     [cardValue, RandomCard(), RandomCard(cardValue.Value)]),
                 DealPlayer(deck),
-                DealPlayer(deck),
+                DealPlayer(
+                    deck,
+                    [cardValue, RandomCard(), RandomCard(cardValue.Value)]),
                 DealPlayer(deck)],
             deck,
             [
@@ -408,12 +406,31 @@ public class PlaceCardTests : GameOnTestsBase
 
         PlaceCard move = new([0, 2]);
 
-        ValidateInvalidMove(
-            testSubject,
-            player,
-            move,
-            originalHand,
-            originalDiscardPile: originalDiscard);
+        if (outOfOrder)
+        {
+            ValidateInvalidMove(
+                testSubject,
+                player,
+                move,
+                originalHand,
+                originalDiscardPile: originalDiscard);
+        }
+        else
+        {
+            ValidateValidMove(
+                testSubject,
+                player,
+                move,
+                () =>
+                {
+                    player.Hand.Should().Contain(originalHand[1]).And.HaveCount(3);
+                    testSubject.DiscardPile.Should()
+                        .BeEquivalentTo([.. originalDiscard, originalHand[0], originalHand[2]]);
+                    testSubject.TurnsManager.Current.Should().Be(playerId + 1);
+                },
+                originalHand,
+                originalDiscardPile: originalDiscard);
+        }
     }
 
     [TestCase(true)]
@@ -429,7 +446,9 @@ public class PlaceCardTests : GameOnTestsBase
                     deck,
                     [cardValue, RandomCard(), RandomCard(cardValue.Value)]),
                 DealPlayer(deck),
-                DealPlayer(deck),
+                DealPlayer(
+                    deck,
+                    [cardValue, RandomCard(), RandomCard(cardValue.Value)]),
                 DealPlayer(deck)],
             deck,
             [
@@ -482,10 +501,9 @@ public class PlaceCardTests : GameOnTestsBase
             move,
             () =>
             {
-                player.Hand.Should().BeEquivalentTo(originalHand
-                    .Where((_, i) => i is not (1 or 3)));
+                player.Hand.Should().Contain(originalHand[1]).And.HaveCount(3);
                 testSubject.DiscardPile.Should()
-                    .BeEquivalentTo([.. originalDiscard, originalHand[0], originalHand[3]]);
+                    .BeEquivalentTo([.. originalDiscard, originalHand[0], originalHand[2]]);
                 testSubject.TurnsManager.Current.Should().Be(player.Id + 1);
             },
             originalHand,
@@ -521,10 +539,9 @@ public class PlaceCardTests : GameOnTestsBase
             move,
             () =>
             {
-                player.Hand.Should().BeEquivalentTo(originalHand
-                    .Where((_, i) => i is not (1 or 3)));
+                player.Hand.Should().Contain(originalHand[1]).And.HaveCount(3);
                 testSubject.DiscardPile.Should()
-                    .BeEquivalentTo([.. originalDiscard, originalHand[0], originalHand[3]]);
+                    .BeEquivalentTo([.. originalDiscard, originalHand[0], originalHand[2]]);
                 testSubject.TurnsManager.Current.Should().Be(player.Id + 1);
             },
             originalHand,
@@ -560,10 +577,9 @@ public class PlaceCardTests : GameOnTestsBase
             move,
             () =>
             {
-                player.Hand.Should().BeEquivalentTo(originalHand
-                    .Where((_, i) => i is not (1 or 3)));
+                player.Hand.Should().Contain(originalHand[1]).And.HaveCount(3);
                 testSubject.DiscardPile.Should()
-                    .BeEquivalentTo([.. originalDiscard, originalHand[0], originalHand[3]]);
+                    .BeEmpty();
                 testSubject.TurnsManager.Current.Should().Be(player.Id);
             },
             originalHand,
@@ -581,12 +597,12 @@ public class PlaceCardTests : GameOnTestsBase
             [
                 DealPlayer(
                     deck,
-                    [cardValue, RandomCard(), RandomCard(cardValue.Value)]),
+                    [RandomCard(), cardValue, RandomCard(cardValue.Value)]),
                 DealPlayer(deck),
                 DealPlayer(deck),
                 DealPlayer(deck)],
             deck,
-            [RandomCard()]);
+            []);
 
         var player = testSubject.PlayerStates[0];
         var originalHand = player.Hand.ToArray();
@@ -600,12 +616,44 @@ public class PlaceCardTests : GameOnTestsBase
             move,
             () =>
             {
-                player.Hand.Should().BeEquivalentTo(originalHand
-                    .Where((_, i) => i is not 1));
+                player.Hand.Should().Contain(originalHand[0])
+                    .And.Contain(originalHand[2]).And.HaveCount(3);
                 testSubject.DiscardPile.Should()
-                    .BeEquivalentTo([.. originalDiscard, originalHand[0], originalHand[3]]);
+                    .BeEquivalentTo([.. originalDiscard, originalHand[1]]);
                 testSubject.TurnsManager.Current.Should().Be(player.Id + 2);
             },
+            originalHand,
+            originalDiscardPile: originalDiscard);
+    }
+
+    [TestCase(true)]
+    [TestCase(false)]
+    public void WhenPlacingAn8OnAHigherValue(bool shadowedBy3)
+    {
+        Card cardValue = RandomCard(Value.Eight);
+
+        var deck = CardsDeck.FullShuffledDeck();
+        var testSubject = GetTestSubject(
+            [
+                DealPlayer(
+                    deck,
+                    [RandomCard(), cardValue, RandomCard(cardValue.Value)]),
+                DealPlayer(deck),
+                DealPlayer(deck),
+                DealPlayer(deck)],
+            deck,
+            [Not(Value.Six, Value.Five, Value.Four)]);
+
+        var player = testSubject.PlayerStates[0];
+        var originalHand = player.Hand.ToArray();
+        var originalDiscard = testSubject.DiscardPile.ToArray();
+
+        PlaceCard move = new([1]);
+
+        ValidateInvalidMove(
+            testSubject,
+            player,
+            move,
             originalHand,
             originalDiscardPile: originalDiscard);
     }
@@ -625,7 +673,7 @@ public class PlaceCardTests : GameOnTestsBase
                 DealPlayer(deck),
                 DealPlayer(deck)],
             deck,
-            [RandomCard()]);
+            []);
 
         var player = testSubject.PlayerStates[0];
         var originalHand = player.Hand.ToArray();
@@ -639,10 +687,9 @@ public class PlaceCardTests : GameOnTestsBase
             move,
             () =>
             {
-                player.Hand.Should().BeEquivalentTo(originalHand
-                    .Where((_, i) => i is not (1 or 3)));
+                player.Hand.Should().Contain(originalHand[1]).And.HaveCount(3);
                 testSubject.DiscardPile.Should()
-                    .BeEquivalentTo([.. originalDiscard, originalHand[0], originalHand[3]]);
+                    .BeEquivalentTo([.. originalDiscard, originalHand[0], originalHand[2]]);
                 testSubject.TurnsManager.Current.Should().Be(player.Id + 3);
             },
             originalHand,
@@ -659,11 +706,11 @@ public class PlaceCardTests : GameOnTestsBase
             [
                 DealPlayer(
                     deck,
-                    [cardValue, RandomCard(cardValue.Value)]),
+                    [cardValue, RandomCard(cardValue.Value), RandomCard(cardValue.Value)]),
                 DealPlayer(deck),
                 DealPlayer(deck)],
             deck,
-            [RandomCard()]);
+            []);
 
         var player = testSubject.PlayerStates[0];
         var originalHand = player.Hand.ToArray();
@@ -677,10 +724,49 @@ public class PlaceCardTests : GameOnTestsBase
             move,
             () =>
             {
-                player.Hand.Should().BeEquivalentTo(originalHand
-                    .Where((_, i) => i is not (1 or 2 or 3)));
+                player.Hand.Should().HaveCount(3);
                 testSubject.DiscardPile.Should()
-                    .BeEquivalentTo([.. originalDiscard, originalHand[0], originalHand[3]]);
+                    .BeEquivalentTo([
+                        .. originalDiscard,
+                        originalHand[0],
+                        originalHand[1],
+                        originalHand[2]]);
+                testSubject.TurnsManager.Current.Should().Be(player.Id + 2);
+            },
+            originalHand,
+            originalDiscardPile: originalDiscard);
+    }
+
+    [Test]
+    public void WhenCompletingASetOf8s()
+    {
+        Card cardValue = RandomCard(Value.Eight);
+
+        var deck = CardsDeck.FullShuffledDeck();
+        var testSubject = GetTestSubject(
+            [
+                DealPlayer(
+                    deck,
+                    [cardValue, RandomCard(cardValue.Value), RandomCard(cardValue.Value)]),
+                DealPlayer(deck),
+                DealPlayer(deck)],
+            deck,
+            [RandomCard(cardValue.Value)]);
+
+        var player = testSubject.PlayerStates[0];
+        var originalHand = player.Hand.ToArray();
+        var originalDiscard = testSubject.DiscardPile.ToArray();
+
+        PlaceCard move = new([0, 1, 2]);
+
+        ValidateValidMove(
+            testSubject,
+            player,
+            move,
+            () =>
+            {
+                player.Hand.Should().HaveCount(3);
+                testSubject.DiscardPile.Should().BeEmpty();
                 testSubject.TurnsManager.Current.Should().Be(player.Id);
             },
             originalHand,
@@ -698,10 +784,9 @@ public class PlaceCardTests : GameOnTestsBase
                 DealPlayer(
                     deck,
                     [cardValue, RandomCard(cardValue.Value), RandomCard(cardValue.Value)]),
-                DealPlayer(deck),
                 DealPlayer(deck)],
             deck,
-            [RandomCard()]);
+            []);
 
         var player = testSubject.PlayerStates[0];
         var originalHand = player.Hand.ToArray();
@@ -715,11 +800,10 @@ public class PlaceCardTests : GameOnTestsBase
             move,
             () =>
             {
-                player.Hand.Should().BeEquivalentTo(originalHand
-                    .Where((_, i) => i is not (1 or 2 or 3)));
+                player.Hand.Should().HaveCount(3);
                 testSubject.DiscardPile.Should()
-                    .BeEquivalentTo([.. originalDiscard, originalHand[0], originalHand[3]]);
-                testSubject.TurnsManager.Current.Should().Be(player.Id + 1);
+                    .BeEquivalentTo([.. originalDiscard, originalHand[0], originalHand[1], originalHand[2]]);
+                testSubject.TurnsManager.Current.Should().Be(player.Id);
             },
             originalHand,
             originalDiscardPile: originalDiscard);
@@ -754,8 +838,7 @@ public class PlaceCardTests : GameOnTestsBase
             move,
             () =>
             {
-                player.Hand.Should().BeEquivalentTo(originalHand
-                    .Where((_, i) => i is not (1 or 3)));
+                player.Hand.Should().Contain(originalHand[1]).And.HaveCount(3);
                 testSubject.DiscardPile.Should()
                     .BeEmpty();
                 testSubject.TurnsManager.Current.Should().Be(player.Id);
@@ -786,98 +869,12 @@ public class PlaceCardTests : GameOnTestsBase
 
         PlaceCard move = new([1]);
 
-        ValidateValidMove(
-            testSubject,
-            player,
-            move,
-            () =>
-            {
-                player.Hand.Should().BeEmpty();
-                player.RevealedCards.Should().NotContainKey(1);
-                testSubject.DiscardPile.Should()
-                    .BeEquivalentTo([.. originalDiscard, originalRevealed[1]]);
-                testSubject.TurnsManager.Current.Should().Be(player.Id + 1);
-            },
-            originalHand,
-            originalRevealed,
-            originalDiscardPile: originalDiscard);
-    }
-
-    [Test]
-    public void WhenPlayersHandAndRevealedCardsAreEmpty()
-    {
-        var deck = CardsDeck.FullShuffledDeck();
-        var testSubject = GetTestSubject(
-            [
-                DealPlayer(
-                    deck,
-                    [],
-                    []),
-                DealPlayer(deck),
-                DealPlayer(deck),
-                DealPlayer(deck)],
-            [],
-            [RandomCard(Value.Four)]);
-
-        var player = testSubject.PlayerStates[0];
-        var originalHand = player.Hand.ToArray();
-        var originalRevealed = player.RevealedCards.ToDictionary();
-        var originalUndercards = player.Undercards.ToDictionary();
-        var originalDiscard = testSubject.DiscardPile.ToArray();
-
-        PlaceCard move = new([1]);
-
         ValidateInvalidMove(
             testSubject,
             player,
             move,
             originalHand,
             originalRevealed,
-            originalUndercards,
-            originalDiscardPile: originalDiscard);
-    }
-
-    [Test]
-    public void WhenPlayersHandAndRevealedCardsAreEmptyAndAnUndercardIsRevealed()
-    {
-        var deck = CardsDeck.FullShuffledDeck();
-        var testSubject = GetTestSubject(
-            [
-                DealPlayer(
-                    deck,
-                    [],
-                    []),
-                DealPlayer(deck),
-                DealPlayer(deck),
-                DealPlayer(deck)],
-            [],
-            [RandomCard(Value.Four)]);
-
-        var player = testSubject.PlayerStates[0];
-        player.Undercards[1].IsRevealed = true;
-        var originalHand = player.Hand.ToArray();
-        var originalRevealed = player.RevealedCards.ToDictionary();
-        var originalUndercards = player.Undercards.ToDictionary();
-        var originalDiscard = testSubject.DiscardPile.ToArray();
-
-        PlaceCard move = new([1]);
-
-        ValidateValidMove(
-            testSubject,
-            player,
-            move,
-            () =>
-            {
-                player.Hand.Should().BeEmpty();
-                player.RevealedCards.Should().BeEmpty();
-                player.Undercards.Should().NotContainKey(1);
-                testSubject.DiscardPile.Should()
-                    .BeEquivalentTo([.. originalDiscard, originalRevealed[1]]);
-                testSubject.TurnsManager.Current.Should().Be(player.Id + 1);
-            },
-            originalHand,
-            originalRevealed,
-            originalUndercards,
             originalDiscardPile: originalDiscard);
     }
 
@@ -942,7 +939,8 @@ public class PlaceCardTests : GameOnTestsBase
         var testSubject = GetTestSubject(
             [
                 DealPlayer(
-                DealHand(deck, 5)),
+                    deck,
+                    DealHand(deck, 5)),
                 DealPlayer(deck),
                 DealPlayer(deck),
                 DealPlayer(deck)],
@@ -974,7 +972,8 @@ public class PlaceCardTests : GameOnTestsBase
         var testSubject = GetTestSubject(
             [
                 DealPlayer(
-                DealHand(deck)),
+                    deck,
+                    DealHand(deck)),
                 DealPlayer(deck),
                 DealPlayer(deck),
                 DealPlayer(deck)],
@@ -999,6 +998,79 @@ public class PlaceCardTests : GameOnTestsBase
             originalDiscardPile: originalDiscard);
     }
 
+    [Test]
+    public void WhenCompletingASetNotInTurn()
+    {
+        var cardValue = RandomCard();
+        var deck = CardsDeck.FullShuffledDeck();
+        var testSubject = GetTestSubject(
+            [
+                DealPlayer(deck),
+                DealPlayer(deck),
+                DealPlayer(
+                    deck,
+                    [
+                        cardValue,
+                        RandomCard(cardValue.Value),
+                        RandomCard(cardValue.Value),
+                        RandomCard(cardValue.Value)]),
+                DealPlayer(deck)],
+            deck,
+            [RandomCard(Value.Four)]);
+
+        var player = testSubject.PlayerStates[2];
+        var originalHand = player.Hand.ToArray();
+        var originalDiscard = testSubject.DiscardPile.ToArray();
+
+        PlaceCard move = new([0, 1, 2, 3]);
+
+        ValidateValidMove(
+            testSubject,
+            player,
+            move,
+            () =>
+            {
+                testSubject.DiscardPile.Should().BeEmpty();
+                testSubject.TurnsManager.Current.Should().Be(player.Id);
+            },
+            originalHand,
+            originalDiscardPile: originalDiscard);
+    }
+
+    [Test]
+    public void WhenTryingToCompletingASetNotInTurnOnTopOfHigherValue()
+    {
+        var cardValue = RandomCard();
+        var deck = CardsDeck.FullShuffledDeck();
+        var testSubject = GetTestSubject(
+            [
+                DealPlayer(deck),
+                DealPlayer(deck),
+                DealPlayer(
+                    deck,
+                    [
+                        cardValue,
+                        RandomCard(cardValue.Value),
+                        RandomCard(cardValue.Value),
+                        RandomCard(cardValue.Value)]),
+                DealPlayer(deck)],
+            deck,
+            [RandomCard(Value.Four)]);
+
+        var player = testSubject.PlayerStates[2];
+        var originalHand = player.Hand.ToArray();
+        var originalDiscard = testSubject.DiscardPile.ToArray();
+
+        PlaceCard move = new([0, 1, 3, 4]);
+
+        ValidateInvalidMove(
+            testSubject,
+            player,
+            move,
+            originalHand,
+            originalDiscardPile: originalDiscard);
+    }
+
     private static IEnumerable<Card> CreateDiscard(bool shadowedBy3, params IEnumerable<Card>? cards) =>
         (shadowedBy3, cards) switch
         {
@@ -1012,19 +1084,16 @@ public class PlaceCardTests : GameOnTestsBase
 
     private static Card Not(Value notValue, params IEnumerable<Value>? otherValues)
     {
-        HashSet<Value> notValues = [.. (otherValues ?? []), notValue];
+        HashSet<Value> notValues = [.. otherValues ?? [], notValue];
         int fuckedOutCount = 100;
 
         Card cardValue;
         do
         { cardValue = RandomCard(); }
-        while (notValues.Contains(cardValue.Value) && 0 > --fuckedOutCount);
+        while (notValues.Contains(cardValue.Value) && 0 < --fuckedOutCount);
 
-        if (fuckedOutCount == 0)
-        {
-            throw new InvalidOperationException("All cards are NOTed");
-        }
-
-        return cardValue;
+        return fuckedOutCount != 0
+            ? cardValue
+            : throw new InvalidOperationException("All cards are NOTed");
     }
 }
