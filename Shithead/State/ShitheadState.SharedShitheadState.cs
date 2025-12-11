@@ -23,7 +23,7 @@ public sealed partial class ShitheadState
         /// <summary>
         /// Gets the ids of the players that are still playing.
         /// </summary>
-        public IReadOnlyList<int> ActivePlayers => _state._turnsManager.ActivePlayers;
+        public IReadOnlyList<int> ActivePlayers => _state.TurnsManager.ActivePlayers;
 
         /// <summary>
         /// Gets the size of the deck.
@@ -43,7 +43,7 @@ public sealed partial class ShitheadState
         /// <summary>
         /// Gets the id of the player whose turn it is.
         /// </summary>
-        public int CurrentTurnPlayer => _state._turnsManager.Current;
+        public int CurrentTurnPlayer => _state.TurnsManager.Current;
 
         /// <summary>
         /// Gets the last attempted move in the game.

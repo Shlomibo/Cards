@@ -12,5 +12,5 @@ public abstract class InitTestsBase : ShitheadStateTestsBase
         IReadOnlyCollection<PlayerData> playerData,
         CardsDeck deck)
         =>
-        GetTestSubject(playerData, GameState.Init, deck);
+        GetTestSubject(playerData, GameState.Init, deck, []);
 }

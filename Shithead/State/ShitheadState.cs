@@ -26,11 +26,11 @@ public sealed partial class ShitheadState : IState<
 
     #region Fields
 
-    private readonly ITurnsManager _turnsManager;
     private readonly Lock _stateLock = new();
     #endregion
 
     #region Properties
+    internal ITurnsManager TurnsManager { get; }
 
     internal PlayerState[] PlayerStates { get; }
 
@@ -94,7 +94,7 @@ public sealed partial class ShitheadState : IState<
 
         Deck.Shuffle();
         SharedState = new SharedShitheadState(this);
-        _turnsManager = new TurnsManager(playersCount);
+        TurnsManager = new TurnsManager(playersCount);
         PlayerStates = [.. Enumerable
             .Range(0, playersCount)
             .Select(id => new PlayerState(
@@ -117,8 +117,8 @@ public sealed partial class ShitheadState : IState<
             throw new ArgumentException("Turns manager and players count have different players count");
         }
 
-        _turnsManager = turnsManager ?? new TurnsManager(players.Length);
-        PlayersCount = _turnsManager.PlayersCount;
+        TurnsManager = turnsManager ?? new TurnsManager(players.Length);
+        PlayersCount = TurnsManager.PlayersCount;
         Deck = deck ?? throw new ArgumentNullException(nameof(deck));
         PlayerStates = players;
         GameState = gameState;
@@ -247,7 +247,7 @@ public sealed partial class ShitheadState : IState<
 
                     if (PlayerStates.All(player => player.RevealedCardsAccepted))
                     {
-                        _turnsManager.Current = SelectStartingPlayer();
+                        TurnsManager.Current = SelectStartingPlayer();
                         GameState = GameState.GameOn;
                     }
                 }
@@ -263,7 +263,7 @@ public sealed partial class ShitheadState : IState<
             // GameState.GameOn
             (GameState.GameOn, PlaceJoker { PlayerId: var targetPlayerId })
                 when player.CanPlaceJoker() &&
-                    _turnsManager.ActivePlayers.Contains(targetPlayerId) =>
+                    TurnsManager.ActivePlayers.Contains(targetPlayerId) =>
                 () =>
                 {
                     player.RemoveJoker();
@@ -275,11 +275,11 @@ public sealed partial class ShitheadState : IState<
                     ReplenishPlayerHand(player);
                     HandlePlayerWin(player);
 
-                    _turnsManager.Current = targetPlayerId;
+                    TurnsManager.Current = targetPlayerId;
                 }
             ,
             (GameState.GameOn, PlaceCard { CardIndices: var indices })
-                when _turnsManager.Current == playerId &&
+                when TurnsManager.Current == playerId &&
                     player.CanPlaceCard(indices) &&
                     CanPlaceCard(player.GetCard(indices.First())) =>
                 () =>
@@ -295,22 +295,22 @@ public sealed partial class ShitheadState : IState<
                     // If the player won, it was removed and the turn belongs to the next player
                     else if (!player.Won)
                     {
-                        _turnsManager.MoveNext();
+                        TurnsManager.MoveNext();
                     }
 
                     if (value == Value.Eight && !pileDiscarded)
                     {
-                        int otherPlayersCount = _turnsManager.ActivePlayers.Count - 1;
+                        int otherPlayersCount = TurnsManager.ActivePlayers.Count - 1;
                         // We jump the count of eights, plus 1 as the turn should have passed anyway
                         int turnsToJump = indices.Length % otherPlayersCount;
 
                         if (turnsToJump == 0)
                         {
-                            _turnsManager.Current = player.Id;
+                            TurnsManager.Current = player.Id;
                         }
                         else
                         {
-                            _turnsManager.Jump(turnsToJump);
+                            TurnsManager.Jump(turnsToJump);
                         }
                     }
                 }
@@ -318,7 +318,7 @@ public sealed partial class ShitheadState : IState<
             // When Player tries to add cards of the same value they got from deck, after finishing
             // their turn
             (GameState.GameOn, PlaceCard { CardIndices: var indices })
-                when _turnsManager.Previous == playerId &&
+                when TurnsManager.Previous == playerId &&
                     player.CanPlaceCard(indices) &&
                     player.GetCard(indices.First()).Value == TopCard()?.Value =>
                 () =>
@@ -329,11 +329,11 @@ public sealed partial class ShitheadState : IState<
                     if (ShouldDiscardPile(value))
                     {
                         DiscardPile.Clear();
-                        _turnsManager.Current = playerId.Value;
+                        TurnsManager.Current = playerId.Value;
                     }
                     else if (value == Value.Eight)
                     {
-                        _turnsManager.Jump(indices.Length);
+                        TurnsManager.Jump(indices.Length);
                     }
                 }
             ,
@@ -344,17 +344,17 @@ public sealed partial class ShitheadState : IState<
                 {
                     PlayHand(player, indices);
                     DiscardPile.Clear();
-                    _turnsManager.Current = player.Id;
+                    TurnsManager.Current = player.Id;
                 }
             ,
             (GameState.GameOn, AcceptDiscardPile)
-                when _turnsManager.Current == playerId &&
+                when TurnsManager.Current == playerId &&
                     player.Hand.Count > 0 =>
                 () =>
                 {
                     player.Hand.Push(DiscardPile);
                     DiscardPile.Clear();
-                    _turnsManager.MoveNext();
+                    TurnsManager.MoveNext();
                 }
             ,
             (GameState.GameOn, RevealUndercard { CardIndex: var cardIndex })
@@ -364,7 +364,7 @@ public sealed partial class ShitheadState : IState<
                 }
             ,
             (GameState.GameOn, TakeUndercards { CardIndices: var cardIndices })
-                when _turnsManager.Current == playerId &&
+                when TurnsManager.Current == playerId &&
                     player.CanTakeUndercards(cardIndices) =>
                 () =>
                 {
@@ -387,7 +387,7 @@ public sealed partial class ShitheadState : IState<
             ,
 
             (GameState.GameOn, LeaveGame { PlayerId: var leavingPlayerId })
-                when _turnsManager.ActivePlayers.Contains(leavingPlayerId) => () =>
+                when TurnsManager.ActivePlayers.Contains(leavingPlayerId) => () =>
                 {
                     RemovePlayer(leavingPlayerId);
                 }
@@ -403,7 +403,7 @@ public sealed partial class ShitheadState : IState<
 
     private void RemovePlayer(int leavingPlayerId)
     {
-        _turnsManager.RemovePlayer(leavingPlayerId);
+        TurnsManager.RemovePlayer(leavingPlayerId);
         var leavingPlayer = PlayerStates[leavingPlayerId];
 
         leavingPlayer.DidLeaveGame = true;
@@ -422,9 +422,9 @@ public sealed partial class ShitheadState : IState<
     {
         if (player.Won)
         {
-            _turnsManager.RemovePlayer(player.Id);
+            TurnsManager.RemovePlayer(player.Id);
 
-            if (_turnsManager.ActivePlayers.Count == 1)
+            if (TurnsManager.ActivePlayers.Count == 1)
             {
                 GameState = GameState.GameOver;
             }
