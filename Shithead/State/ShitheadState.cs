@@ -37,12 +37,12 @@ public sealed partial class ShitheadState : IState<
     /// <summary>
     /// Gets the last move that was played
     /// </summary>
-    public (Move move, int? playerId)? LastPlayedMove { get; private set; }
+    public (Move move, int? playerId)? LastPlayedMove { get; internal set; }
 
     /// <summary>
     /// Gets the last move that was attempted
     /// </summary>
-    public (Move move, int? playerId)? LastMove { get; private set; }
+    public (Move move, int? playerId)? LastMove { get; internal set; }
 
     /// <summary>
     /// Gets the number of players in the game.
