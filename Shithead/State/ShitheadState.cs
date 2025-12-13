@@ -364,8 +364,7 @@ public sealed partial class ShitheadState : IState<
                 }
             ,
             (GameState.GameOn, TakeUndercards { CardIndices: var cardIndices })
-                when TurnsManager.Current == playerId &&
-                    player.CanTakeUndercards(cardIndices) =>
+                when player.CanTakeUndercards(cardIndices) =>
                 () =>
                 {
                     if (player.RevealedCards.Count == 0)

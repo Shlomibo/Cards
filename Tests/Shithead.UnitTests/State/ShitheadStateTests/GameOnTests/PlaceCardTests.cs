@@ -1078,22 +1078,4 @@ public class PlaceCardTests : GameOnTestsBase
             (true, null) => [RandomCard(Value.Three)],
             _ => [.. cards, RandomCard(Value.Three)]
         };
-
-    private static Card Not(Card notValue, params IEnumerable<Card>? otherValues) =>
-        Not(notValue.Value, otherValues?.Select(c => c.Value));
-
-    private static Card Not(Value notValue, params IEnumerable<Value>? otherValues)
-    {
-        HashSet<Value> notValues = [.. otherValues ?? [], notValue];
-        int fuckedOutCount = 100;
-
-        Card cardValue;
-        do
-        { cardValue = RandomCard(); }
-        while (notValues.Contains(cardValue.Value) && 0 < --fuckedOutCount);
-
-        return fuckedOutCount != 0
-            ? cardValue
-            : throw new InvalidOperationException("All cards are NOTed");
-    }
 }

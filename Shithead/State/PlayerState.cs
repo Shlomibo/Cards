@@ -221,7 +221,7 @@ public sealed class PlayerState
                 .All(state => state.eq),
             (_, [int index]) when !Undercards.ContainsKey(index) => false,
             (_, [int index]) => Undercards[index].IsRevealed,
-            _ => throw new UnreachableException(),
+            _ => false,
         };
 
     /// <summary>
