@@ -29,6 +29,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameEngine.UnitTests", "Tes
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shithead.UnitTests", "Tests\Shithead.UnitTests\Shithead.UnitTests.csproj", "{B3021F4C-E2F3-4A11-B2A3-55E393982526}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TurnsManagement.UnitTests", "Tests\TurnsManagement.UnitTests\TurnsManagement.UnitTests.csproj", "{D29DB4B4-9255-4CA5-A8E0-80555A94B0A9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -135,6 +137,18 @@ Global
 		{B3021F4C-E2F3-4A11-B2A3-55E393982526}.Release|x64.Build.0 = Release|Any CPU
 		{B3021F4C-E2F3-4A11-B2A3-55E393982526}.Release|x86.ActiveCfg = Release|Any CPU
 		{B3021F4C-E2F3-4A11-B2A3-55E393982526}.Release|x86.Build.0 = Release|Any CPU
+		{D29DB4B4-9255-4CA5-A8E0-80555A94B0A9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D29DB4B4-9255-4CA5-A8E0-80555A94B0A9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D29DB4B4-9255-4CA5-A8E0-80555A94B0A9}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{D29DB4B4-9255-4CA5-A8E0-80555A94B0A9}.Debug|x64.Build.0 = Debug|Any CPU
+		{D29DB4B4-9255-4CA5-A8E0-80555A94B0A9}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{D29DB4B4-9255-4CA5-A8E0-80555A94B0A9}.Debug|x86.Build.0 = Debug|Any CPU
+		{D29DB4B4-9255-4CA5-A8E0-80555A94B0A9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D29DB4B4-9255-4CA5-A8E0-80555A94B0A9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D29DB4B4-9255-4CA5-A8E0-80555A94B0A9}.Release|x64.ActiveCfg = Release|Any CPU
+		{D29DB4B4-9255-4CA5-A8E0-80555A94B0A9}.Release|x64.Build.0 = Release|Any CPU
+		{D29DB4B4-9255-4CA5-A8E0-80555A94B0A9}.Release|x86.ActiveCfg = Release|Any CPU
+		{D29DB4B4-9255-4CA5-A8E0-80555A94B0A9}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -143,6 +157,7 @@ Global
 		{E79DB49E-A040-4AD5-9930-D18336AC8DC1} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
 		{F0084FAA-D174-4B73-9412-E6F72A135E09} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
 		{B3021F4C-E2F3-4A11-B2A3-55E393982526} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
+		{D29DB4B4-9255-4CA5-A8E0-80555A94B0A9} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {40B06BD4-F092-4254-AF9A-70EB10DEF08A}
