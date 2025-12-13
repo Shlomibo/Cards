@@ -68,7 +68,9 @@ public abstract class ShitheadStateTestsBase
         Dictionary<int, CardFace<Card>>? originalUndercards = null,
         Card[]? originalDiscardPile = null)
     {
+        int currentTurn = testSubject.TurnsManager.Current;
         testSubject.IsValidMove(move, player.Id).Should().BeTrue("the move is valid");
+        testSubject.TurnsManager.Current.Should().Be(currentTurn, "move not played yet");
 
         if (originalHand != null)
         {
@@ -106,7 +108,10 @@ public abstract class ShitheadStateTestsBase
         Dictionary<int, CardFace<Card>>? originalUndercards = null,
         Card[]? originalDiscardPile = null)
     {
+        int currentTurn = testSubject.TurnsManager.Current;
         testSubject.IsValidMove(move, player.Id).Should().BeFalse("the move is invalid");
+
+        testSubject.TurnsManager.Current.Should().Be(currentTurn, "move not played yet");
 
         if (originalHand != null)
         {
