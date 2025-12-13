@@ -415,6 +415,7 @@ public sealed partial class ShitheadState : IState<
             select undercard.Card
         );
         leavingPlayer.Undercards.Clear();
+        PlayersCount -= 1;
     }
 
     private void HandlePlayerWin(PlayerState player)
