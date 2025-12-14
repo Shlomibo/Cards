@@ -45,7 +45,13 @@ public sealed class TurnsManager : ITurnsManager
         : GetPlayer(_currentPlayerIndex - 1);
 
     /// <inheritdoc/>
-    public TurnsDirection Direction { get; set; }
+    public TurnsDirection Direction
+    {
+        get;
+        set => field = Enum.IsDefined(value)
+            ? value
+            : throw new ArgumentOutOfRangeException($"Invalid '{nameof(Direction)}' value: {value}");
+    }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="TurnsManager"/> class.

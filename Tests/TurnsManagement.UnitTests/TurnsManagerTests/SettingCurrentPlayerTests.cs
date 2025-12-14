@@ -115,8 +115,7 @@ public class SettingCurrentPlayerTests : TurnsManagerTestsBase
             testSubject.Direction,
             Next = leavingPlayer switch
             {
-                int i when i == testSubject.PlayersCount - 1 => 0,
-                int i when i == testSubject.PlayersCount => 1,
+                int i when i == testSubject.PlayersCount => 0,
                 int i => i + 1,
             },
             testSubject.InitialPlayersCount,
