@@ -129,25 +129,29 @@ public sealed class TurnsManager : ITurnsManager
     /// <inheritdoc/>
     public void RemovePlayer(int playerId)
     {
-        _activePlayers.Remove(playerId);
-
-        if (Direction == TurnsDirection.Up)
+        if (_activePlayers.Count == 1)
         {
-            if (_currentPlayerIndex >= _activePlayers.Count)
-            {
-                _currentPlayerIndex = 0;
-            }
+            throw new InvalidOperationException("Cannot remove the last player");
         }
-        else
-        {
-            _currentPlayerIndex--;
 
-            if (_currentPlayerIndex < 0)
+        ArgumentOutOfRangeException.ThrowIfLessThan(playerId, 0);
+
+        int removedIndex = _activePlayers.IndexOf(playerId);
+
+        if (removedIndex == -1)
+        {
+            throw new InvalidOperationException($"Player {playerId} not found");
+        }
+
+        _activePlayers.RemoveAt(removedIndex);
+
+        if (removedIndex <= _currentPlayerIndex)
+        {
+            _currentPlayerIndex = _currentPlayerIndex switch
             {
-                _currentPlayerIndex = _activePlayers.Count == 0
-                    ? 0
-                    : _activePlayers.Count - 1;
-            }
+                0 => _activePlayers.Count - 1,
+                int i => i - 1,
+            };
         }
     }
 
