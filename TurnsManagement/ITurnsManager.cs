@@ -8,7 +8,7 @@ public interface ITurnsManager
     /// <summary>
     /// Gets the total number of players.
     /// </summary>
-	int PlayersCount { get; }
+	int InitialPlayersCount { get; }
 
     /// <summary>
     /// Gets the list of active players' IDs.
@@ -80,4 +80,18 @@ public enum TurnsDirection
     /// A down direction.
     /// </summary>
     Down,
+}
+
+/// <summary>
+/// Extension methods for ITurnsManager.
+/// </summary>
+public static class TurnsManagerExtensions
+{
+    extension(ITurnsManager turnsManager)
+    {
+        /// <summary>
+        /// Gets the total number of active players.
+        /// </summary>
+        public int PlayersCount => turnsManager.ActivePlayers.Count;
+    }
 }

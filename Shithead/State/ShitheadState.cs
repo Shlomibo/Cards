@@ -112,13 +112,13 @@ public sealed partial class ShitheadState : IState<
         ITurnsManager? turnsManager = null)
     {
         ArgumentNullException.ThrowIfNull(players);
-        if (turnsManager != null && players.Length != turnsManager.PlayersCount)
+        if (turnsManager != null && players.Length != turnsManager.InitialPlayersCount)
         {
             throw new ArgumentException("Turns manager and players count have different players count");
         }
 
         TurnsManager = turnsManager ?? new TurnsManager(players.Length);
-        PlayersCount = TurnsManager.PlayersCount;
+        PlayersCount = TurnsManager.InitialPlayersCount;
         Deck = deck ?? throw new ArgumentNullException(nameof(deck));
         PlayerStates = players;
         GameState = gameState;

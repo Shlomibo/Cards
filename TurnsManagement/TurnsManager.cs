@@ -9,7 +9,7 @@ public sealed class TurnsManager : ITurnsManager
     private readonly List<int> _activePlayers;
 
     /// <inheritdoc/>
-    public int PlayersCount { get; }
+    public int InitialPlayersCount { get; }
     /// <inheritdoc/>
     public IReadOnlyList<int> ActivePlayers => _activePlayers;
 
@@ -17,11 +17,19 @@ public sealed class TurnsManager : ITurnsManager
     public int Current
     {
         get => GetPlayer(_currentPlayerIndex);
-        set => _currentPlayerIndex = _activePlayers.IndexOf(value) switch
+        set
         {
-            -1 => throw new ArgumentException($"The player {value} does not exist or was removed", nameof(Current)),
-            int index => index,
-        };
+            ArgumentOutOfRangeException.ThrowIfLessThan(Current, 0);
+            ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(Current, InitialPlayersCount);
+
+            _currentPlayerIndex = _activePlayers.IndexOf(value) switch
+            {
+                -1 => throw new InvalidOperationException(
+                    $"Cannot set {nameof(Current)} player to {value}: " +
+                    $"The player {value} does not exist or was removed"),
+                int index => index,
+            };
+        }
     }
 
     /// <inheritdoc/>
@@ -46,13 +54,15 @@ public sealed class TurnsManager : ITurnsManager
     /// <param name="direction">The initial playing direction.</param>
     public TurnsManager(int playersCount, TurnsDirection? direction = null)
     {
-        if (playersCount <= 0)
+        ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(playersCount, 0);
+
+        if (direction.HasValue && !Enum.IsDefined(direction.Value))
         {
-            throw new ArgumentException("Players count must be greater than 0", nameof(playersCount));
+            throw new ArgumentException($"Invalid direction: {direction.Value}", nameof(direction));
         }
 
-        PlayersCount = playersCount;
-        _activePlayers = Enumerable.Range(0, playersCount).ToList();
+        InitialPlayersCount = playersCount;
+        _activePlayers = [.. Enumerable.Range(0, playersCount)];
 
         if (direction.HasValue)
         {

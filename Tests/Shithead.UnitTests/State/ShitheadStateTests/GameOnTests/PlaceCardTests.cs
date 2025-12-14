@@ -13,7 +13,7 @@ public class PlaceCardTests : GameOnTestsBase
     [Test]
     public void WhenPlacingZeroCards()
     {
-        var deck = CardsDeck.FullShuffledDeck();
+        var deck = CardsDeck.FullShuffledDeck(excludeJokers: true);
         var testSubject = GetTestSubject(
             [
                 DealPlayer(deck),
@@ -42,7 +42,7 @@ public class PlaceCardTests : GameOnTestsBase
     public void WhenPlacingCardsOnNothing(bool shadowedBy3)
     {
         var cardValue = RandomCard();
-        var deck = CardsDeck.FullShuffledDeck();
+        var deck = CardsDeck.FullShuffledDeck(excludeJokers: true);
         var testSubject = GetTestSubject(
             [
                 DealPlayer(
@@ -81,7 +81,7 @@ public class PlaceCardTests : GameOnTestsBase
     {
         Card cardValue = Not(Value.Four);
 
-        var deck = CardsDeck.FullShuffledDeck();
+        var deck = CardsDeck.FullShuffledDeck(excludeJokers: true);
         var testSubject = GetTestSubject(
             [
                 DealPlayer(
@@ -120,7 +120,7 @@ public class PlaceCardTests : GameOnTestsBase
     {
         Card cardValue = RandomCard();
 
-        var deck = CardsDeck.FullShuffledDeck();
+        var deck = CardsDeck.FullShuffledDeck(excludeJokers: true);
         var testSubject = GetTestSubject(
             [
                 DealPlayer(
@@ -160,7 +160,7 @@ public class PlaceCardTests : GameOnTestsBase
         Card card1 = Not(Value.Four);
         Card card3 = Not(card1.Value, Value.Four);
 
-        var deck = CardsDeck.FullShuffledDeck();
+        var deck = CardsDeck.FullShuffledDeck(excludeJokers: true);
         var testSubject = GetTestSubject(
             [
                 DealPlayer(
@@ -192,7 +192,7 @@ public class PlaceCardTests : GameOnTestsBase
     {
         Card cardValue = Not(Value.Ace);
 
-        var deck = CardsDeck.FullShuffledDeck();
+        var deck = CardsDeck.FullShuffledDeck(excludeJokers: true);
         var testSubject = GetTestSubject(
             [
                 DealPlayer(
@@ -230,7 +230,7 @@ public class PlaceCardTests : GameOnTestsBase
             Value.King,
             Value.Ace);
 
-        var deck = CardsDeck.FullShuffledDeck();
+        var deck = CardsDeck.FullShuffledDeck(excludeJokers: true);
         var testSubject = GetTestSubject(
             [
                 DealPlayer(
@@ -269,7 +269,7 @@ public class PlaceCardTests : GameOnTestsBase
     {
         Card cardValue = Not(Value.Four, Value.Five, Value.Six, Value.Seven);
 
-        var deck = CardsDeck.FullShuffledDeck();
+        var deck = CardsDeck.FullShuffledDeck(excludeJokers: true);
         var testSubject = GetTestSubject(
             [
                 DealPlayer(
@@ -301,7 +301,7 @@ public class PlaceCardTests : GameOnTestsBase
     {
         Card cardValue = RandomCard(Value.Seven);
 
-        var deck = CardsDeck.FullShuffledDeck();
+        var deck = CardsDeck.FullShuffledDeck(excludeJokers: true);
         var testSubject = GetTestSubject(
             [
                 DealPlayer(
@@ -340,7 +340,7 @@ public class PlaceCardTests : GameOnTestsBase
     {
         Card cardValue = RandomCard();
 
-        var deck = CardsDeck.FullShuffledDeck();
+        var deck = CardsDeck.FullShuffledDeck(excludeJokers: true);
         var testSubject = GetTestSubject(
             [
                 DealPlayer(
@@ -382,7 +382,7 @@ public class PlaceCardTests : GameOnTestsBase
     {
         Card cardValue = RandomCard();
 
-        var deck = CardsDeck.FullShuffledDeck();
+        var deck = CardsDeck.FullShuffledDeck(excludeJokers: true);
         var testSubject = GetTestSubject(
             [
                 DealPlayer(
@@ -439,7 +439,7 @@ public class PlaceCardTests : GameOnTestsBase
     {
         Card cardValue = RandomCard(Value.Joker);
 
-        var deck = CardsDeck.FullShuffledDeck();
+        var deck = CardsDeck.FullShuffledDeck(excludeJokers: true);
         var testSubject = GetTestSubject(
             [
                 DealPlayer(
@@ -477,7 +477,7 @@ public class PlaceCardTests : GameOnTestsBase
     {
         Card cardValue = RandomCard(Value.Two);
 
-        var deck = CardsDeck.FullShuffledDeck();
+        var deck = CardsDeck.FullShuffledDeck(excludeJokers: true);
         var testSubject = GetTestSubject(
             [
                 DealPlayer(
@@ -515,7 +515,7 @@ public class PlaceCardTests : GameOnTestsBase
     {
         Card cardValue = RandomCard(Value.Three);
 
-        var deck = CardsDeck.FullShuffledDeck();
+        var deck = CardsDeck.FullShuffledDeck(excludeJokers: true);
         var testSubject = GetTestSubject(
             [
                 DealPlayer(
@@ -553,7 +553,7 @@ public class PlaceCardTests : GameOnTestsBase
     {
         Card cardValue = RandomCard(Value.Three);
 
-        var deck = CardsDeck.FullShuffledDeck();
+        var deck = CardsDeck.FullShuffledDeck(excludeJokers: true);
         var testSubject = GetTestSubject(
             [
                 DealPlayer(
@@ -592,7 +592,7 @@ public class PlaceCardTests : GameOnTestsBase
     {
         Card cardValue = RandomCard(Value.Eight);
 
-        var deck = CardsDeck.FullShuffledDeck();
+        var deck = CardsDeck.FullShuffledDeck(excludeJokers: true);
         var testSubject = GetTestSubject(
             [
                 DealPlayer(
@@ -632,7 +632,7 @@ public class PlaceCardTests : GameOnTestsBase
     {
         Card cardValue = RandomCard(Value.Eight);
 
-        var deck = CardsDeck.FullShuffledDeck();
+        var deck = CardsDeck.FullShuffledDeck(excludeJokers: true);
         var testSubject = GetTestSubject(
             [
                 DealPlayer(
@@ -663,7 +663,7 @@ public class PlaceCardTests : GameOnTestsBase
     {
         Card cardValue = RandomCard(Value.Eight);
 
-        var deck = CardsDeck.FullShuffledDeck();
+        var deck = CardsDeck.FullShuffledDeck(excludeJokers: true);
         var testSubject = GetTestSubject(
             [
                 DealPlayer(
@@ -701,7 +701,7 @@ public class PlaceCardTests : GameOnTestsBase
     {
         Card cardValue = RandomCard(Value.Eight);
 
-        var deck = CardsDeck.FullShuffledDeck();
+        var deck = CardsDeck.FullShuffledDeck(excludeJokers: true);
         var testSubject = GetTestSubject(
             [
                 DealPlayer(
@@ -742,7 +742,7 @@ public class PlaceCardTests : GameOnTestsBase
     {
         Card cardValue = RandomCard(Value.Eight);
 
-        var deck = CardsDeck.FullShuffledDeck();
+        var deck = CardsDeck.FullShuffledDeck(excludeJokers: true);
         var testSubject = GetTestSubject(
             [
                 DealPlayer(
@@ -778,7 +778,7 @@ public class PlaceCardTests : GameOnTestsBase
     {
         Card cardValue = RandomCard(Value.Eight);
 
-        var deck = CardsDeck.FullShuffledDeck();
+        var deck = CardsDeck.FullShuffledDeck(excludeJokers: true);
         var testSubject = GetTestSubject(
             [
                 DealPlayer(
@@ -814,7 +814,7 @@ public class PlaceCardTests : GameOnTestsBase
     {
         Card cardValue = RandomCard(Value.Ten);
 
-        var deck = CardsDeck.FullShuffledDeck();
+        var deck = CardsDeck.FullShuffledDeck(excludeJokers: true);
         var testSubject = GetTestSubject(
             [
                 DealPlayer(
@@ -850,7 +850,7 @@ public class PlaceCardTests : GameOnTestsBase
     [Test]
     public void WhenPlayersHandIsEmpty()
     {
-        var deck = CardsDeck.FullShuffledDeck();
+        var deck = CardsDeck.FullShuffledDeck(excludeJokers: true);
         var testSubject = GetTestSubject(
             [
                 DealPlayer(
@@ -881,7 +881,7 @@ public class PlaceCardTests : GameOnTestsBase
     [Test]
     public void WhenPlacingNegativeIndexCard()
     {
-        var deck = CardsDeck.FullShuffledDeck();
+        var deck = CardsDeck.FullShuffledDeck(excludeJokers: true);
         var testSubject = GetTestSubject(
             [
                 DealPlayer(deck),
@@ -908,7 +908,7 @@ public class PlaceCardTests : GameOnTestsBase
     [Test]
     public void WhenPlacingCardNotInHand()
     {
-        var deck = CardsDeck.FullShuffledDeck();
+        var deck = CardsDeck.FullShuffledDeck(excludeJokers: true);
         var testSubject = GetTestSubject(
             [
                 DealPlayer(deck),
@@ -935,7 +935,7 @@ public class PlaceCardTests : GameOnTestsBase
     [Test]
     public void WhenPlacingCardAndHandIsFull()
     {
-        var deck = CardsDeck.FullShuffledDeck();
+        var deck = CardsDeck.FullShuffledDeck(excludeJokers: true);
         var testSubject = GetTestSubject(
             [
                 DealPlayer(
@@ -968,7 +968,7 @@ public class PlaceCardTests : GameOnTestsBase
     [Test]
     public void WhenPlacingCardAndHandIsNotFull()
     {
-        var deck = CardsDeck.FullShuffledDeck();
+        var deck = CardsDeck.FullShuffledDeck(excludeJokers: true);
         var testSubject = GetTestSubject(
             [
                 DealPlayer(
@@ -1002,7 +1002,7 @@ public class PlaceCardTests : GameOnTestsBase
     public void WhenCompletingASetNotInTurn()
     {
         var cardValue = RandomCard();
-        var deck = CardsDeck.FullShuffledDeck();
+        var deck = CardsDeck.FullShuffledDeck(excludeJokers: true);
         var testSubject = GetTestSubject(
             [
                 DealPlayer(deck),
@@ -1041,7 +1041,7 @@ public class PlaceCardTests : GameOnTestsBase
     public void WhenTryingToCompletingASetNotInTurnOnTopOfHigherValue()
     {
         var cardValue = RandomCard();
-        var deck = CardsDeck.FullShuffledDeck();
+        var deck = CardsDeck.FullShuffledDeck(excludeJokers: true);
         var testSubject = GetTestSubject(
             [
                 DealPlayer(deck),
