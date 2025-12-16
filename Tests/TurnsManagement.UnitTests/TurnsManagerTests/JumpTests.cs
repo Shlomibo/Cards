@@ -36,8 +36,8 @@ public class JumpTests : TurnsManagerTestsBase
             ActivePlayers = testSubject.ActivePlayers.ToArray(),
             testSubject.Direction,
             testSubject.InitialPlayersCount,
-            Current = testSubject.ActivePlayers[^(jump + 1)],
-            Previous = testSubject.ActivePlayers[^(jump + 2)],
+            Current = testSubject.ActivePlayers[^((jump % testSubject.PlayersCount) + 1)],
+            Previous = testSubject.ActivePlayers[^(((jump + 1) % testSubject.PlayersCount) + 1)],
             Next = testSubject.ActivePlayers[^jump],
         };
 
