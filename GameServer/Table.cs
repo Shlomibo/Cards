@@ -1,4 +1,6 @@
-﻿using GameEngine;
+﻿using DTOs;
+
+using GameEngine;
 
 using System.Collections;
 using System.Diagnostics.CodeAnalysis;
@@ -12,10 +14,10 @@ internal sealed class Table<
     TGameMove>
 {
     private readonly object _lock = new();
-    private readonly HashSet<string> _playerNames = [ ];
-    private readonly Dictionary<int, string> _playerNamesByIds = [ ];
-    private readonly Dictionary<int, Guid> _playerConnectionIdsByIds = [ ];
-    private readonly Dictionary<Guid, int> _playerIdsByConnectionId = [ ];
+    private readonly HashSet<string> _playerNames = [];
+    private readonly Dictionary<int, string> _playerNamesByIds = [];
+    private readonly Dictionary<int, Guid> _playerConnectionIdsByIds = [];
+    private readonly Dictionary<Guid, int> _playerIdsByConnectionId = [];
     private Engine<TGameState, TSharedState, TPlayerState, TGameMove>? _game;
 
     public event EventHandler? TableUpdated;
@@ -177,7 +179,7 @@ internal sealed class Table<
                      let id = kv.Key
                      where id != TableMaster.Id
                      let name = kv.Value
-                     select new Table.Player(id, name));
+                     select new Table.Player(id, name, PlayerState.Playing));
 
     public readonly record struct Player : IEquatable<Player>
     {
@@ -199,7 +201,7 @@ internal sealed class Table<
         }
 
         public Table.Player AsDescriptor() =>
-            new(Id, Name);
+            new(Id, Name, PlayerState.Playing);
 
         public override string ToString() => $"({Id}): {Name}";
     }

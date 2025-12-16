@@ -1,8 +1,17 @@
-﻿using GameServer.DTO;
+﻿using DTOs;
 
 namespace GameServer;
 
-public sealed class Connection<
+/// <summary>
+/// A connection of a player to the server.
+/// </summary>
+/// <typeparam name="TGameState">The type of the game's state.</typeparam>
+/// <typeparam name="TSharedState">The type of the game's shared state.</typeparam>
+/// <typeparam name="TPlayerState">The type of the game's player-specific state.</typeparam>
+/// <typeparam name="TGameMove">The type of the game's moves.</typeparam>
+/// <typeparam name="TSerializedState">The type of the game's serialized DTOs.</typeparam>
+/// <typeparam name="TSerializedMove">The type of the game's serialized moves.</typeparam>
+public class Connection<
     TGameState,
     TSharedState,
     TPlayerState,
@@ -22,6 +31,9 @@ public sealed class Connection<
     private EventHandler<StateUpdatedEventArgs<TSerializedState>>? _stateUpdatedHandler;
     private StateUpdatedEventArgs<TSerializedState> _lastGameState;
 
+    /// <summary>
+    /// Occurs when the game's state is updated.
+    /// </summary>
     public event EventHandler<StateUpdatedEventArgs<TSerializedState>>? StateUpdated
     {
         add
@@ -31,6 +43,10 @@ public sealed class Connection<
         }
         remove => _stateUpdatedHandler -= value;
     }
+
+    /// <summary>
+    /// Occurs when the connection is closed.
+    /// </summary>
     public event EventHandler? Closed;
 
     private Table<TGameState,
@@ -56,15 +72,28 @@ public sealed class Connection<
             new StateUpdate<TSerializedState>(
                 _table.TableName,
                 new CurrentPlayer(Player.Id, Player.Name, Player.ConnectionId),
-                _table.AsTableDescriptor().Players.Select(player => new DTO.Player(player.Id, player.Name))));
+                _table.AsTableDescriptor().Players
+                    .Select(player => new Player(
+                        player.Id,
+                        player.Name,
+                        PlayerState.Playing))));
 
         _table.GameUpdated += OnGameUpdated;
         _table.TableUpdated += OnTableUpdated;
     }
 
+    /// <summary>
+    /// Send the game move to the game server.
+    /// </summary>
+    /// <param name="move">The move to send.</param>
     public void PlayMove(TSerializedMove move) => _table.PlayMove(
         _moveDeserializer(move),
         Player.Id);
+
+    /// <summary>
+    /// Close the connection and remove the player from the table.
+    /// </summary>
+    public void Close() => (this as IDisposable).Dispose();
 
     private void OnGameUpdated(
         object? sender,
@@ -86,7 +115,7 @@ public sealed class Connection<
                 _table.TableName,
                 new CurrentPlayer(Player.Id, Player.Name, Player.ConnectionId),
                 _table.AsTableDescriptor().Players.Select(player =>
-                    new Player(player.Id, player.Name)),
+                    new Player(player.Id, player.Name, PlayerState.Playing)),
                 state));
 
         _lastGameState = gameStateUpdate;
@@ -119,15 +148,24 @@ public sealed class Connection<
         Dispose(disposing: true);
         GC.SuppressFinalize(this);
     }
-
-    public void Close() => (this as IDisposable).Dispose();
 }
 
+/// <summary>
+/// Event arguments for a state-updated event.
+/// </summary>
+/// <typeparam name="TSerializedState">The type of the game's state.</typeparam>
 public sealed class StateUpdatedEventArgs<TSerializedState>
     where TSerializedState : State
 {
+    /// <summary>
+    /// The updated game state.
+    /// </summary>
     public StateUpdate<TSerializedState> State { get; }
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="StateUpdatedEventArgs{TSerializedState}"/> class.
+    /// </summary>
+    /// <param name="state"></param>
     public StateUpdatedEventArgs(StateUpdate<TSerializedState> state)
     {
         State = state;

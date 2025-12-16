@@ -1,12 +1,23 @@
-﻿using GameEngine;
+﻿using DTOs;
 
-using GameServer.DTO;
+using GameEngine;
+
 
 using System.Diagnostics.CodeAnalysis;
 
 namespace GameServer;
 
-public class Server<
+/// <summary>
+/// Manages game tables and player connections.
+/// </summary>
+/// <typeparam name="TInitOptions">Initialization options type.</typeparam>
+/// <typeparam name="TGameState">The games state type.</typeparam>
+/// <typeparam name="TSharedState">The shared state type.</typeparam>
+/// <typeparam name="TPlayerState">The player-specific state type.</typeparam>
+/// <typeparam name="TGameMove">The game move type.</typeparam>
+/// <typeparam name="TSerializedState">The serialized state DTO type.</typeparam>
+/// <typeparam name="TSerializedMove">The serialized move DTO type.</typeparam>
+public class TablesManager<
     TInitOptions,
     TGameState,
     TSharedState,
@@ -15,7 +26,6 @@ public class Server<
     TSerializedState,
     TSerializedMove>
     where TSerializedState : State
-    where TSerializedMove : Move
 {
     private readonly Func<TInitOptions, Engine<TGameState, TSharedState, TPlayerState, TGameMove>>
         _engineFactory;
@@ -23,7 +33,13 @@ public class Server<
     private readonly Func<TSerializedMove, TGameMove> _moveDeserializer;
     private readonly Dictionary<string, Table<TGameState, TSharedState, TPlayerState, TGameMove>> _tables = [];
 
-    public Server(
+    /// <summary>
+    /// Initializes a new instance of the <see cref="TablesManager{TInitOptions, TGameState, TSharedState, TPlayerState, TGameMove, TSerializedState, TSerializedMove}"/> class.
+    /// </summary>
+    /// <param name="engineFactory">A factory function to create game engines.</param>
+    /// <param name="stateSerializer">A function to serialize game states.</param>
+    /// <param name="moveDeserializer">A function to deserialize game moves.</param>
+    public TablesManager(
         Func<TInitOptions, Engine<TGameState, TSharedState, TPlayerState, TGameMove>> engineFactory,
         Func<TSharedState, TPlayerState, TSerializedState> stateSerializer,
         Func<TSerializedMove, TGameMove> moveDeserializer)
@@ -33,6 +49,12 @@ public class Server<
         _moveDeserializer = moveDeserializer ?? throw new ArgumentNullException(nameof(moveDeserializer));
     }
 
+    /// <summary>
+    /// Creates a new gaming table.
+    /// </summary>
+    /// <param name="tableName">The name of the gaming-table to create.</param>
+    /// <param name="tableMasterName">The name of the table master.</param>
+    /// <returns>The connection of the table master to the newly created table.</returns>
     public Connection<
         TGameState,
         TSharedState,
@@ -55,12 +77,28 @@ public class Server<
         return CreateConnection(table, table.TableMaster.ConnectionId);
     }
 
+    /// <summary>
+    /// Determines whether a player can join a specific table.
+    /// </summary>
+    /// <param name="tableName">The name of the table.</param>
+    /// <param name="playerName">The name of the player.</param>
+    /// <returns><c>true</c> if the player can join the table; otherwise, <c>false</c>.</returns>
     public bool CanJoinTable(string tableName, string playerName) =>
         !string.IsNullOrEmpty(tableName) &&
             !string.IsNullOrEmpty(playerName) &&
             _tables.TryGetValue(tableName, out var table) &&
             !table.GameStarted;
 
+    /// <summary>
+    /// Tries to join a player to a specific table.
+    /// </summary>
+    /// <param name="tableName">The name of the table.</param>
+    /// <param name="playerName">The name of the player.</param>
+    /// <param name="connection">
+    /// When this method returns, contains the connection if the join was successful;
+    /// otherwise, <c>null</c>.
+    /// </param>
+    /// <returns><c>true</c> if the player successfully joined the table; otherwise, <c>false</c>.</returns>
     public bool TryJoinTable(
         string tableName,
         string playerName,
@@ -89,6 +127,18 @@ public class Server<
         return connection != null;
     }
 
+    /// <summary>
+    /// Joins a player to a specific table.
+    /// </summary>
+    /// <param name="tableName">The name of the table.</param>
+    /// <param name="playerName">The name of the player.</param>
+    /// <returns>The connection of the player to the table.</returns>
+    /// <exception cref="ArgumentException">
+    /// Thrown when the table does not exist.
+    /// </exception>
+    /// <exception cref="InvalidOperationException">
+    /// Thrown when a game was already started at the table.
+    /// </exception>
     public Connection<
         TGameState,
         TSharedState,
@@ -115,6 +165,18 @@ public class Server<
         return CreateConnection(table, player.ConnectionId);
     }
 
+    /// <summary>
+    /// Starts the game at a specific table.
+    /// </summary>
+    /// <param name="tableName">The name of the table.</param>
+    /// <param name="masterConnectionId">The connection ID of the table master.</param>
+    /// <param name="options">The initialization options for the game.</param>
+    /// <exception cref="ArgumentException">
+    /// Thrown when the table does not exist.
+    /// </exception>
+    /// <exception cref="InvalidOperationException">
+    /// Thrown when the caller is not the table master.
+    /// </exception>
     public void StartGame(string tableName, Guid masterConnectionId, TInitOptions options)
     {
         if (!_tables.TryGetValue(tableName, out var table))
@@ -133,9 +195,22 @@ public class Server<
         }
     }
 
+    /// <summary>
+    /// Gets a table by name.
+    /// </summary>
+    /// <param name="tableName">The name of the table.</param>
+    /// <returns>The table.</returns>
     public Table GetTable(string tableName) =>
         _tables[tableName].AsTableDescriptor();
 
+    /// <summary>
+    /// Tries to get a table by name.
+    /// </summary>
+    /// <param name="tableName">The name of the table.</param>
+    /// <param name="table">
+    /// When this method returns, contains the table if found; otherwise, <c>null</c>.
+    /// </param>
+    /// <returns><c>true</c> if the table was found; otherwise, <c>false</c>.</returns>
     public bool TryGetTable(string tableName, [MaybeNullWhen(false)] out Table table)
     {
         table = null;
