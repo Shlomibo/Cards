@@ -15,7 +15,7 @@ public class RemovePlayerTests : TurnsManagerTestsBase
         {
             (TurnsDirection.Up, 0) => testSubject.ActivePlayers[^1],
             (TurnsDirection.Up, int i) => i - 1,
-            (_, int i) => (i + 1) % (testSubject.InitialPlayersCount - 1),
+            (_, int i) => (i + 1) % testSubject.InitialPlayersCount,
         };
         var originalPlayers = testSubject.ActivePlayers.ToArray();
 
@@ -30,7 +30,7 @@ public class RemovePlayerTests : TurnsManagerTestsBase
             {
                 (TurnsDirection.Up, 0) => testSubject.ActivePlayers[^1],
                 (TurnsDirection.Up, int i) => i - 1,
-                (_, int i) => (i + 1) % (testSubject.InitialPlayersCount - 1),
+                (_, int i) => (i + 1) % testSubject.ActivePlayers.Count,
             }
         };
 
@@ -52,19 +52,19 @@ public class RemovePlayerTests : TurnsManagerTestsBase
             ActivePlayers = originalPlayers.Where(i => i != removedPlayer),
             Current = (direction, removedPlayer) switch
             {
-                (TurnsDirection.Up, 0) => testSubject.ActivePlayers[^1],
-                (TurnsDirection.Up, int i) => i - 1,
-                (_, int i) => (i + 1) % (testSubject.InitialPlayersCount - 1),
+                (TurnsDirection.Up, int i) => (i + 1) % originalPlayers.Length,
+                (_, 0) => testSubject.ActivePlayers[^1],
+                (_, int i) => i - 1,
             },
             testSubject.Direction,
             testSubject.InitialPlayersCount,
-            testSubject.Next,
-            Previous = (direction, testSubject.Previous) switch
+            Next = (direction, testSubject.Next) switch
             {
-                (TurnsDirection.Up, 0) => testSubject.ActivePlayers[^1],
-                (TurnsDirection.Up, int i) => i - 1,
-                (_, int i) => (i + 1) % (testSubject.InitialPlayersCount - 1),
-            }
+                (TurnsDirection.Up, int i) => (i + 1) % originalPlayers.Length,
+                (_, 0) => testSubject.ActivePlayers[^1],
+                (_, int i) => i - 1,
+            },
+            testSubject.Previous,
         };
 
         testSubject.RemovePlayer(removedPlayer);
@@ -79,7 +79,7 @@ public class RemovePlayerTests : TurnsManagerTestsBase
         var testSubject = GetTestSubject(direction: direction);
         int removedPlayer = (direction, testSubject.Current) switch
         {
-            (TurnsDirection.Up, int i) => (i + 1) % (testSubject.InitialPlayersCount - 1),
+            (TurnsDirection.Up, int i) => (i + 1) % testSubject.InitialPlayersCount,
             (_, 0) => testSubject.InitialPlayersCount - 1,
             (_, int i) => i - 1,
         };
@@ -93,7 +93,7 @@ public class RemovePlayerTests : TurnsManagerTestsBase
             testSubject.InitialPlayersCount,
             Next = (direction, testSubject.Next) switch
             {
-                (TurnsDirection.Up, int i) => (i + 1) % (testSubject.InitialPlayersCount - 1),
+                (TurnsDirection.Up, int i) => (i + 1) % testSubject.InitialPlayersCount,
                 (_, 0) => testSubject.InitialPlayersCount - 1,
                 (_, int i) => i - 1,
             },

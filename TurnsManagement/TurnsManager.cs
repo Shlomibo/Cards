@@ -145,7 +145,16 @@ public sealed class TurnsManager : ITurnsManager
 
         _activePlayers.RemoveAt(removedIndex);
 
-        if (removedIndex <= _currentPlayerIndex)
+        if (removedIndex == _currentPlayerIndex)
+        {
+            _currentPlayerIndex = (_currentPlayerIndex, Direction) switch
+            {
+                (_, TurnsDirection.Up) => _currentPlayerIndex,
+                (0, _) => _activePlayers.Count - 1,
+                (int i, _) => i - 1,
+            };
+        }
+        else if (removedIndex < _currentPlayerIndex)
         {
             _currentPlayerIndex = _currentPlayerIndex switch
             {

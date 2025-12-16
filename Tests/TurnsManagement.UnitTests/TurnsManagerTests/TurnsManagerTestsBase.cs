@@ -4,7 +4,7 @@ namespace TurnsManagement.UnitTests.TurnsManagerTests;
 
 public abstract class TurnsManagerTestsBase
 {
-    protected const int MinRandomPLayersCount = 3;
+    protected const int MinRandomPLayersCount = 4;
     protected const int MaxRandomPLayersCount = 6;
     protected static Randomizer Random => TestContext.CurrentContext.Random;
 
