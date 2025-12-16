@@ -84,14 +84,11 @@ public sealed class TurnsManager : ITurnsManager
             throw new ArgumentException("SkippedTurns must not be negative", nameof(skippedTurns));
         }
 
-        if (direction is TurnsDirection newDir)
-        {
-            Direction = newDir;
-        }
+        direction ??= Direction;
 
         if (skippedTurns != 0)
         {
-            if (Direction == TurnsDirection.Down)
+            if (direction == TurnsDirection.Down)
             {
                 skippedTurns *= -1;
             }
@@ -106,9 +103,6 @@ public sealed class TurnsManager : ITurnsManager
             {
                 _currentPlayerIndex += _activePlayers.Count;
             }
-
-            Debug.Assert(_currentPlayerIndex >= 0, "Current player is negative number!");
-            Debug.Assert(_currentPlayerIndex < _activePlayers.Count, "Current is greater than players count!");
         }
 
         return Current;

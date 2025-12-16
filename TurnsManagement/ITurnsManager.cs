@@ -66,8 +66,11 @@ public interface ITurnsManager
 /// The direction in which turns are managed.
 /// </summary>
 /// <remarks>
-/// The terms "Up" and "Down" are used to avoid confusion with clockwise and counter-clockwise,
-/// but they are arbitrary and can be interpreted as needed.
+/// The terms "Up" and "Down" are used to avoid confusion with clockwise and counter-clockwise.
+/// <para>
+/// <see cref="Up"/> means going up the players ids and <see cref="Down"/> mean
+/// to go down the players ids.
+/// </para>
 /// </remarks>
 public enum TurnsDirection
 {

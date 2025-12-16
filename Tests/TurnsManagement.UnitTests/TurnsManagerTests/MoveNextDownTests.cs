@@ -65,6 +65,24 @@ public class MoveNextDownTests : TurnsManagerTestsBase
     }
 
     [Test]
+    public void WhenMovingNextAndThereAreOnlyTwoPlayers()
+    {
+        var testSubject = GetTestSubject(playersCount: 2, direction: TurnsDirection.Down);
+        var expected = new
+        {
+            testSubject.ActivePlayers,
+            Current = (testSubject.Current + 1) % 2,
+            testSubject.Direction,
+            testSubject.InitialPlayersCount,
+            Next = testSubject.Current,
+            Previous = testSubject.Current,
+        };
+
+        testSubject.MoveNext();
+        testSubject.Should().BeEquivalentTo(expected);
+    }
+
+    [Test]
     public void WhenMovingNextAndNextPlayerLeftTheGame()
     {
         var testSubject = GetTestSubject(

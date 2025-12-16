@@ -26,6 +26,25 @@ public class SettingCurrentPlayerTests : TurnsManagerTestsBase
     }
 
     [Test]
+    public void WhenSettingCurrentPlayerToTheCurrentPlayerAndIsTheOnlyPlayer()
+    {
+        var testSubject = GetTestSubject(playersCount: 1);
+        var expected = new
+        {
+            testSubject.ActivePlayers,
+            testSubject.Current,
+            testSubject.Direction,
+            testSubject.Next,
+            testSubject.InitialPlayersCount,
+            testSubject.Previous,
+        };
+
+        testSubject.Current = testSubject.Current;
+
+        testSubject.Should().BeEquivalentTo(expected);
+    }
+
+    [Test]
     public void WhenSettingCurrentPlayerToAnotherPlayer()
     {
         var testSubject = GetTestSubject();
@@ -73,6 +92,26 @@ public class SettingCurrentPlayerTests : TurnsManagerTestsBase
         };
 
         testSubject.Current = 0;
+
+        testSubject.Should().BeEquivalentTo(expected);
+    }
+
+    [Test]
+    public void WhenSettingCurrentPlayerToAnotherPlayerAndThereAreOnlyTwoPlayers()
+    {
+        var testSubject = GetTestSubject(playersCount: 2);
+        int setTo = 1;
+        var expected = new
+        {
+            testSubject.ActivePlayers,
+            Current = setTo,
+            testSubject.Direction,
+            Next = 0,
+            testSubject.InitialPlayersCount,
+            Previous = 0,
+        };
+
+        testSubject.Current = setTo;
 
         testSubject.Should().BeEquivalentTo(expected);
     }
