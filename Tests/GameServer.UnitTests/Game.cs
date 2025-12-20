@@ -79,18 +79,18 @@ public record GameMove
     public static GameMove Deserialize(Serialized move) =>
         move switch
         {
-            ValidMove.Serialized => new ValidMove(),
-            InvalidMove.Serialized => new InvalidMove(),
+            ValidMove.Serialized { Value: var v } => new ValidMove(v),
+            InvalidMove.Serialized { Value: var v } => new InvalidMove(v),
             _ => throw new NotSupportedException(),
         };
 }
 
-public record ValidMove : GameMove
+public record ValidMove(int Value) : GameMove
 {
-    public new record Serialized : GameMove.Serialized;
+    public new record Serialized(int Value) : GameMove.Serialized;
 }
 
-public record InvalidMove : GameMove
+public record InvalidMove(string Value) : GameMove
 {
-    public new record Serialized : GameMove.Serialized;
+    public new record Serialized(string Value) : GameMove.Serialized;
 }

@@ -21,7 +21,9 @@ public abstract class ConnectionTestsBase
     {
         try
         {
-            value.Should().BeEquivalentTo(expected);
+            value.Should().BeEquivalentTo(
+                expected,
+                opt => opt.IncludingAllRuntimeProperties());
             return true;
         }
         catch (Exception ex)
@@ -59,6 +61,10 @@ public abstract class ConnectionTestsBase
             .Returns(new Table(
                 tablePlayer,
                 []));
+        table
+            .Setup(table => table.PlayMove(
+                It.IsAny<GameMove>(),
+                It.IsAny<int?>()));
 
         Connection<GameState, GameState, GameState, GameMove, GameState.Serialized, GameMove.Serialized> testSubject =
             new(table.Object,
@@ -79,6 +85,9 @@ public abstract class ConnectionTestsBase
         Fixture fixture = new();
         fixture.Customize<CurrentPlayer>(builder => builder
             .With(x => x.PlayerId, 0));
+        fixture.Register(() => fixture.Create<bool>()
+            ? (GameMove.Serialized)fixture.Create<ValidMove.Serialized>()
+            : fixture.Create<InvalidMove.Serialized>());
 
         return fixture;
     }

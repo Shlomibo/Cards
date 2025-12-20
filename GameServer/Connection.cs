@@ -44,11 +44,6 @@ public class Connection<
         remove => _stateUpdatedHandler -= value;
     }
 
-    /// <summary>
-    /// Occurs when the connection is closed.
-    /// </summary>
-    public event EventHandler? Closed;
-
     private Table<TGameState,
         TSharedState,
         TPlayerState,
@@ -83,7 +78,7 @@ public class Connection<
     }
 
     /// <summary>
-    /// Send the game move to the game server.
+    /// Deserialize and pass the game move to the game server.
     /// </summary>
     /// <param name="move">The move to send.</param>
     public void PlayMove(TSerializedMove move) => _table.PlayMove(
@@ -131,9 +126,6 @@ public class Connection<
             {
                 _table.GameUpdated -= OnGameUpdated;
                 _table.RemovePlayer(_connectionId);
-
-                Closed?.Invoke(this, EventArgs.Empty);
-                Closed = null;
             }
 
             // TODO: free unmanaged resources (unmanaged objects) and override finalizer
