@@ -12,7 +12,7 @@ namespace GameServer.UnitTests.ConnectionTests;
 
 public abstract class ConnectionTestsBase
 {
-    protected static Fixture Fixture { get; } = new();
+    protected static Fixture Fixture { get; } = CreateFixture();
 
     protected static GameState RandomState() =>
         Fixture.Create<GameState>();
@@ -39,7 +39,8 @@ public abstract class ConnectionTestsBase
 
         string tableName = Fixture.Create<string>();
         var player = Fixture.Create<CurrentPlayer>();
-        var id = Guid.NewGuid();
+        Table.Player tablePlayer = new(0, player.PlayerName, PlayerState.Playing);
+        var id = player.ConnectionId;
 
         Mock<ITable<GameState, GameState, GameState, GameMove>> table = new(MockBehavior.Strict);
         table
@@ -53,7 +54,11 @@ public abstract class ConnectionTestsBase
             .Returns((Guid pId) => pId != id
                 ? throw new ArgumentException("id")
                 : new Table<GameState, GameState, GameState, GameMove>.Player(0, player.PlayerName, id));
-
+        table
+            .Setup(table => table.AsTableDescriptor())
+            .Returns(new Table(
+                tablePlayer,
+                []));
 
         Connection<GameState, GameState, GameState, GameMove, GameState.Serialized, GameMove.Serialized> testSubject =
             new(table.Object,
@@ -69,6 +74,15 @@ public abstract class ConnectionTestsBase
             player);
     }
 
+    private static Fixture CreateFixture()
+    {
+        Fixture fixture = new();
+        fixture.Customize<CurrentPlayer>(builder => builder
+            .With(x => x.PlayerId, 0));
+
+        return fixture;
+    }
+
     private protected record TestData(
         Connection<GameState, GameState, GameState, GameMove, GameState.Serialized, GameMove.Serialized> TestSubject,
         Mock<ITable<GameState, GameState, GameState, GameMove>> Table,
@@ -76,7 +90,7 @@ public abstract class ConnectionTestsBase
         string TableName,
         CurrentPlayer CurrentPlayer);
 
-    protected interface IEventsHandler
+    public interface IEventsHandler
     {
         void StateUpdated(object? sender, StateUpdatedEventArgs<GameState.Serialized> e);
 

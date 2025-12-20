@@ -17,6 +17,15 @@ public class StateUpdatedTests : ConnectionTestsBase
         var x = GetTestData(state);
         var handler = GetEventsHandler();
 
+        // Set state in connection
+        x.Table.Raise(
+            table => table.GameUpdated += null,
+            x.TestSubject,
+            new TableGameUpdateEventArgs<GameState, GameState, GameState, GameMove>(
+                state,
+                [(x.Table.Object[x.ConnectionId], state)]
+            ));
+
         x.TestSubject.StateUpdated += handler.Object.StateUpdated;
 
         handler.Verify(
@@ -60,7 +69,13 @@ public class StateUpdatedTests : ConnectionTestsBase
             [new(0, x.CurrentPlayer.PlayerName, PlayerState.Playing)],
             state.Serialize());
 
-        x.Table.Raise(table => table.GameUpdated += null, new StateUpdatedEventArgs<GameState.Serialized>(update));
+        x.Table.Raise(
+            table => table.GameUpdated += null,
+            x.TestSubject,
+            new TableGameUpdateEventArgs<GameState, GameState, GameState, GameMove>(
+                state,
+                [(x.Table.Object[x.ConnectionId], state)]
+            ));
 
         handler.Verify(
             h => h.StateUpdated(
@@ -86,6 +101,12 @@ public class StateUpdatedTests : ConnectionTestsBase
             [new(0, x.CurrentPlayer.PlayerName, PlayerState.Playing)],
             state.Serialize());
 
-        x.Table.Raise(table => table.GameUpdated += null, new StateUpdatedEventArgs<GameState.Serialized>(update));
+        x.Table.Raise(
+            table => table.GameUpdated += null,
+            x.TestSubject,
+            new TableGameUpdateEventArgs<GameState, GameState, GameState, GameMove>(
+                state,
+                [(x.Table.Object[x.ConnectionId], state)]
+            ));
     }
 }
