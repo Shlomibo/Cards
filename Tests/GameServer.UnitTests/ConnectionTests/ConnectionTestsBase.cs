@@ -65,6 +65,9 @@ public abstract class ConnectionTestsBase
             .Setup(table => table.PlayMove(
                 It.IsAny<GameMove>(),
                 It.IsAny<int?>()));
+        table
+            .Setup(table => table.RemovePlayer(
+                It.IsAny<Guid>()));
 
         Connection<GameState, GameState, GameState, GameMove, GameState.Serialized, GameMove.Serialized> testSubject =
             new(table.Object,

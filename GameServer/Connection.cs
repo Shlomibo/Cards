@@ -81,9 +81,14 @@ public class Connection<
     /// Deserialize and pass the game move to the game server.
     /// </summary>
     /// <param name="move">The move to send.</param>
-    public void PlayMove(TSerializedMove move) => _table.PlayMove(
-        _moveDeserializer(move),
-        Player.Id);
+    public void PlayMove(TSerializedMove move)
+    {
+        ArgumentNullException.ThrowIfNull(move);
+
+        _table.PlayMove(
+            _moveDeserializer(move),
+            Player.Id);
+    }
 
     /// <summary>
     /// Close the connection and remove the player from the table.
