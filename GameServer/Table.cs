@@ -11,14 +11,17 @@ internal sealed class Table<
     TGameState,
     TSharedState,
     TPlayerState,
+    TGameMove> : ITable<
+    TGameState,
+    TSharedState,
+    TPlayerState,
     TGameMove>
 {
-    private readonly object _lock = new();
+    private readonly Lock _lock = new();
     private readonly HashSet<string> _playerNames = [];
     private readonly Dictionary<int, string> _playerNamesByIds = [];
     private readonly Dictionary<int, Guid> _playerConnectionIdsByIds = [];
     private readonly Dictionary<Guid, int> _playerIdsByConnectionId = [];
-    private Engine<TGameState, TSharedState, TPlayerState, TGameMove>? _game;
 
     public event EventHandler? TableUpdated;
     public event EventHandler<TableGameUpdateEventArgs<
@@ -30,12 +33,12 @@ internal sealed class Table<
     public Player TableMaster => this[0];
 
     public string TableName { get; }
-    public Engine<TGameState, TSharedState, TPlayerState, TGameMove>? Game => _game;
+    public Engine<TGameState, TSharedState, TPlayerState, TGameMove>? Game { get; private set; }
 
     [MemberNotNullWhen(true, nameof(Game))]
     public bool GameStarted => Game != null;
 
-    public Player this[int playerId] => new(
+    private Player this[int playerId] => new(
         playerId,
         name: _playerNamesByIds[playerId],
         connectionId: _playerConnectionIdsByIds[playerId]);
@@ -78,7 +81,7 @@ internal sealed class Table<
         }
     }
 
-    public void RemovePlayer(int id)
+    private void RemovePlayer(int id)
     {
         if (_playerConnectionIdsByIds.TryGetValue(id, out var connId))
         {
@@ -104,24 +107,12 @@ internal sealed class Table<
         }
     }
 
-    public void RemovePlayer(Player player) =>
-        RemovePlayer(player.Id);
-
     public void PlayMove(TGameMove move, int? playerId = null) =>
-        _game?.PlayMove(move, playerId);
-    public void PlayMove(TGameMove move, Guid connectionId)
-    {
-        if (_playerIdsByConnectionId.TryGetValue(connectionId, out int id))
-        {
-            _game?.PlayMove(move, id);
-        }
-    }
-
-    public void PlayMove(TGameMove move, Player player) => PlayMove(move, player.Id);
+        Game?.PlayMove(move, playerId);
 
     public bool TrySetGame(Engine<TGameState, TSharedState, TPlayerState, TGameMove> game)
     {
-        if (game != _game && game == null)
+        if (game != Game && game == null)
         {
             return false;
         }
@@ -139,15 +130,15 @@ internal sealed class Table<
 
     public void SetGame(Engine<TGameState, TSharedState, TPlayerState, TGameMove> game)
     {
-        if (game != _game)
+        if (game != Game)
         {
-            if (_game != null)
+            if (Game != null)
             {
-                _game.Updated -= OnGameUpdated;
+                Game.Updated -= OnGameUpdated;
             }
 
-            _game = game ?? throw new ArgumentNullException(nameof(game));
-            _game.Updated += OnGameUpdated;
+            Game = game ?? throw new ArgumentNullException(nameof(game));
+            Game.Updated += OnGameUpdated;
         }
 
         OnGameUpdated(this, EventArgs.Empty);

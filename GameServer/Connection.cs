@@ -21,7 +21,7 @@ public class Connection<
     where TSerializedState : State
 {
     private bool _isDisposed;
-    private readonly Table<TGameState,
+    private readonly ITable<TGameState,
         TSharedState,
         TPlayerState,
         TGameMove> _table;
@@ -56,7 +56,7 @@ public class Connection<
     { get; }
 
     internal Connection(
-        Table<TGameState, TSharedState, TPlayerState, TGameMove> table,
+        ITable<TGameState, TSharedState, TPlayerState, TGameMove> table,
         Guid connectionId,
         Func<TSharedState, TPlayerState, TSerializedState> stateSerializer,
         Func<TSerializedMove, TGameMove> moveDeserializer)

@@ -31,7 +31,7 @@ public class TablesManager<
         _engineFactory;
     private readonly Func<TSharedState, TPlayerState, TSerializedState> _stateSerializer;
     private readonly Func<TSerializedMove, TGameMove> _moveDeserializer;
-    private readonly Dictionary<string, Table<TGameState, TSharedState, TPlayerState, TGameMove>> _tables = [];
+    private readonly Dictionary<string, ITable<TGameState, TSharedState, TPlayerState, TGameMove>> _tables = [];
 
     /// <summary>
     /// Initializes a new instance of the <see cref="TablesManager{TInitOptions, TGameState, TSharedState, TPlayerState, TGameMove, TSerializedState, TSerializedMove}"/> class.
@@ -231,7 +231,7 @@ public class TablesManager<
         TGameMove,
         TSerializedState,
         TSerializedMove> CreateConnection(
-            Table<TGameState, TSharedState, TPlayerState, TGameMove> table,
+            ITable<TGameState, TSharedState, TPlayerState, TGameMove> table,
             Guid connectionId)
     {
         var connection = new Connection<
