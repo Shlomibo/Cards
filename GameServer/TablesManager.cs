@@ -31,7 +31,7 @@ public class TablesManager<
         _engineFactory;
     private readonly Func<TSharedState, TPlayerState, TSerializedState> _stateSerializer;
     private readonly Func<TSerializedMove, TGameMove> _moveDeserializer;
-    private readonly Dictionary<string, ITable<TGameState, TSharedState, TPlayerState, TGameMove>> _tables = [];
+    private readonly Dictionary<string, ITable<TGameState, TSharedState, TPlayerState, TGameMove>> _tables;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="TablesManager{TInitOptions, TGameState, TSharedState, TPlayerState, TGameMove, TSerializedState, TSerializedMove}"/> class.
@@ -43,10 +43,20 @@ public class TablesManager<
         Func<TInitOptions, Engine<TGameState, TSharedState, TPlayerState, TGameMove>> engineFactory,
         Func<TSharedState, TPlayerState, TSerializedState> stateSerializer,
         Func<TSerializedMove, TGameMove> moveDeserializer)
+        : this(engineFactory, stateSerializer, moveDeserializer, [])
+    {
+    }
+
+    internal TablesManager(
+        Func<TInitOptions, Engine<TGameState, TSharedState, TPlayerState, TGameMove>> engineFactory,
+        Func<TSharedState, TPlayerState, TSerializedState> stateSerializer,
+        Func<TSerializedMove, TGameMove> moveDeserializer,
+        IEnumerable<KeyValuePair<string, ITable<TGameState, TSharedState, TPlayerState, TGameMove>>> tables)
     {
         _engineFactory = engineFactory ?? throw new ArgumentNullException(nameof(engineFactory));
         _stateSerializer = stateSerializer ?? throw new ArgumentNullException(nameof(stateSerializer));
         _moveDeserializer = moveDeserializer ?? throw new ArgumentNullException(nameof(moveDeserializer));
+        _tables = tables?.ToDictionary() ?? throw new ArgumentNullException(nameof(tables));
     }
 
     /// <summary>

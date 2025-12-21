@@ -23,7 +23,7 @@ public record GameState : IState<GameState, GameState, GameState, GameMove>
     public bool DidMove { get; set; }
     public bool GameOver { get; set; }
 
-    public int PlayersCount => 1;
+    public int PlayersCount => 2;
 
     public GameState SharedState => this;
 
