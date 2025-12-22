@@ -1,10 +1,16 @@
 using System;
 
+using AutoFixture;
+
+using AwesomeAssertions;
+
 using DTOs;
 
 using GameEngine;
 
 using Moq;
+
+using NUnit.Framework.Internal;
 
 namespace GameServer.UnitTests.TablesManagerTests;
 
@@ -12,6 +18,41 @@ using Player = Table<GameState, GameState, GameState, GameMove>.Player;
 
 public abstract class TablesManagerTestsBase
 {
+    protected static Fixture Fixture { get; } = CreateFixture();
+
+    private static Fixture CreateFixture()
+    {
+        Fixture fixture = new();
+        fixture.Register(() => new TableData(
+            Fixture.Create<string>(),
+            Fixture.Create<string>(),
+            [.. Fixture.CreateMany<string>(Random.Next(2, 5))]));
+
+        return fixture;
+    }
+
+    protected static Randomizer Random => TestContext.CurrentContext.Random;
+
+    private protected static object ValidateConnection(
+        string playerName,
+        Connection<GameState, GameState, GameState, GameMove, GameState.Serialized, GameMove.Serialized> connection,
+        ITable<GameState, GameState, GameState, GameMove> table,
+        int expectedId)
+    {
+        var expectedUser = new
+        {
+            Id = expectedId,
+            Name = playerName,
+            connection.ConnectionId,
+            State = PlayerState.Playing,
+        };
+
+        connection.Should().NotBeNull();
+
+        table[connection.ConnectionId].Should().BeEquivalentTo(expectedUser);
+        return expectedUser;
+    }
+
     private protected static TestData GetTestData(IEnumerable<TableData>? tablesData = null)
     {
         Mock<ITable<GameState, GameState, GameState, GameMove>>[] tables = tablesData == null
@@ -60,6 +101,11 @@ public abstract class TablesManagerTestsBase
                 .Setup(table => table.AddPlayer(It.IsAny<string>()))
                 .Returns((string name) =>
                 {
+                    if (byIds.Values.Select(p => p.Name).Contains(name))
+                    {
+                        throw new InvalidOperationException();
+                    }
+
                     Player p = new(1 + byIds.Values.Max(p => p.Id), name, Guid.NewGuid());
                     byIds[p.ConnectionId] = p;
 
@@ -103,6 +149,12 @@ public abstract class TablesManagerTestsBase
 
                     return result;
                 });
+            table
+                .Setup(table => table.CanAddPlayer(It.IsAny<string>()))
+                .Returns((string name) =>
+                    !table.Object.GameStarted
+                    && !byIds.Values.Select(p => p.Name).Contains(name));
+
 
             return table;
         }
@@ -123,7 +175,8 @@ public abstract class TablesManagerTestsBase
 internal record TableData(
     string Name,
     string MasterPlayer,
-    params IEnumerable<string> Players)
+    params string[] Players)
 {
-    public bool HasGameStarted { get; init; } = true;
+    public bool HasGameStarted { get; init; } = false;
+    public IReadOnlyList<string> AllPlayers => field ??= [MasterPlayer, .. Players];
 }

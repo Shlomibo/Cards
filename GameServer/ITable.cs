@@ -15,6 +15,7 @@ internal interface ITable<TGameState, TSharedState, TPlayerState, TGameMove>
     event EventHandler<TableGameUpdateEventArgs<TGameState, TSharedState, TPlayerState, TGameMove>>? GameUpdated;
 
     Table<TGameState, TSharedState, TPlayerState, TGameMove>.Player AddPlayer(string name);
+    bool CanAddPlayer(string name);
     Table AsTableDescriptor();
     void PlayMove(TGameMove move, int? playerId = null);
     void RemovePlayer(Guid connectionId);

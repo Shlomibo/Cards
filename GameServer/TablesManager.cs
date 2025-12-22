@@ -31,7 +31,7 @@ public class TablesManager<
         _engineFactory;
     private readonly Func<TSharedState, TPlayerState, TSerializedState> _stateSerializer;
     private readonly Func<TSerializedMove, TGameMove> _moveDeserializer;
-    private readonly Dictionary<string, ITable<TGameState, TSharedState, TPlayerState, TGameMove>> _tables;
+    internal Dictionary<string, ITable<TGameState, TSharedState, TPlayerState, TGameMove>> Tables { get; }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="TablesManager{TInitOptions, TGameState, TSharedState, TPlayerState, TGameMove, TSerializedState, TSerializedMove}"/> class.
@@ -56,7 +56,7 @@ public class TablesManager<
         _engineFactory = engineFactory ?? throw new ArgumentNullException(nameof(engineFactory));
         _stateSerializer = stateSerializer ?? throw new ArgumentNullException(nameof(stateSerializer));
         _moveDeserializer = moveDeserializer ?? throw new ArgumentNullException(nameof(moveDeserializer));
-        _tables = tables?.ToDictionary() ?? throw new ArgumentNullException(nameof(tables));
+        Tables = tables?.ToDictionary() ?? throw new ArgumentNullException(nameof(tables));
     }
 
     /// <summary>
@@ -74,15 +74,15 @@ public class TablesManager<
         TSerializedMove> CreateTable(string tableName, string tableMasterName)
     {
         ArgumentException.ThrowIfNullOrEmpty(tableName);
-        ArgumentNullException.ThrowIfNull(tableMasterName);
+        ArgumentException.ThrowIfNullOrEmpty(tableMasterName);
 
-        if (_tables.ContainsKey(tableName))
+        if (Tables.ContainsKey(tableName))
         {
-            throw new ArgumentException($"The table '{tableName}' already exists", nameof(tableName));
+            throw new InvalidOperationException($"The table '{tableName}' already exists");
         }
 
         Table<TGameState, TSharedState, TPlayerState, TGameMove> table = new(tableName, tableMasterName);
-        _tables.Add(tableName, table);
+        Tables.Add(tableName, table);
 
         return CreateConnection(table, table.TableMaster.ConnectionId);
     }
@@ -94,10 +94,10 @@ public class TablesManager<
     /// <param name="playerName">The name of the player.</param>
     /// <returns><c>true</c> if the player can join the table; otherwise, <c>false</c>.</returns>
     public bool CanJoinTable(string tableName, string playerName) =>
-        !string.IsNullOrEmpty(tableName) &&
-            !string.IsNullOrEmpty(playerName) &&
-            _tables.TryGetValue(tableName, out var table) &&
-            !table.GameStarted;
+        !string.IsNullOrEmpty(tableName)
+        && !string.IsNullOrEmpty(playerName)
+        && Tables.TryGetValue(tableName, out var table)
+        && table.CanAddPlayer(playerName);
 
     /// <summary>
     /// Tries to join a player to a specific table.
@@ -160,9 +160,9 @@ public class TablesManager<
         ArgumentException.ThrowIfNullOrEmpty(tableName);
         ArgumentException.ThrowIfNullOrEmpty(playerName);
 
-        if (!_tables.TryGetValue(tableName, out var table))
+        if (!Tables.TryGetValue(tableName, out var table))
         {
-            throw new ArgumentException($"The table '{tableName}' does not exist", nameof(tableName));
+            throw new InvalidOperationException($"The table '{tableName}' does not exist");
         }
 
         if (table.GameStarted)
@@ -189,7 +189,7 @@ public class TablesManager<
     /// </exception>
     public void StartGame(string tableName, Guid masterConnectionId, TInitOptions options)
     {
-        if (!_tables.TryGetValue(tableName, out var table))
+        if (!Tables.TryGetValue(tableName, out var table))
         {
             throw new ArgumentException($"Cannot find table [{tableName}]", nameof(tableName));
         }
@@ -211,7 +211,7 @@ public class TablesManager<
     /// <param name="tableName">The name of the table.</param>
     /// <returns>The table.</returns>
     public Table GetTable(string tableName) =>
-        _tables[tableName].AsTableDescriptor();
+        Tables[tableName].AsTableDescriptor();
 
     /// <summary>
     /// Tries to get a table by name.
@@ -224,7 +224,7 @@ public class TablesManager<
     public bool TryGetTable(string tableName, [MaybeNullWhen(false)] out Table table)
     {
         table = null;
-        bool hasTable = _tables.TryGetValue(tableName, out var internalTable);
+        bool hasTable = Tables.TryGetValue(tableName, out var internalTable);
 
         if (hasTable)
         {

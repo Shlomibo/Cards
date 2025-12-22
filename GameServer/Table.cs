@@ -69,7 +69,7 @@ internal sealed partial class Table<
     {
         if (!_playerNames.Add(name))
         {
-            throw new ArgumentException("A player with the same name already exists", nameof(name));
+            throw new InvalidOperationException("A player with the same name already exists");
         }
 
         lock (_lock)
@@ -79,6 +79,10 @@ internal sealed partial class Table<
             return AddPlayerWithId(id, name);
         }
     }
+
+    public bool CanAddPlayer(string name) =>
+        !GameStarted
+        && !_playerNames.Contains(name);
 
     private void RemovePlayer(int id)
     {

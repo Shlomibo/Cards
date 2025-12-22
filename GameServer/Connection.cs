@@ -25,7 +25,7 @@ public class Connection<
         TSharedState,
         TPlayerState,
         TGameMove> _table;
-    private readonly Guid _connectionId;
+    internal Guid ConnectionId { get; }
     private readonly Func<TSharedState, TPlayerState, TSerializedState> _stateSerializer;
     private readonly Func<TSerializedMove, TGameMove> _moveDeserializer;
     private EventHandler<StateUpdatedEventArgs<TSerializedState>>? _stateUpdatedHandler;
@@ -57,11 +57,11 @@ public class Connection<
         Func<TSerializedMove, TGameMove> moveDeserializer)
     {
         _table = table;
-        _connectionId = connectionId;
+        ConnectionId = connectionId;
         _stateSerializer = stateSerializer;
         _moveDeserializer = moveDeserializer;
 
-        Player = _table[_connectionId];
+        Player = _table[ConnectionId];
 
         _lastGameState = new StateUpdatedEventArgs<TSerializedState>(
             new StateUpdate<TSerializedState>(
@@ -130,7 +130,7 @@ public class Connection<
             if (disposing)
             {
                 _table.GameUpdated -= OnGameUpdated;
-                _table.RemovePlayer(_connectionId);
+                _table.RemovePlayer(ConnectionId);
             }
 
             // TODO: free unmanaged resources (unmanaged objects) and override finalizer
