@@ -37,7 +37,7 @@ internal sealed partial class Table<
     [MemberNotNullWhen(true, nameof(Game))]
     public bool GameStarted => Game != null;
 
-    public IReadOnlyDictionary<Guid, Player> GetPlayers() =>
+    IReadOnlyDictionary<Guid, Player> ITable<TGameState, TSharedState, TPlayerState, TGameMove>.GetPlayers() =>
         _playerIdsByConnectionId
             .Select(kv => KeyValuePair.Create(kv.Key, new Player(
                 kv.Value,
