@@ -7,6 +7,7 @@ internal interface ITable<TGameState, TSharedState, TPlayerState, TGameMove>
     Table<TGameState, TSharedState, TPlayerState, TGameMove>.Player this[Guid connectionId] { get; }
 
     Table<TGameState, TSharedState, TPlayerState, TGameMove>.Player TableMaster { get; }
+    IReadOnlyDictionary<Guid, Table<TGameState, TSharedState, TPlayerState, TGameMove>.Player> GetPlayers();
     string TableName { get; }
     Engine<TGameState, TSharedState, TPlayerState, TGameMove>? Game { get; }
     bool GameStarted { get; }

@@ -7,7 +7,7 @@ using AwesomeAssertions;
 namespace GameServer.UnitTests.TablesManagerTests;
 
 [TestFixture]
-public class JoinTableTests : JoinTableTestsBase
+public sealed class JoinTableTests : JoinTableTestsBase
 {
     public override void WhenThePlayerNameIsAvailable()
     {

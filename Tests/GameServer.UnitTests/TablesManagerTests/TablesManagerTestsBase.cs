@@ -89,6 +89,11 @@ public abstract class TablesManagerTestsBase
                 .Setup(table => table[It.IsAny<Guid>()])
                 .Returns((Guid id) => byIds[id]);
             table
+                .Setup(table => table.GetPlayers())
+                .Returns(IReadOnlyDictionary<Guid, Table<GameState, GameState, GameState, GameMove>.Player> () => byIds
+                    .Select(kv => KeyValuePair.Create(kv.Value.ConnectionId, kv.Value))
+                    .ToDictionary());
+            table
                 .Setup(table => table.TableMaster)
                 .Returns(master);
             table

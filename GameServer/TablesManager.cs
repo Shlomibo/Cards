@@ -224,6 +224,12 @@ public class TablesManager<
     public bool TryGetTable(string tableName, [MaybeNullWhen(false)] out Table table)
     {
         table = null;
+
+        if (tableName == null)
+        {
+            return false;
+        }
+
         bool hasTable = Tables.TryGetValue(tableName, out var internalTable);
 
         if (hasTable)
