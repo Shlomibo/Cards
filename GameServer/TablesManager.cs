@@ -27,7 +27,7 @@ public class TablesManager<
     TSerializedMove>
     where TSerializedState : State
 {
-    private readonly Func<TInitOptions, Engine<TGameState, TSharedState, TPlayerState, TGameMove>>
+    private readonly Func<TInitOptions, IEngine<TSharedState, TPlayerState, TGameMove>>
         _engineFactory;
     private readonly Func<TSharedState, TPlayerState, TSerializedState> _stateSerializer;
     private readonly Func<TSerializedMove, TGameMove> _moveDeserializer;
@@ -40,7 +40,7 @@ public class TablesManager<
     /// <param name="stateSerializer">A function to serialize game states.</param>
     /// <param name="moveDeserializer">A function to deserialize game moves.</param>
     public TablesManager(
-        Func<TInitOptions, Engine<TGameState, TSharedState, TPlayerState, TGameMove>> engineFactory,
+        Func<TInitOptions, IEngine<TSharedState, TPlayerState, TGameMove>> engineFactory,
         Func<TSharedState, TPlayerState, TSerializedState> stateSerializer,
         Func<TSerializedMove, TGameMove> moveDeserializer)
         : this(engineFactory, stateSerializer, moveDeserializer, [])
@@ -48,7 +48,7 @@ public class TablesManager<
     }
 
     internal TablesManager(
-        Func<TInitOptions, Engine<TGameState, TSharedState, TPlayerState, TGameMove>> engineFactory,
+        Func<TInitOptions, IEngine<TSharedState, TPlayerState, TGameMove>> engineFactory,
         Func<TSharedState, TPlayerState, TSerializedState> stateSerializer,
         Func<TSerializedMove, TGameMove> moveDeserializer,
         IEnumerable<KeyValuePair<string, ITable<TGameState, TSharedState, TPlayerState, TGameMove>>> tables)

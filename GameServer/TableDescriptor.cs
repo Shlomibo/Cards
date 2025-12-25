@@ -12,6 +12,11 @@ public sealed class Table
     private readonly Lazy<IReadOnlyList<Player>> _players;
 
     /// <summary>
+    /// Gets the name of the table.
+    /// </summary>
+    public string Name { get; }
+
+    /// <summary>
     /// Gets he master of the table.
     /// </summary>
     public Player TableMaster { get; }
@@ -36,10 +41,12 @@ public sealed class Table
     /// <summary>
     /// Initializes a new instance of the <see cref="Table"/> class.
     /// </summary>
+    /// <param name="name">The name of the table.</param>
     /// <param name="tableMaster">The master of the table.</param>
     /// <param name="players">The other players around the table.</param>
-    public Table(Player tableMaster, IEnumerable<Player> players)
+    public Table(string name, Player tableMaster, IEnumerable<Player> players)
     {
+        Name = name;
         TableMaster = tableMaster;
 
         _players = new Lazy<IReadOnlyList<Player>>(() => [tableMaster, .. players]);

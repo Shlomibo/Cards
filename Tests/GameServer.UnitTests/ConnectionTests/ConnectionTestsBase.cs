@@ -59,6 +59,7 @@ public abstract class ConnectionTestsBase
         table
             .Setup(table => table.AsTableDescriptor())
             .Returns(new Table(
+                tableName,
                 tablePlayer,
                 []));
         table

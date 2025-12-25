@@ -8,7 +8,7 @@ internal interface ITable<TGameState, TSharedState, TPlayerState, TGameMove>
 
     Table<TGameState, TSharedState, TPlayerState, TGameMove>.Player TableMaster { get; }
     string TableName { get; }
-    Engine<TGameState, TSharedState, TPlayerState, TGameMove>? Game { get; }
+    IEngine<TSharedState, TPlayerState, TGameMove>? Game { get; }
     bool GameStarted { get; }
 
     event EventHandler? TableUpdated;
@@ -20,6 +20,5 @@ internal interface ITable<TGameState, TSharedState, TPlayerState, TGameMove>
     Table AsTableDescriptor();
     void PlayMove(TGameMove move, int? playerId = null);
     void RemovePlayer(Guid connectionId);
-    void SetGame(Engine<TGameState, TSharedState, TPlayerState, TGameMove> game);
-    bool TrySetGame(Engine<TGameState, TSharedState, TPlayerState, TGameMove> game);
+    void SetGame(IEngine<TSharedState, TPlayerState, TGameMove>? game);
 }

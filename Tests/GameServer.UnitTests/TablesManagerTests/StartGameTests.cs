@@ -23,7 +23,7 @@ public class StartGameTests : TablesManagerTestsBase
         x.TestSubject.StartGame(table.Name, master.ConnectionId, default);
 
         gameTable.Verify(
-            t => t.SetGame(It.IsAny<Engine<GameState, GameState, GameState, GameMove>>()),
+            t => t.SetGame(It.IsAny<IEngine<GameState, GameState, GameMove>>()),
             Times.Once);
     }
 
@@ -41,7 +41,7 @@ public class StartGameTests : TablesManagerTestsBase
         x.TestSubject.StartGame(table.Name, master.ConnectionId, default);
 
         gameTable.Verify(
-            t => t.SetGame(It.IsAny<Engine<GameState, GameState, GameState, GameMove>>()),
+            t => t.SetGame(It.IsAny<IEngine<GameState, GameState, GameMove>>()),
             Times.Never);
     }
 
@@ -58,7 +58,7 @@ public class StartGameTests : TablesManagerTestsBase
             .Should().Throw<InvalidOperationException>();
 
         gameTable.Verify(
-            t => t.SetGame(It.IsAny<Engine<GameState, GameState, GameState, GameMove>>()),
+            t => t.SetGame(It.IsAny<IEngine<GameState, GameState, GameMove>>()),
             Times.Never);
     }
 
@@ -76,7 +76,7 @@ public class StartGameTests : TablesManagerTestsBase
             .Should().Throw<InvalidOperationException>();
 
         gameTable.Verify(
-            t => t.SetGame(It.IsAny<Engine<GameState, GameState, GameState, GameMove>>()),
+            t => t.SetGame(It.IsAny<IEngine<GameState, GameState, GameMove>>()),
             Times.Never);
     }
 

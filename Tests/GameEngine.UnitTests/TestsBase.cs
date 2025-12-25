@@ -8,7 +8,7 @@ public abstract class TestsBase
 {
 
     protected State State { get; set; }
-    protected Engine<GameState, SharedState, PlayerState, Move> Engine { get; set; }
+    protected IEngine<SharedState, PlayerState, Move> Engine { get; set; }
 
     [SetUp]
     public virtual void Setup()

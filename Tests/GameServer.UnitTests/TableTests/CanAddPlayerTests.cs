@@ -20,7 +20,7 @@ public class CanAddPlayerTests : AddPlayerTestsBase
 
     public override void WhenTheGameHasStarted()
     {
-        var x = GetTestData(gameEngine: CreateGameEngine());
+        var x = GetTestData(setGame: true);
         string newPlayer = Fixture.Create<string>();
 
         x.TestSubject.CanAddPlayer(newPlayer)

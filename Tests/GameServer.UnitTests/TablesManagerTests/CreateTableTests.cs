@@ -35,7 +35,7 @@ public class CreateTableTests : TablesManagerTestsBase
         {
             TableMaster = expectedMaster,
             TableName = name,
-            Game = (Engine<GameState, GameState, GameState, GameMove>?)null,
+            Game = (IEngine<GameState, GameState, GameMove>?)null,
             GameStarted = false,
         });
     }

@@ -1,30 +1,18 @@
 ﻿namespace GameEngine;
 
-/// <summary>
-/// A generic game engine.
-/// </summary>
-/// <typeparam name="TGameState">The type of the internal state of the game.</typeparam>
-/// <typeparam name="TSharedState">The type of the state that is visible to all players.</typeparam>
-/// <typeparam name="TPlayerState">The type of the state that each player privately has.</typeparam>
-/// <typeparam name="TGameMove">The type of available game moves.</typeparam>
-public partial class Engine<TGameState, TSharedState, TPlayerState, TGameMove>
+/// <inheritdoc cref="IEngine{TSharedState, TPlayerState, TGameMove}"/>
+public partial class Engine<TGameState, TSharedState, TPlayerState, TGameMove> : IEngine<TSharedState, TPlayerState, TGameMove>
 {
 
     private readonly IState<TGameState, TSharedState, TPlayerState, TGameMove> _state;
 
-    /// <summary>
-    /// Occurs when the game state is updated.
-    /// </summary>
+    /// <inheritdoc/>
     public event EventHandler? Updated;
 
-    /// <summary>
-    /// Gets the players in the game.
-    /// </summary>
+    /// <inheritdoc/>
     public IReadOnlyList<IPlayer<TSharedState, TPlayerState, TGameMove>> Players { get; }
 
-    /// <summary>
-    /// Gets the shared state that is visible to all players.
-    /// </summary>
+    /// <inheritdoc/>
     public TSharedState State => _state.SharedState;
 
     /// <summary>
@@ -42,10 +30,10 @@ public partial class Engine<TGameState, TSharedState, TPlayerState, TGameMove>
             ))];
     }
 
-    /// <inheritdoc cref="IState{TGameState, TSharedState, TPlayerState, TGameMove}.IsValidMove(TGameMove, int?)"/>
+    /// <inheritdoc/>
     public bool IsValidMove(TGameMove move, int? player = null) => _state.IsValidMove(move, player);
 
-    /// <inheritdoc cref="IState{TGameState, TSharedState, TPlayerState, TGameMove}.PlayMove(TGameMove, int?)"/>
+    /// <inheritdoc/>
     public void PlayMove(TGameMove move, int? playerId = null)
     {
         if (_state.PlayMove(move, playerId))

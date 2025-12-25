@@ -82,7 +82,6 @@ public abstract class TablesManagerTestsBase
                 .. data.Players.Select((name, i) =>
                     new Player(i + 1, name, Guid.NewGuid()))];
             var byIds = players.ToDictionary(p => p.ConnectionId);
-            bool didSetGame = false;
 
             Mock<ITable<GameState, GameState, GameState, GameMove>> table = new(MockBehavior.Strict);
             table
@@ -119,6 +118,7 @@ public abstract class TablesManagerTestsBase
             table
                 .Setup(table => table.AsTableDescriptor())
                 .Returns(new Table(
+                    data.Name,
                     master.AsDescriptor(),
                     byIds.Values
                         .Where(p => p != master)
@@ -142,18 +142,7 @@ public abstract class TablesManagerTestsBase
                 });
             table
                 .Setup(table => table.SetGame(
-                    It.IsAny<Engine<GameState, GameState, GameState, GameMove>>()))
-                .Callback((Engine<GameState, GameState, GameState, GameMove> _) => didSetGame = true);
-            table
-                .Setup(table => table.TrySetGame(
-                    It.IsAny<Engine<GameState, GameState, GameState, GameMove>>()))
-                .Returns((Engine<GameState, GameState, GameState, GameMove> _) =>
-                {
-                    bool result = !didSetGame;
-                    didSetGame = true;
-
-                    return result;
-                });
+                    It.IsAny<IEngine<GameState, GameState, GameMove>>()));
             table
                 .Setup(table => table.CanAddPlayer(It.IsAny<string>()))
                 .Returns((string name) =>

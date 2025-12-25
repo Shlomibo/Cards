@@ -2,26 +2,27 @@ using AutoFixture;
 
 using GameEngine;
 
+using Moq;
+
+using NUnit.Framework.Interfaces;
 using NUnit.Framework.Internal;
 
 namespace GameServer.UnitTests.TableTests;
 
 using TestSubject = Table<GameState, GameState, GameState, GameMove>;
-
+using ITestGameEngine = IEngine<GameState, GameState, GameMove>;
+using TestGameEngine = Engine<GameState, GameState, GameState, GameMove>;
 public abstract class TableTestsBase
 {
     protected static Fixture Fixture { get; } = new();
     protected static Randomizer Random => TestContext.CurrentContext.Random;
-
-    protected static Engine<GameState, GameState, GameState, GameMove> CreateGameEngine() =>
-        new(new GameState());
 
     private protected static TestData GetTestData(
         string? name = null,
         string? master = null,
         IEnumerable<string>? otherPlayers = null,
         int? otherPlayersCount = null,
-        Engine<GameState, GameState, GameState, GameMove>? gameEngine = null)
+        bool setGame = false)
     {
         name ??= Fixture.Create<string>();
         master ??= Fixture.Create<string>();
@@ -42,19 +43,74 @@ public abstract class TableTestsBase
             players.Add(testSubject.AddPlayer(player));
         }
 
+        Mock<ITestGameEngine>? gameEngine = !setGame
+            ? null
+            : CreateGameEngine();
+
         if (gameEngine != null)
         {
-            testSubject.SetGame(gameEngine);
+            testSubject.SetGame(gameEngine.Object);
+            gameEngine.Reset();
         }
 
-        return new TestData(testSubject, players);
+        return new TestData(testSubject, players, gameEngine);
+    }
+
+    private protected static Mock<ITestGameEngine> CreateGameEngine()
+    {
+        TestGameEngine engineImpl = new(new GameState());
+        Mock<ITestGameEngine> mock = new(MockBehavior.Loose);
+
+        mock
+            .Setup(m => m.IsValidMove(
+                It.IsAny<GameMove>(),
+                It.IsAny<int?>()))
+            .Returns(engineImpl.IsValidMove);
+        mock
+            .Setup(m => m.Players)
+            .Returns(() => engineImpl.Players);
+        mock
+            .Setup(m => m.PlayMove(
+                It.IsAny<GameMove>(),
+                It.IsAny<int?>()))
+            .Callback(engineImpl.PlayMove);
+        mock
+            .Setup(m => m.State)
+            .Returns(engineImpl.State);
+        mock.SetupAdd(m => m.Updated += It.IsAny<EventHandler>())
+            .Callback((EventHandler handler) => engineImpl.Updated += handler);
+        mock.SetupRemove(m => m.Updated -= It.IsAny<EventHandler>())
+            .Callback((EventHandler handler) => engineImpl.Updated -= handler);
+
+        return mock;
     }
 
     private protected record TestData(
         TestSubject TestSubject,
-        IReadOnlyList<TestSubject.Player> Players)
+        IReadOnlyList<TestSubject.Player> Players,
+        Mock<ITestGameEngine>? GameEngine)
     {
+        public Mock<ITableListener> TableListener { get; } = CreateTableListener(TestSubject);
+
         public IReadOnlyList<TestSubject.Player> GetTablePlayers() =>
             ((ITable<GameState, GameState, GameState, GameMove>)TestSubject).GetPlayers();
+
+        private static Mock<ITableListener> CreateTableListener(TestSubject testSubject)
+        {
+            Mock<ITableListener> listener = new(MockBehavior.Loose);
+
+            testSubject.GameUpdated += listener.Object.GameUpdated;
+            testSubject.TableUpdated += listener.Object.TableUpdated;
+
+            return listener;
+        }
     }
+}
+
+internal interface ITableListener
+{
+    void TableUpdated(object? sender, EventArgs e);
+    void GameUpdated(
+        object? sender,
+        TableGameUpdateEventArgs<GameState, GameState, GameState, GameMove> e);
 }

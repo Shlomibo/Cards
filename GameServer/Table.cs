@@ -32,7 +32,7 @@ internal sealed partial class Table<
     public Player TableMaster => this[0];
 
     public string TableName { get; }
-    public Engine<TGameState, TSharedState, TPlayerState, TGameMove>? Game { get; private set; }
+    public IEngine<TSharedState, TPlayerState, TGameMove>? Game { get; private set; }
 
     [MemberNotNullWhen(true, nameof(Game))]
     public bool GameStarted => Game != null;
@@ -133,44 +133,26 @@ internal sealed partial class Table<
     public void PlayMove(TGameMove move, int? playerId = null) =>
         Game?.PlayMove(move, playerId);
 
-    public bool TrySetGame(Engine<TGameState, TSharedState, TPlayerState, TGameMove> game)
-    {
-        if (game != Game && game == null)
-        {
-            return false;
-        }
-
-        try
-        {
-            SetGame(game);
-            return true;
-        }
-        catch
-        {
-            return false;
-        }
-    }
-
-    public void SetGame(Engine<TGameState, TSharedState, TPlayerState, TGameMove> game)
+    public void SetGame(IEngine<TSharedState, TPlayerState, TGameMove>? game)
     {
         if (game != Game)
         {
+            Game?.Updated -= OnGameUpdated;
+
+            Game = game;
+            Game?.Updated += OnGameUpdated;
+
             if (Game != null)
             {
-                Game.Updated -= OnGameUpdated;
+                OnGameUpdated(this, EventArgs.Empty);
             }
-
-            Game = game ?? throw new ArgumentNullException(nameof(game));
-            Game.Updated += OnGameUpdated;
         }
-
-        OnGameUpdated(this, EventArgs.Empty);
 
         void OnGameUpdated(object? _, EventArgs args) => GameUpdated?.Invoke(
                 this,
                 new TableGameUpdateEventArgs<TGameState, TSharedState, TPlayerState, TGameMove>(
-                    game.State,
-                    game.Players.Select(player => (this[player.PlayerId], player.State))));
+                    Game!.State,
+                    Game!.Players.Select(player => (this[player.PlayerId], player.State))));
     }
 
     private Player AddPlayerWithId(int id, string name)
@@ -186,6 +168,7 @@ internal sealed partial class Table<
 
     public Table AsTableDescriptor() =>
         new(
+            TableName,
             TableMaster.AsDescriptor(),
             players: from kv in _playerNamesByIds
                      let id = kv.Key
