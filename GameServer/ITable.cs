@@ -13,7 +13,7 @@ internal interface ITable<TGameState, TSharedState, TPlayerState, TGameMove>
 
     event EventHandler? TableUpdated;
     event EventHandler<TableGameUpdateEventArgs<TGameState, TSharedState, TPlayerState, TGameMove>>? GameUpdated;
-    IReadOnlyDictionary<Guid, Table<TGameState, TSharedState, TPlayerState, TGameMove>.Player> GetPlayers();
+    IReadOnlyList<Table<TGameState, TSharedState, TPlayerState, TGameMove>.Player> GetPlayers();
 
     Table<TGameState, TSharedState, TPlayerState, TGameMove>.Player AddPlayer(string name);
     bool CanAddPlayer(string name);

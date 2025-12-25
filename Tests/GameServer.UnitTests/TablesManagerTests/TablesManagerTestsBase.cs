@@ -90,9 +90,9 @@ public abstract class TablesManagerTestsBase
                 .Returns((Guid id) => byIds[id]);
             table
                 .Setup(table => table.GetPlayers())
-                .Returns(IReadOnlyDictionary<Guid, Table<GameState, GameState, GameState, GameMove>.Player> () => byIds
-                    .Select(kv => KeyValuePair.Create(kv.Value.ConnectionId, kv.Value))
-                    .ToDictionary());
+                .Returns(IReadOnlyList<Player> () => [.. byIds
+                    .Values
+                    .OrderBy(p => p.Id)]);
             table
                 .Setup(table => table.TableMaster)
                 .Returns(master);

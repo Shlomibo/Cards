@@ -54,7 +54,7 @@ public abstract class TableTestsBase
         TestSubject TestSubject,
         IReadOnlyList<TestSubject.Player> Players)
     {
-        public IReadOnlyDictionary<Guid, TestSubject.Player> GetTablePlayers() =>
+        public IReadOnlyList<TestSubject.Player> GetTablePlayers() =>
             ((ITable<GameState, GameState, GameState, GameMove>)TestSubject).GetPlayers();
     }
 }

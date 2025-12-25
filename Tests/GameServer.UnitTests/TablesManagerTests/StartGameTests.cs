@@ -51,7 +51,7 @@ public class StartGameTests : TablesManagerTestsBase
         var table = Fixture.Create<TableData>();
         var x = GetTestData([table]);
         var gameTable = x.Tables[0];
-        var player = gameTable.Object.GetPlayers().Values.First(p => p.Id != 0);
+        var player = gameTable.Object.GetPlayers().Skip(1).First();
 
 
         x.TestSubject.Invoking(tm => tm.StartGame(table.Name, player.ConnectionId, default))

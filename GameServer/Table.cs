@@ -37,14 +37,14 @@ internal sealed partial class Table<
     [MemberNotNullWhen(true, nameof(Game))]
     public bool GameStarted => Game != null;
 
-    IReadOnlyDictionary<Guid, Player> ITable<TGameState, TSharedState, TPlayerState, TGameMove>.GetPlayers() =>
-        _playerIdsByConnectionId
-            .Select(kv => KeyValuePair.Create(kv.Key, new Player(
+    IReadOnlyList<Player> ITable<TGameState, TSharedState, TPlayerState, TGameMove>.GetPlayers() =>
+        [.. _playerIdsByConnectionId
+            .OrderBy(kv => kv.Key)
+            .Select(kv => new Player(
                 kv.Value,
                 _playerNamesByIds[kv.Value],
                 _playerConnectionIdsByIds[kv.Value]
-            )))
-            .ToDictionary();
+            ))];
 
     private Player this[int playerId] => new(
         playerId,
@@ -76,21 +76,32 @@ internal sealed partial class Table<
 
     public Player AddPlayer(string name)
     {
-        if (!_playerNames.Add(name))
-        {
-            throw new InvalidOperationException("A player with the same name already exists");
-        }
+        ArgumentException.ThrowIfNullOrEmpty(name);
+        Player result;
 
         lock (_lock)
         {
+            if (GameStarted)
+            {
+                throw new InvalidOperationException("The game has already started.");
+            }
+            if (!_playerNames.Add(name))
+            {
+                throw new InvalidOperationException("A player with the same name already exists");
+            }
+
             int id = 1 + _playerConnectionIdsByIds.Keys.Max();
 
-            return AddPlayerWithId(id, name);
+            result = AddPlayerWithId(id, name);
         }
+
+        OnTableUpdate();
+        return result;
     }
 
     public bool CanAddPlayer(string name) =>
-        !GameStarted
+        !string.IsNullOrEmpty(name)
+        && !GameStarted
         && !_playerNames.Contains(name);
 
     private void RemovePlayer(int id)
@@ -169,8 +180,6 @@ internal sealed partial class Table<
         _playerConnectionIdsByIds.Add(id, connectionId);
         _playerIdsByConnectionId.Add(connectionId, id);
         _playerNamesByIds.Add(id, name);
-
-        OnTableUpdate();
 
         return this[id];
     }

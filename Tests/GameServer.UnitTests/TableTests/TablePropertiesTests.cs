@@ -33,7 +33,7 @@ public class TablePropertiesTests : TableTestsBase
             GameStarted = false,
         });
 
-        x.GetTablePlayers().Values.OrderBy(p => p.Id)
+        x.GetTablePlayers()
             .Should().BeEquivalentTo(x.Players);
     }
 }
