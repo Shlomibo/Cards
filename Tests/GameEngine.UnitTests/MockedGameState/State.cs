@@ -44,6 +44,10 @@ public class State : IState<GameState, SharedState, PlayerState, Move>
         LastPlayedPlayer = player;
         return IsNextMoveValid;
     }
+
+    public void RemovePlayer(int player)
+    {
+    }
 }
 
 public record GameState

@@ -9,9 +9,11 @@ using NUnit.Framework.Internal;
 
 namespace GameServer.UnitTests.TableTests;
 
+using static It;
+
 using TestSubject = Table<GameState, GameState, GameState, GameMove>;
 using ITestGameEngine = IEngine<GameState, GameState, GameMove>;
-using TestGameEngine = Engine<GameState, GameState, GameState, GameMove>;
+
 public abstract class TableTestsBase
 {
     protected static Fixture Fixture { get; } = new();
@@ -50,7 +52,7 @@ public abstract class TableTestsBase
         if (gameEngine != null)
         {
             testSubject.SetGame(gameEngine.Object);
-            gameEngine.Reset();
+            gameEngine.Invocations.Clear();
         }
 
         return new TestData(testSubject, players, gameEngine);
@@ -58,28 +60,30 @@ public abstract class TableTestsBase
 
     private protected static Mock<ITestGameEngine> CreateGameEngine()
     {
-        TestGameEngine engineImpl = new(new GameState());
-        Mock<ITestGameEngine> mock = new(MockBehavior.Loose);
+        Engine<GameState, GameState, GameState, GameMove> engineImpl = new(new GameState());
+        Mock<ITestGameEngine> mock = new(MockBehavior.Strict);
 
         mock
             .Setup(m => m.IsValidMove(
-                It.IsAny<GameMove>(),
-                It.IsAny<int?>()))
+                IsAny<GameMove>(),
+                IsAny<int?>()))
             .Returns(engineImpl.IsValidMove);
         mock
             .Setup(m => m.Players)
             .Returns(() => engineImpl.Players);
         mock
             .Setup(m => m.PlayMove(
-                It.IsAny<GameMove>(),
-                It.IsAny<int?>()))
+                IsAny<GameMove>(),
+                IsAny<int?>()))
             .Callback(engineImpl.PlayMove);
+        mock
+            .Setup(m => m.RemovePlayer(IsAny<int>()));
         mock
             .Setup(m => m.State)
             .Returns(engineImpl.State);
-        mock.SetupAdd(m => m.Updated += It.IsAny<EventHandler>())
+        mock.SetupAdd(m => m.Updated += IsAny<EventHandler>())
             .Callback((EventHandler handler) => engineImpl.Updated += handler);
-        mock.SetupRemove(m => m.Updated -= It.IsAny<EventHandler>())
+        mock.SetupRemove(m => m.Updated -= IsAny<EventHandler>())
             .Callback((EventHandler handler) => engineImpl.Updated -= handler);
 
         return mock;

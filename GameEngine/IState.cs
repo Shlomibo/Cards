@@ -61,4 +61,10 @@ public interface IState<TGameState, TSharedState, TPlayerState, TGameMove>
     /// Otherwise, <see langword="false"/>.
     /// </returns>
     bool PlayMove(TGameMove move, int? player = null);
+
+    /// <summary>
+    /// Removes the specified <paramref name="player"/> from the game.
+    /// </summary>
+    /// <param name="player">The player to remove.</param>
+    void RemovePlayer(int player);
 }

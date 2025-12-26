@@ -518,5 +518,10 @@ public sealed partial class ShitheadState : IState<
 
         return null;
     }
+
+    void IState<ShitheadState, SharedShitheadState, ShitheadPlayerState, Move>.RemovePlayer(int player)
+    {
+        RemovePlayer(player);
+    }
     #endregion
 }

@@ -18,6 +18,7 @@ internal sealed partial class Table<
 {
     private readonly Lock _lock = new();
     private readonly HashSet<string> _playerNames = [];
+    private readonly HashSet<(int Id, string Name)> _removedPlayers = [];
     private readonly Dictionary<int, string> _playerNamesByIds = [];
     private readonly Dictionary<int, Guid> _playerConnectionIdsByIds = [];
     private readonly Dictionary<Guid, int> _playerIdsByConnectionId = [];
@@ -106,11 +107,18 @@ internal sealed partial class Table<
 
     private void RemovePlayer(int id)
     {
+        if (id == 0)
+        {
+            throw new InvalidOperationException("The table master cannot be removed");
+        }
+
         if (_playerConnectionIdsByIds.TryGetValue(id, out var connId))
         {
             _playerIdsByConnectionId.Remove(connId);
+            _removedPlayers.Add((id, _playerNamesByIds[id]));
         }
 
+        Game?.RemovePlayer(id);
         _playerConnectionIdsByIds.Remove(id);
         _playerNamesByIds.Remove(id);
 
@@ -166,15 +174,27 @@ internal sealed partial class Table<
         return this[id];
     }
 
-    public Table AsTableDescriptor() =>
-        new(
+    public Table AsTableDescriptor()
+    {
+        return new(
             TableName,
             TableMaster.AsDescriptor(),
-            players: from kv in _playerNamesByIds
-                     let id = kv.Key
-                     where id != TableMaster.Id
-                     let name = kv.Value
-                     select new Table.Player(id, name, PlayerState.Playing));
+            Enumerable.Concat(ActivePlayers(), RemovedPlayers())
+                .OrderBy(p => p.Id));
+
+        IEnumerable<Table.Player> ActivePlayers() =>
+            from kv in _playerNamesByIds
+            let id = kv.Key
+            where id != TableMaster.Id
+            let name = kv.Value
+            select new Table.Player(id, name, PlayerState.Playing);
+
+        IEnumerable<Table.Player> RemovedPlayers() =>
+            _removedPlayers.Select(p => new Table.Player(
+                p.Id,
+                p.Name,
+                PlayerState.LeftGame));
+    }
 }
 
 internal class TableGameUpdateEventArgs<

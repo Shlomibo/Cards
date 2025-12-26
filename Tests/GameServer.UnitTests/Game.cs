@@ -56,6 +56,10 @@ public record GameState : IState<GameState, GameState, GameState, GameMove>
     public static Serialized Serialize(GameState state) =>
         new(state.DidMove, state.GameOver);
 
+    public void RemovePlayer(int player)
+    {
+    }
+
     public record Serialized : State<(bool DidMove, bool GameOver), (bool DidMove, bool GameOver)>
     {
         [SetsRequiredMembers]

@@ -41,4 +41,7 @@ public partial class Engine<TGameState, TSharedState, TPlayerState, TGameMove> :
             Updated?.Invoke(this, EventArgs.Empty);
         }
     }
+
+    /// <inheritdoc/>
+    public void RemovePlayer(int playerId) => _state.RemovePlayer(playerId);
 }

@@ -28,4 +28,10 @@ public interface IEngine<TSharedState, TPlayerState, TGameMove>
     bool IsValidMove(TGameMove move, int? player = null);
     /// <inheritdoc cref="IState{TGameState, TSharedState, TPlayerState, TGameMove}.PlayMove(TGameMove, int?)"/>
     void PlayMove(TGameMove move, int? playerId = null);
+
+    /// <summary>
+    /// Removes the player with the specified <paramref name="playerId"/> from the game.
+    /// </summary>
+    /// <param name="playerId">The id of the player to remove.</param>ary>
+    void RemovePlayer(int playerId);
 }
