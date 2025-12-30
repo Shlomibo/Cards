@@ -26,10 +26,16 @@ public sealed record AcceptDiscardPile : Move;
 public sealed record RevealUndercard(int CardIndex) : Move;
 
 /// <summary>
-/// Takes the revealed cards or undercards into the player's hand.
+/// Takes the revealed cards into the player's hand.
 /// </summary>
-/// <param name="CardIndices">The index of the card in the player's revealed or undercards lists.</param>
-public sealed record TakeUndercards(int[] CardIndices) : Move;
+/// <param name="CardIndices">The index of the card in the player's revealed cards list.</param>
+public sealed record TakeRevealedCards(int[] CardIndices) : Move;
+
+/// <summary>
+/// Takes the undercard into the player's hand.
+/// </summary>
+/// <param name="CardIndex">The index of the card in the player's undercards list.</param>
+public sealed record TakeUndercard(int CardIndex) : Move;
 
 /// <summary>
 /// Removes the player from the game.

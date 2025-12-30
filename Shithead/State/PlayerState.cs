@@ -203,11 +203,14 @@ public sealed class PlayerState
         && Undercards.Values.All(card => !card.IsRevealed);
 
     /// <summary>
-    ///
+    /// Determines whether the player can take revealed cards.
     /// </summary>
-    /// <param name="cardIndices"></param>
-    /// <returns></returns>
-    public bool CanTakeUndercards(int[] cardIndices) =>
+    /// <param name="cardIndices">The indices of the revealed cards to take.</param>
+    /// <returns>
+    /// <see langword="true"/> if the player can take the revealed cards;
+    /// otherwise, <see langword="false"/>.
+    /// </returns>
+    public bool CanTakeRevealedCards(int[] cardIndices) =>
         (this, cardIndices) switch
         {
             ({ Hand.Count: > 0 }, _) or (_, { Length: 0 }) => false,
@@ -219,10 +222,22 @@ public sealed class PlayerState
                     (v: RevealedCards[cardIndices[0]].Value, eq: true),
                     (state, currentCardValue) => (v: state.v, eq: state.v == currentCardValue))
                 .All(state => state.eq),
-            (_, [int index]) when !Undercards.ContainsKey(index) => false,
-            (_, [int index]) => Undercards[index].IsRevealed,
             _ => false,
         };
+
+    /// <summary>
+    /// Determines whether the player can take an undercard.
+    /// </summary>
+    /// <param name="index">The index of the undercard to take.</param>
+    /// <returns>
+    /// <see langword="true"/> if the player can take the undercard;
+    /// otherwise, <see langword="false"/>.
+    /// </returns>
+    public bool CanTakeUndercard(int index) =>
+        Hand.Count == 0
+        && RevealedCards.Count == 0
+        && Undercards.TryGetValue(index, out var undercard)
+        && undercard.IsRevealed;
 
     /// <summary>
     /// Gets the selected cards from the players hand.

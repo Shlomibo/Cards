@@ -363,25 +363,23 @@ public sealed partial class ShitheadState : IState<
                     player.Undercards[cardIndex].IsRevealed = true;
                 }
             ,
-            (GameState.GameOn, TakeUndercards { CardIndices: var cardIndices })
-                when player.CanTakeUndercards(cardIndices) =>
+            (GameState.GameOn, TakeRevealedCards { CardIndices: var cardIndices })
+                when player.CanTakeRevealedCards(cardIndices) =>
                 () =>
                 {
-                    if (player.RevealedCards.Count == 0)
+                    foreach (int i in cardIndices)
                     {
-                        int i = cardIndices[0];
-
-                        player.Hand.Push(player.Undercards[i].Card);
-                        player.Undercards.Remove(i);
+                        player.Hand.Push(player.RevealedCards[i]);
+                        player.RevealedCards.Remove(i);
                     }
-                    else
-                    {
-                        foreach (int i in cardIndices)
-                        {
-                            player.Hand.Push(player.RevealedCards[i]);
-                            player.RevealedCards.Remove(i);
-                        }
-                    }
+                }
+            ,
+            (GameState.GameOn, TakeUndercard { CardIndex: var index })
+                when player.CanTakeUndercard(index) =>
+                () =>
+                {
+                    player.Hand.Push(player.Undercards[index].Card);
+                    player.Undercards.Remove(index);
                 }
             ,
 

@@ -191,7 +191,7 @@ while (state.GameState != GameState.GameOver)
             }
 
             Console.WriteLine("Taking selected cards to hand...");
-            player.PlayMove(new TakeUndercards(selected));
+            player.PlayMove(new TakeRevealedCards(selected));
         }
         else if (selected.Length != 1 || player.State.GetCard(selected[0]).Value != Value.Joker)
         {

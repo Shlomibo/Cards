@@ -9,7 +9,7 @@ using Shithead.Moves;
 
 namespace Shithead.UnitTests.State.ShitheadStateTests.GameOnTests;
 
-public class TakeUndercardsTests : GameOnTestsBase
+public class TakeRevealedCardsTests : GameOnTestsBase
 {
     [Test]
     public void WhenThereAreCardsInDeck()
@@ -37,7 +37,7 @@ public class TakeUndercardsTests : GameOnTestsBase
         var originalRevealed = player.RevealedCards.ToDictionary();
         var originalUndercards = player.Undercards.ToDictionary();
 
-        TakeUndercards move = new([0]);
+        TakeRevealedCards move = new([0]);
 
         ValidateInvalidMove(
             testSubject,
@@ -74,7 +74,7 @@ public class TakeUndercardsTests : GameOnTestsBase
         var originalRevealed = player.RevealedCards.ToDictionary();
         var originalUndercards = player.Undercards.ToDictionary();
 
-        TakeUndercards move = new([0]);
+        TakeRevealedCards move = new([0]);
 
         ValidateInvalidMove(
             testSubject,
@@ -111,7 +111,7 @@ public class TakeUndercardsTests : GameOnTestsBase
         var originalRevealed = player.RevealedCards.ToDictionary();
         var originalUndercards = player.Undercards.ToDictionary();
 
-        TakeUndercards move = new([0, 2]);
+        TakeRevealedCards move = new([0, 2]);
 
         ValidateInvalidMove(
             testSubject,
@@ -148,7 +148,7 @@ public class TakeUndercardsTests : GameOnTestsBase
         var originalRevealed = player.RevealedCards.ToDictionary();
         var originalUndercards = player.Undercards.ToDictionary();
 
-        TakeUndercards move = new([0, 2]);
+        TakeRevealedCards move = new([0, 2]);
 
         ValidateValidMove(
             testSubject,
@@ -193,7 +193,7 @@ public class TakeUndercardsTests : GameOnTestsBase
         var originalRevealed = player.RevealedCards.ToDictionary();
         var originalUndercards = player.Undercards.ToDictionary();
 
-        TakeUndercards move = new([0, 2]);
+        TakeRevealedCards move = new([0, 2]);
 
         ValidateValidMove(
             testSubject,
@@ -238,7 +238,7 @@ public class TakeUndercardsTests : GameOnTestsBase
         var originalRevealed = player.RevealedCards.ToDictionary();
         var originalUndercards = player.Undercards.ToDictionary();
 
-        TakeUndercards move = new([0, 2]);
+        TakeRevealedCards move = new([0, 2]);
 
         ValidateInvalidMove(
             testSubject,
@@ -268,7 +268,7 @@ public class TakeUndercardsTests : GameOnTestsBase
         var originalRevealed = player.RevealedCards.ToDictionary();
         var originalUndercards = player.Undercards.ToDictionary();
 
-        TakeUndercards move = new([]);
+        TakeRevealedCards move = new([]);
 
         ValidateInvalidMove(
             testSubject,
@@ -298,7 +298,7 @@ public class TakeUndercardsTests : GameOnTestsBase
         var originalRevealed = player.RevealedCards.ToDictionary();
         var originalUndercards = player.Undercards.ToDictionary();
 
-        TakeUndercards move = new([3]);
+        TakeRevealedCards move = new([3]);
 
         ValidateInvalidMove(
             testSubject,
@@ -328,166 +328,12 @@ public class TakeUndercardsTests : GameOnTestsBase
         var originalRevealed = player.RevealedCards.ToDictionary();
         var originalUndercards = player.Undercards.ToDictionary();
 
-        TakeUndercards move = new([-1]);
+        TakeRevealedCards move = new([-1]);
 
         ValidateInvalidMove(
             testSubject,
             player,
             move,
-            originalHand,
-            originalRevealed,
-            originalUndercards);
-    }
-
-    [Test]
-    public void WhenThereAreNoRevealedCardAndTakingMoreThanOneCard()
-    {
-        var deck = CardsDeck.FullShuffledDeck();
-        var testSubject = GetTestSubject(
-            [
-                DealPlayer(deck,
-                    [],
-                    []),
-                DealPlayer(deck),
-                DealPlayer(deck),
-                DealPlayer(deck)],
-            [],
-            Discard(deck, 5));
-
-        var player = testSubject.PlayerStates[0];
-        var originalHand = player.Hand.ToArray();
-        var originalRevealed = player.RevealedCards.ToDictionary();
-        var originalUndercards = player.Undercards.ToDictionary();
-
-        TakeUndercards move = new([0, 1]);
-
-        ValidateInvalidMove(
-            testSubject,
-            player,
-            move,
-            originalHand,
-            originalRevealed,
-            originalUndercards);
-    }
-
-    [Test]
-    public void WhenThereAreNoRevealedUndercardsCards()
-    {
-        var deck = CardsDeck.FullShuffledDeck();
-        var testSubject = GetTestSubject(
-            [
-                DealPlayer(deck,
-                    [],
-                    []),
-                DealPlayer(deck),
-                DealPlayer(deck),
-                DealPlayer(deck)],
-            [],
-            Discard(deck, 5));
-
-        var player = testSubject.PlayerStates[0];
-        var originalHand = player.Hand.ToArray();
-        var originalRevealed = player.RevealedCards.ToDictionary();
-        var originalUndercards = player.Undercards.ToDictionary();
-
-        TakeUndercards move = new([0]);
-
-        ValidateInvalidMove(
-            testSubject,
-            player,
-            move,
-            originalHand,
-            originalRevealed,
-            originalUndercards);
-    }
-
-    [Test]
-    public void WhenTheUndercardIsRevealed()
-    {
-        var deck = CardsDeck.FullShuffledDeck();
-        var testSubject = GetTestSubject(
-            [
-                DealPlayer(deck,
-                    [],
-                    [],
-                    new()
-                    {
-                        [0] = new CardFace<Card>(RandomCard(), isRevealed: true),
-                        [1] = RandomCard(),
-                        [2] = RandomCard(),
-                    }),
-                DealPlayer(deck),
-                DealPlayer(deck),
-                DealPlayer(deck)],
-            [],
-            Discard(deck, 5));
-
-        var player = testSubject.PlayerStates[0];
-        var originalHand = player.Hand.ToArray();
-        var originalRevealed = player.RevealedCards.ToDictionary();
-        var originalUndercards = player.Undercards.ToDictionary();
-
-        TakeUndercards move = new([0]);
-
-        ValidateValidMove(
-            testSubject,
-            player,
-            move,
-            () =>
-            {
-                testSubject.TurnsManager.Current.Should().Be(0);
-                player.Hand.Should().ContainSingle()
-                    .Which.Should().Be(originalUndercards[0].Card);
-                player.RevealedCards.Should().BeEmpty();
-                player.Undercards.Should().HaveCount(2)
-                    .And.NotContainKey(0);
-            },
-            originalHand,
-            originalRevealed,
-            originalUndercards);
-    }
-
-    [Test]
-    public void WhenTheUndercardIsRevealedNotOnTurn()
-    {
-        var deck = CardsDeck.FullShuffledDeck();
-        var testSubject = GetTestSubject(
-            [
-                DealPlayer(deck),
-                DealPlayer(deck,
-                    [],
-                    [],
-                    new()
-                    {
-                        [0] = new CardFace<Card>(RandomCard(), isRevealed: true),
-                        [1] = RandomCard(),
-                        [2] = RandomCard(),
-                    }),
-                DealPlayer(deck),
-                DealPlayer(deck)],
-            [],
-            Discard(deck, 5));
-
-        var player = testSubject.PlayerStates[1];
-        var originalHand = player.Hand.ToArray();
-        var originalRevealed = player.RevealedCards.ToDictionary();
-        var originalUndercards = player.Undercards.ToDictionary();
-
-        TakeUndercards move = new([0]);
-
-        ValidateValidMove(
-            testSubject,
-            player,
-            move,
-            () =>
-            {
-                testSubject.TurnsManager.Current.Should().Be(0);
-                player.Hand.Should().ContainSingle()
-                    .Which.Should().Be(originalUndercards[0].Card);
-                player.RevealedCards.Should().BeEmpty();
-                player.Undercards.Should().HaveCount(2)
-                    .And.NotContainKey(0);
-            },
             originalHand,
             originalRevealed,
             originalUndercards);
