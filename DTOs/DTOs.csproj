@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <Folder Include="Cards/FrenchSuited/" />
+    <Folder Include="Responses/" />
   </ItemGroup>
 
 </Project>

@@ -1,5 +1,8 @@
+using System.ComponentModel.DataAnnotations;
 using System.Net;
+using DTOs.Responses;
 using Games.Filters;
+using Games.Services.Shithead;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -9,8 +12,23 @@ namespace Games.Controllers;
 [ApiController]
 public class ShitheadController : ControllerBase
 {
-    [Route("create/{tableName}/{playerName}")]
-    public async Task CreateTable(string tableName, string playerName, CancellationToken cancellation)
+    private readonly ILogger<ShitheadController> _logger;
+    private readonly IShitheadTablesManager _tablesManager;
+
+    public ShitheadController(
+        ILogger<ShitheadController> logger,
+        IShitheadTablesManager tablesManager)
+    {
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _tablesManager = tablesManager ?? throw new ArgumentNullException(nameof(tablesManager));
+    }
+
+    [Route("create/{tableName}/{playerName}/{totalPlayersCount}")]
+    public async Task CreateTable(
+        string tableName,
+        string playerName,
+        int totalPlayersCount,
+        CancellationToken cancellation)
     {
         if (!HttpContext.WebSockets.IsWebSocketRequest)
         {
@@ -38,9 +56,22 @@ public class ShitheadController : ControllerBase
     }
 
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [HttpPost("start/{tableName}/{masterId}")]
-    public async Task<ActionResult> StartGame(string tableName, Guid masterId, CancellationToken cancellationToken)
+    [HttpPost("start/{tableName}")]
+    public async Task<ActionResult> StartGame(
+        string tableName,
+        [Required, FromHeader(Name = "x-connection-id")] Guid masterId,
+        CancellationToken cancellationToken)
     {
         return NoContent();
+    }
+
+    [HttpGet("{tableName}/{playerName}")]
+    public async Task<ActionResult<CanJoinTableResponse>> CanJoin(
+        string tableName,
+        string playerName,
+        CancellationToken cancellation)
+    {
+        bool result = _tablesManager.CanJoinTable(tableName, playerName);
+        return Ok(new CanJoinTableResponse { CanJoin = result });
     }
 }
