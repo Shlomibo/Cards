@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
+    <PackageReference Include="Riok.Mapperly" />
     <PackageReference Include="Serilog" />
     <PackageReference Include="Serilog.Extensions.Hosting" />
     <PackageReference Include="Serilog.Sinks.Console" />
@@ -21,6 +22,8 @@
 
   <ItemGroup>
     <ProjectReference Include="../DTOs/DTOs.csproj" />
+    <ProjectReference Include="../GameServer/GameServer.csproj" />
+    <ProjectReference Include="../Shithead/Shithead.csproj" />
   </ItemGroup>
 
 </Project>

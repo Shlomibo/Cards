@@ -7,16 +7,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace GameServer;
 
-/// <summary>
-/// Manages game tables and player connections.
-/// </summary>
-/// <typeparam name="TInitOptions">Initialization options type.</typeparam>
-/// <typeparam name="TGameState">The games state type.</typeparam>
-/// <typeparam name="TSharedState">The shared state type.</typeparam>
-/// <typeparam name="TPlayerState">The player-specific state type.</typeparam>
-/// <typeparam name="TGameMove">The game move type.</typeparam>
-/// <typeparam name="TSerializedState">The serialized state DTO type.</typeparam>
-/// <typeparam name="TSerializedMove">The serialized move DTO type.</typeparam>
+/// <inheritdoc cref="ITablesManager{TInitOptions, TGameState, TSharedState, TPlayerState, TGameMove, TSerializedState, TSerializedMove}"/>
 public class TablesManager<
     TInitOptions,
     TGameState,
@@ -24,7 +15,14 @@ public class TablesManager<
     TPlayerState,
     TGameMove,
     TSerializedState,
-    TSerializedMove>
+    TSerializedMove> : ITablesManager<
+        TInitOptions,
+        TGameState,
+        TSharedState,
+        TPlayerState,
+        TGameMove,
+        TSerializedState,
+        TSerializedMove>
     where TSerializedState : State
 {
     private readonly Func<TInitOptions, IEngine<TSharedState, TPlayerState, TGameMove>>
@@ -59,12 +57,7 @@ public class TablesManager<
         Tables = tables?.ToDictionary() ?? throw new ArgumentNullException(nameof(tables));
     }
 
-    /// <summary>
-    /// Creates a new gaming table.
-    /// </summary>
-    /// <param name="tableName">The name of the gaming-table to create.</param>
-    /// <param name="tableMasterName">The name of the table master.</param>
-    /// <returns>The connection of the table master to the newly created table.</returns>
+    /// <inheritdoc/>
     public Connection<
         TGameState,
         TSharedState,
@@ -87,28 +80,14 @@ public class TablesManager<
         return CreateConnection(table, table.TableMaster.ConnectionId);
     }
 
-    /// <summary>
-    /// Determines whether a player can join a specific table.
-    /// </summary>
-    /// <param name="tableName">The name of the table.</param>
-    /// <param name="playerName">The name of the player.</param>
-    /// <returns><c>true</c> if the player can join the table; otherwise, <c>false</c>.</returns>
+    /// <inheritdoc/>
     public bool CanJoinTable(string tableName, string playerName) =>
         !string.IsNullOrEmpty(tableName)
         && !string.IsNullOrEmpty(playerName)
         && Tables.TryGetValue(tableName, out var table)
         && table.CanAddPlayer(playerName);
 
-    /// <summary>
-    /// Tries to join a player to a specific table.
-    /// </summary>
-    /// <param name="tableName">The name of the table.</param>
-    /// <param name="playerName">The name of the player.</param>
-    /// <param name="connection">
-    /// When this method returns, contains the connection if the join was successful;
-    /// otherwise, <c>null</c>.
-    /// </param>
-    /// <returns><c>true</c> if the player successfully joined the table; otherwise, <c>false</c>.</returns>
+    /// <inheritdoc/>
     public bool TryJoinTable(
         string tableName,
         string playerName,
@@ -137,18 +116,7 @@ public class TablesManager<
         return connection != null;
     }
 
-    /// <summary>
-    /// Joins a player to a specific table.
-    /// </summary>
-    /// <param name="tableName">The name of the table.</param>
-    /// <param name="playerName">The name of the player.</param>
-    /// <returns>The connection of the player to the table.</returns>
-    /// <exception cref="ArgumentException">
-    /// Thrown when the table does not exist.
-    /// </exception>
-    /// <exception cref="InvalidOperationException">
-    /// Thrown when a game was already started at the table.
-    /// </exception>
+    /// <inheritdoc/>
     public Connection<
         TGameState,
         TSharedState,
@@ -175,18 +143,7 @@ public class TablesManager<
         return CreateConnection(table, player.ConnectionId);
     }
 
-    /// <summary>
-    /// Starts the game at a specific table.
-    /// </summary>
-    /// <param name="tableName">The name of the table.</param>
-    /// <param name="masterConnectionId">The connection ID of the table master.</param>
-    /// <param name="options">The initialization options for the game.</param>
-    /// <exception cref="ArgumentException">
-    /// Thrown when the table does not exist.
-    /// </exception>
-    /// <exception cref="InvalidOperationException">
-    /// Thrown when the caller is not the table master.
-    /// </exception>
+    /// <inheritdoc/>
     public void StartGame(string tableName, Guid masterConnectionId, TInitOptions options)
     {
         if (!Tables.TryGetValue(tableName, out var table))
@@ -205,22 +162,11 @@ public class TablesManager<
         }
     }
 
-    /// <summary>
-    /// Gets a table by name.
-    /// </summary>
-    /// <param name="tableName">The name of the table.</param>
-    /// <returns>The table.</returns>
+    /// <inheritdoc/>
     public Table GetTable(string tableName) =>
         Tables[tableName].AsTableDescriptor();
 
-    /// <summary>
-    /// Tries to get a table by name.
-    /// </summary>
-    /// <param name="tableName">The name of the table.</param>
-    /// <param name="table">
-    /// When this method returns, contains the table if found; otherwise, <c>null</c>.
-    /// </param>
-    /// <returns><c>true</c> if the table was found; otherwise, <c>false</c>.</returns>
+    /// <inheritdoc/>
     public bool TryGetTable(string tableName, [MaybeNullWhen(false)] out Table table)
     {
         table = null;

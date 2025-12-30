@@ -22,19 +22,39 @@ public readonly record struct Card : IEquatable<Card>
     /// <summary>
     /// The value of the card.
     /// </summary>
-    public Value Value { get; }
+    public Value Value { get; init; }
 
     /// <summary>
     /// The suit of the card, or <see langword="null"/> if the card is a joker.
     /// </summary>
-    public readonly Suit? Suit => Value != Value.Joker
-        ? _suit
-        : null;
+    public Suit? Suit
+    {
+        get => Value != Value.Joker
+            ? _suit
+            : null;
+        init
+        {
+            if (value.HasValue)
+            {
+                _suit = value.Value;
+            }
+        }
+    }
 
     /// <summary>
     /// The color of the card.
     /// </summary>
-    public readonly Color Color => ColorBySuit(_suit);
+    public readonly Color Color
+    {
+        get => ColorBySuit(_suit);
+        init
+        {
+            if (value != Color)
+            {
+                _suit = DefaultColorSuit(value);
+            }
+        }
+    }
 
     /// <summary>
     /// Creates a new card with the specified value and suit.

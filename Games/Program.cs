@@ -1,4 +1,5 @@
 using DTOs;
+using Games;
 using Games.Filters;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Serilog;
@@ -17,7 +18,8 @@ try
         .AddSerilog()
         .ConfigureHttpJsonOptions(
             options => JsonOptions.SetJsonSerializationOptions(options.SerializerOptions))
-        .AddSingleton<IAsyncExceptionFilter>(new HttpResponseExceptionFilter());
+        .AddSingleton<IAsyncExceptionFilter>(new HttpResponseExceptionFilter())
+        .AddGames();
 
     var app = builder.Build();
 
