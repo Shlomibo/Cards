@@ -20,7 +20,7 @@ public class StartGameTests : TablesManagerTestsBase
         var gameTable = x.Tables[0];
         var master = gameTable.Object.TableMaster;
 
-        x.TestSubject.StartGame(table.Name, master.ConnectionId, default);
+        x.TestSubject.StartGame(table.Name, master.ConnectionId, _ => default);
 
         gameTable.Verify(
             t => t.SetGame(It.IsAny<IEngine<GameState, GameState, GameMove>>()),
@@ -38,7 +38,7 @@ public class StartGameTests : TablesManagerTestsBase
         var gameTable = x.Tables[0];
         var master = gameTable.Object.TableMaster;
 
-        x.TestSubject.StartGame(table.Name, master.ConnectionId, default);
+        x.TestSubject.StartGame(table.Name, master.ConnectionId, _ => default);
 
         gameTable.Verify(
             t => t.SetGame(It.IsAny<IEngine<GameState, GameState, GameMove>>()),
@@ -54,7 +54,7 @@ public class StartGameTests : TablesManagerTestsBase
         var player = gameTable.Object.GetPlayers().Skip(1).First();
 
 
-        x.TestSubject.Invoking(tm => tm.StartGame(table.Name, player.ConnectionId, default))
+        x.TestSubject.Invoking(tm => tm.StartGame(table.Name, player.ConnectionId, _ => default))
             .Should().Throw<InvalidOperationException>();
 
         gameTable.Verify(
@@ -72,7 +72,7 @@ public class StartGameTests : TablesManagerTestsBase
         x.TestSubject.Invoking(tm => tm.StartGame(
             table.Name,
             Guid.NewGuid(),
-            default))
+            _ => default))
             .Should().Throw<InvalidOperationException>();
 
         gameTable.Verify(
@@ -88,7 +88,7 @@ public class StartGameTests : TablesManagerTestsBase
         x.TestSubject.Invoking(tm => tm.StartGame(
             Fixture.Create<string>(),
             Guid.NewGuid(),
-            default))
+            _ => default(ValueTuple)))
             .Should().Throw<ArgumentException>();
     }
 }

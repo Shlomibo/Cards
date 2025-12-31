@@ -144,7 +144,7 @@ public class TablesManager<
     }
 
     /// <inheritdoc/>
-    public void StartGame(string tableName, Guid masterConnectionId, TInitOptions options)
+    public void StartGame(string tableName, Guid masterConnectionId, Func<Table, TInitOptions> optionsFactory)
     {
         if (!Tables.TryGetValue(tableName, out var table))
         {
@@ -158,7 +158,7 @@ public class TablesManager<
 
         if (!table.GameStarted)
         {
-            table.SetGame(_engineFactory(options));
+            table.SetGame(_engineFactory(optionsFactory(table.AsTableDescriptor())));
         }
     }
 

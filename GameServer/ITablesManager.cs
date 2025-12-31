@@ -72,14 +72,14 @@ public interface ITablesManager<
     /// </summary>
     /// <param name="tableName">The name of the table.</param>
     /// <param name="masterConnectionId">The connection ID of the table master.</param>
-    /// <param name="options">The initialization options for the game.</param>
+    /// <param name="optionsFactory">Generates the initialization options for the game.</param>
     /// <exception cref="ArgumentException">
     /// Thrown when the table does not exist.
     /// </exception>
     /// <exception cref="InvalidOperationException">
     /// Thrown when the caller is not the table master.
     /// </exception>
-    void StartGame(string tableName, Guid masterConnectionId, TInitOptions options);
+    void StartGame(string tableName, Guid masterConnectionId, Func<Table, TInitOptions> optionsFactory);
 
     /// <summary>
     /// Tries to get a table by name.

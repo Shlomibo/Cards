@@ -169,7 +169,7 @@ while (state.GameState != GameState.GameOver)
                 player.State.Undercards.Count > 0 &&
                 !player.State.Undercards.ContainsKey(card)))));
 
-    if (action.ToLowerInvariant() == "fuck me")
+    if (action.Equals("fuck me", StringComparison.InvariantCultureIgnoreCase))
     {
         player.PlayMove(new AcceptDiscardPile());
     }
