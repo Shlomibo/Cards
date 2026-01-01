@@ -1,5 +1,6 @@
 using System;
 using System.ComponentModel.DataAnnotations;
+using System.Diagnostics;
 using System.Net.Http.Json;
 using System.Net.WebSockets;
 using System.Text.Json;
@@ -27,21 +28,41 @@ public abstract record GameClientOptions
         set
         {
             ArgumentNullException.ThrowIfNull(value, nameof(BaseUrl));
+            if (value.Scheme != Uri.UriSchemeHttp && value.Scheme != Uri.UriSchemeHttps)
+            {
+                throw new ArgumentException("Invalid Url scheme!", nameof(BaseUrl));
+            }
 
             var path = value.PathAndQuery.Split('?')[0];
 
             field = path.EndsWith(_route)
                 ? value
                 : new Uri(value, _route);
+
+            var wsScheme = BaseUrl.Scheme switch
+            {
+                string scheme when scheme == Uri.UriSchemeHttp => Uri.UriSchemeWs,
+                string scheme when scheme == Uri.UriSchemeHttps => Uri.UriSchemeWss,
+                _ => throw new UnreachableException(),
+            };
+
+            UriBuilder webSocketUri = new(value)
+            {
+                Scheme = wsScheme
+            };
+
+            WebSocketUri = webSocketUri.Uri;
         }
     }
+
+    public Uri WebSocketUri { get; private set; } = null!;
 }
 
 public abstract class GameClient<TOptions, TState, TMove> : IClient<TState, TMove>
     where TOptions : GameClientOptions
     where TState : State
 {
-    private readonly HttpClient _httpClient;
+    private readonly IHttpClientFactory _httpClientFactory;
 
     protected static JsonSerializerOptions SerializerOptions { get; } = JsonOptions.SetJsonSerializationOptions();
 
@@ -51,13 +72,11 @@ public abstract class GameClient<TOptions, TState, TMove> : IClient<TState, TMov
     public GameClient(
         IOptions<TOptions> options,
         ILogger logger,
-        HttpClient httpClient)
+        IHttpClientFactory httpClientFactory)
     {
         Logger = logger;
-        _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
+        _httpClientFactory = httpClientFactory ?? throw new ArgumentNullException(nameof(httpClientFactory));
         Options = options?.Value ?? throw new ArgumentNullException(nameof(options));
-
-        _httpClient.BaseAddress = Options.BaseUrl;
     }
 
     public async Task<CanJoinTableResponse> CanJoinTable(
@@ -66,7 +85,8 @@ public abstract class GameClient<TOptions, TState, TMove> : IClient<TState, TMov
         CancellationToken cancellation)
     {
         Uri uri = new(Options.BaseUrl, PlayersSubPath(tableName, playerName));
-        using var response = await _httpClient.GetAsync(uri, cancellation);
+        var httpClient = GetHttpClient();
+        using var response = await httpClient.GetAsync(uri, cancellation);
 
         response.EnsureSuccessStatusCode();
 
@@ -81,7 +101,7 @@ public abstract class GameClient<TOptions, TState, TMove> : IClient<TState, TMov
         string playerName,
         CancellationToken cancellation)
     {
-        Uri uri = new(Options.BaseUrl, $"create/{PlayersSubPath(tableName, playerName)}");
+        Uri uri = new(Options.WebSocketUri, $"create/{PlayersSubPath(tableName, playerName)}");
         ClientWebSocket ws = new();
         await ws.ConnectAsync(uri, cancellation);
 
@@ -90,12 +110,12 @@ public abstract class GameClient<TOptions, TState, TMove> : IClient<TState, TMov
             tableName,
             playerName,
             ws,
-            _httpClient);
+            GetHttpClient);
     }
 
     public async Task<IConnection<TState, TMove>> JoinTable(string tableName, string playerName, CancellationToken cancellation)
     {
-        Uri uri = new(Options.BaseUrl, $"join/{PlayersSubPath(tableName, playerName)}");
+        Uri uri = new(Options.WebSocketUri, $"join/{PlayersSubPath(tableName, playerName)}");
         ClientWebSocket ws = new();
         await ws.ConnectAsync(uri, cancellation);
 
@@ -104,7 +124,7 @@ public abstract class GameClient<TOptions, TState, TMove> : IClient<TState, TMov
             tableName,
             playerName,
             ws,
-            _httpClient);
+            GetHttpClient);
     }
 
     private static string PlayersSubPath(string tableName, string playerName)
@@ -114,4 +134,7 @@ public abstract class GameClient<TOptions, TState, TMove> : IClient<TState, TMov
 
         return $"{tableName}/{playerName}";
     }
+
+    private HttpClient GetHttpClient() =>
+        _httpClientFactory.CreateClient(GetType().Name);
 }

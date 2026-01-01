@@ -2,6 +2,7 @@ using System;
 using DTOs.Shithead;
 using DTOs.Shithead.Moves;
 using GamesClient.Client;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -22,8 +23,8 @@ public sealed class ShitheadClient :
     public ShitheadClient(
         IOptions<ShitheadClientOptions> options,
         ILogger<ShitheadClient> logger,
-        HttpClient httpClient)
-        : base(options, logger, httpClient)
+        IHttpClientFactory httpClientFactory)
+        : base(options, logger, httpClientFactory)
     {
     }
 }

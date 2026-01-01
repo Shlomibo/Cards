@@ -16,8 +16,7 @@ public sealed class Connection<TState, TMove> : IConnection<TState, TMove>
     private static readonly JsonSerializerOptions _serializerOptions = JsonOptions.SetJsonSerializationOptions();
     private readonly GameClientOptions _options;
     private readonly ClientWebSocket _webSocket;
-    private readonly HttpClient _httpClient;
-
+    private readonly Func<HttpClient> _httpClientFactory;
     private readonly CancellationTokenSource _cancellation = new();
     private StateUpdate<TState>? _lastState;
 
@@ -34,7 +33,7 @@ public sealed class Connection<TState, TMove> : IConnection<TState, TMove>
         string tableName,
         string playerName,
         ClientWebSocket webSocket,
-        HttpClient httpClient)
+        Func<HttpClient> httpClientFactory)
     {
         ArgumentException.ThrowIfNullOrEmpty(tableName);
         ArgumentException.ThrowIfNullOrEmpty(playerName);
@@ -42,8 +41,7 @@ public sealed class Connection<TState, TMove> : IConnection<TState, TMove>
         TableName = tableName;
         PlayerName = playerName;
         _webSocket = webSocket ?? throw new ArgumentNullException(nameof(webSocket));
-        _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
-
+        _httpClientFactory = httpClientFactory ?? throw new ArgumentNullException(nameof(httpClientFactory));
         GameState = CreateGameStateObservable();
     }
 
@@ -97,7 +95,8 @@ public sealed class Connection<TState, TMove> : IConnection<TState, TMove>
         using HttpRequestMessage request = new(HttpMethod.Post, uri);
         request.Headers.Add("x-connection-id", connId.ToString());
 
-        using var response = await _httpClient.SendAsync(request, totalCancellation.Token);
+        var httpClient = _httpClientFactory();
+        using var response = await httpClient.SendAsync(request, totalCancellation.Token);
         response.EnsureSuccessStatusCode();
     }
 
