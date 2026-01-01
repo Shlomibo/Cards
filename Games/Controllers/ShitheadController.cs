@@ -1,3 +1,4 @@
+using System.Buffers;
 using System.ComponentModel.DataAnnotations;
 using System.Net;
 using System.Net.WebSockets;
@@ -121,28 +122,52 @@ public class ShitheadController : ControllerBase
         {
             var receiveBuffer = new byte[BUFFER_SIZE];
 
-            while (!cancellation.IsCancellationRequested)
+            while (!cancellation.IsCancellationRequested
+                && socket.State == WebSocketState.Open)
             {
                 var data = await socket.ReceiveAsync(receiveBuffer, cancellation);
 
                 if (data.MessageType == WebSocketMessageType.Close)
                 {
+                    await socket.CloseAsync(WebSocketCloseStatus.NormalClosure,
+                        null,
+                        cancellation);
+
                     break;
                 }
                 else if (data.MessageType == WebSocketMessageType.Binary)
                 {
+                    await socket.CloseAsync(
+                        WebSocketCloseStatus.InvalidMessageType,
+                        "Only text messages are supported",
+                        cancellation);
+
                     throw new HttpResponseException(
                         HttpStatusCode.BadRequest,
                         new Error("Only text messages are supported"));
                 }
 
-                var move = JsonSerializer.Deserialize<ShitheadMove>(
-                    receiveBuffer.AsSpan()[..data.Count],
-                    _serializationOptions);
-
-                if (move != null)
+                try
                 {
-                    connection.PlayMove(move);
+                    var move = JsonSerializer.Deserialize<ShitheadMove>(
+                        receiveBuffer.AsSpan()[..data.Count],
+                        _serializationOptions);
+
+                    if (move != null)
+                    {
+                        connection.PlayMove(move);
+                    }
+                }
+                catch (JsonException ex)
+                {
+                    _logger.LogWarning(ex, "Received invalid data");
+
+                    await socket.CloseAsync(
+                        WebSocketCloseStatus.InvalidPayloadData,
+                        ex.Message,
+                        cancellation);
+
+                    break;
                 }
             }
         }
@@ -151,11 +176,12 @@ public class ShitheadController : ControllerBase
         {
             try
             {
-                using MemoryStream sendBuffer = new(BUFFER_SIZE);
-                JsonSerializer.Serialize(sendBuffer, e.State, _serializationOptions);
+                ArrayBufferWriter<byte> buffer = new(BUFFER_SIZE);
+                using Utf8JsonWriter utf8JsonWriter = new(buffer);
+                JsonSerializer.Serialize(utf8JsonWriter, e.State, _serializationOptions);
 
                 await socket.SendAsync(
-                    sendBuffer.ToArray(),
+                    buffer.WrittenMemory,
                     WebSocketMessageType.Text,
                     endOfMessage: true,
                     cancellation);
