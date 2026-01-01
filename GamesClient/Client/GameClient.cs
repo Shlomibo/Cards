@@ -49,8 +49,8 @@ public abstract class GameClient<TOptions, TState, TMove> : IClient<TState, TMov
     protected TOptions Options { get; }
 
     public GameClient(
-        ILogger logger,
         IOptions<TOptions> options,
+        ILogger logger,
         HttpClient httpClient)
     {
         Logger = logger;
