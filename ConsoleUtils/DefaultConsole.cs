@@ -30,6 +30,9 @@ public sealed class DefaultConsole : IConsole
         }
     }
 
+    public async Task Clear(CancellationToken cancellation) =>
+        Console.Clear();
+
     private static IDisposable SetColor(Color color)
     {
         Color current = new(Console.ForegroundColor, Console.BackgroundColor);
