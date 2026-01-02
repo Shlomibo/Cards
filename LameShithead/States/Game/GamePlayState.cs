@@ -70,6 +70,71 @@ public record GamePlayState(
 
     private async Task UpdateGameStateUnsafe(StateUpdate<ShitheadGameState> state, CancellationToken cancellation)
     {
+        await (state switch
+        {
+            { State: null, Table.Count: >= 2 } when IsMaster => LetMasterStartGame(state, cancellation),
+            { State: null } => WaitForGameToStart(state, cancellation),
+            { State.SharedState.GameState: GameState.Init, State.PlayerState.RevealedCardsAccepted: true } => WaitForPlayersToSelectTheirRevealedCards(state, cancellation),
+            { State.SharedState.GameState: GameState.Init } => LetPlayerRevealCards(state, cancellation),
+            { State: { SharedState.GameState: GameState.GameOn, PlayerState.Won: true } } => WaitForGameToEnd(
+                state,
+                cancellation),
+            {
+                CurrentPlayer.PlayerId: int currentPlayer,
+                State.SharedState: { GameState: GameState.GameOn, CurrentTurnPlayer: int currentTurn },
+            }
+                when currentPlayer == currentTurn
+                =>
+                PlayInTurn(state, cancellation),
+            { State.SharedState.GameState: GameState.GameOn } => PlayOutOfTurn(state, cancellation),
+            { State.SharedState.GameState: not GameState.GameOver } => throw new InvalidOperationException("This 💩 is lame 😢"),
+            _ when IsMaster => LetMasterResetGame(state, cancellation),
+            _ => WaitForGameReset(state, cancellation),
+        });
+    }
+
+    private async Task WaitForGameReset(StateUpdate<ShitheadGameState> state, CancellationToken cancellation)
+    {
+        throw new NotImplementedException();
+    }
+
+    private async Task LetMasterResetGame(StateUpdate<ShitheadGameState> state, CancellationToken cancellation)
+    {
+        throw new NotImplementedException();
+    }
+
+    private async Task WaitForGameToEnd(StateUpdate<ShitheadGameState> state, CancellationToken cancellation)
+    {
+        throw new NotImplementedException();
+    }
+
+    private async Task PlayOutOfTurn(StateUpdate<ShitheadGameState> state, CancellationToken cancellation)
+    {
+        throw new NotImplementedException();
+    }
+
+    private async Task PlayInTurn(StateUpdate<ShitheadGameState> state, CancellationToken cancellation)
+    {
+        throw new NotImplementedException();
+    }
+
+    private async Task LetPlayerRevealCards(StateUpdate<ShitheadGameState> state, CancellationToken cancellation)
+    {
+        throw new NotImplementedException();
+    }
+
+    private async Task WaitForPlayersToSelectTheirRevealedCards(StateUpdate<ShitheadGameState> state, CancellationToken cancellation)
+    {
+        throw new NotImplementedException();
+    }
+
+    private async Task WaitForGameToStart(StateUpdate<ShitheadGameState> state, CancellationToken cancellation)
+    {
+        throw new NotImplementedException();
+    }
+
+    private async Task LetMasterStartGame(StateUpdate<ShitheadGameState> state, CancellationToken cancellation)
+    {
         throw new NotImplementedException();
     }
 }
