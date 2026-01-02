@@ -1,5 +1,6 @@
 using System;
 using ConsoleUtils;
+using GamesClient.Shithead;
 using LameShithead.States;
 using LameShithead.States.GameSelection;
 using Microsoft.Extensions.Hosting;
@@ -11,17 +12,22 @@ public sealed class ShitheadGameManager : IHostedService, IDisposable
     private bool _disposedValue;
     private readonly CancellationTokenSource _cancellation = new();
     private readonly IConsole _console;
+    private readonly IShitheadClient _shitheadClient;
     private readonly IHostApplicationLifetime _appLifetime;
     private State _currentState;
 
     public ShitheadGameManager(
         IConsole console,
+        IShitheadClient shitheadClient,
         IHostApplicationLifetime appLifetime)
     {
         _console = console ?? throw new ArgumentNullException(nameof(console));
+        _shitheadClient = shitheadClient ?? throw new ArgumentNullException(nameof(shitheadClient));
         _appLifetime = appLifetime ?? throw new ArgumentNullException(nameof(appLifetime));
 
-        _currentState = new SelectPlayerNameState(new Context(_console));
+        _currentState = new SelectPlayerNameState(new Context(
+            _console,
+            _shitheadClient));
     }
 
     public async Task StartAsync(CancellationToken cancellationToken)

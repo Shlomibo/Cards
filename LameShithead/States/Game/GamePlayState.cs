@@ -3,12 +3,12 @@ using DTOs.Shithead;
 using DTOs.Shithead.Moves;
 using GamesClient.Client;
 
-namespace LameShithead.States.GameSelection;
+namespace LameShithead.States.Game;
 
-public abstract record GameConnectionStateBase(
+public record GamePlayState(
     Context Context,
-    Connection<ShitheadGameState, ShitheadMove> Connection)
-    : State(Context)
+    IConnection<ShitheadGameState, ShitheadMove> Connection,
+    bool IsMaster) : State(Context)
 {
     protected override Task<State> NextStateUnsafe(CancellationToken cancellation)
     {

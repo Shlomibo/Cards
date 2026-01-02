@@ -1,4 +1,5 @@
 using System;
+using LameShithead.States.Game;
 
 namespace LameShithead.States.GameSelection;
 
@@ -13,6 +14,10 @@ public sealed record CreateGameConnectionState(Context Context, string PlayerNam
                 (2, "Join an existing table", false)],
                 cancellation);
 
+        var connection = isCreatingTable
+            ? await Context.ShitheadClient.CreateTable(TableName, PlayerName, cancellation)
+            : await Context.ShitheadClient.JoinTable(TableName, PlayerName, cancellation);
 
+        return new GamePlayState(Context, connection, isCreatingTable);
     }
 }

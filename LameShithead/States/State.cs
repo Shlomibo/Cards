@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 using ConsoleUtils;
+using GamesClient.Shithead;
 
 namespace LameShithead.States;
 
@@ -106,7 +107,9 @@ public abstract record State(Context Context)
         };
 }
 
-public record Context(IConsole Console);
+public record Context(
+    IConsole Console,
+    IShitheadClient ShitheadClient);
 
 public delegate bool Parser<T>(
     string str,
