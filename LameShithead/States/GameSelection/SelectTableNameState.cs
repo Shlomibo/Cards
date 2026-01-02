@@ -2,10 +2,12 @@ using System;
 
 namespace LameShithead.States.GameSelection;
 
-public sealed record SelectTableNameState : State
+public sealed record SelectTableNameState(Context Context, string PlayerName) : State(Context)
 {
-    protected override Task<State> NextStateUnsafe(CancellationToken cancellation)
+    protected override async Task<State> NextStateUnsafe(CancellationToken cancellation)
     {
-        throw new NotImplementedException();
+        string tableName = await GetValueFromUser("Please enter a table name:", NonEmpty("Table name"), cancellation);
+
+        return new CreateGameConnectionState(Context, PlayerName, tableName);
     }
 }

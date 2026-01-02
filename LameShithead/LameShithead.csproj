@@ -13,11 +13,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="../ConsoleUtils/ConsoleUtils.csproj" />
     <ProjectReference Include="../GamesClient/GamesClient.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <Folder Include="States/" />
+    <Folder Include="States/Game/" />
     <Folder Include="States/GameSelection/" />
   </ItemGroup>
 
