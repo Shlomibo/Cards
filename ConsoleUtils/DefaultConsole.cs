@@ -1,5 +1,6 @@
 using System;
 using System.Text;
+using ConsoleUtils.Output;
 using Nito.Disposables;
 
 namespace ConsoleUtils;
@@ -22,36 +23,20 @@ public sealed class DefaultConsole : IConsole
             _ => Console.Out.WriteLineAsync(content?.ToString()),
         };
 
-    public async Task WriteLine<T>(T? content, Color color, CancellationToken cancellation)
-    {
-        using (SetColor(color))
-        {
-            await WriteLine(content, cancellation);
-        }
-    }
-
     public async Task Clear(CancellationToken cancellation) =>
         Console.Clear();
 
-    private static IDisposable SetColor(Color color)
+    public Task WriteLine(string line, CancellationToken cancellation) =>
+        Console.Out.WriteLineAsync(line);
+
+    public Task WriteLine(IConsoleOutput output, CancellationToken cancellation)
     {
-        Color current = new(Console.ForegroundColor, Console.BackgroundColor);
+        StringBuilder outputBuilder = new();
+        output.Print(outputBuilder);
 
-        Console.ForegroundColor = color.Foreground;
-
-        if (color.Background.HasValue)
-        {
-            Console.BackgroundColor = color.Background.Value;
-        }
-
-        return new Disposable(() =>
-        {
-            Console.ForegroundColor = current.Foreground;
-
-            if (color.Background.HasValue)
-            {
-                Console.BackgroundColor = current.Background!.Value;
-            }
-        });
+        return Console.Out.WriteLineAsync(outputBuilder, cancellation);
     }
+
+    public Task WriteLine(InterpolatedConsoleOutput output, CancellationToken cancellation) =>
+        WriteLine((IConsoleOutput)output, cancellation);
 }
