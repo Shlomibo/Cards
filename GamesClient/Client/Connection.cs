@@ -8,6 +8,7 @@ using DTOs;
 
 namespace GamesClient.Client;
 
+/// <inheritdoc cref="IConnection{TState, TMove}"/>
 public sealed class Connection<TState, TMove> : IConnection<TState, TMove>
     where TState : State
 {
@@ -21,11 +22,18 @@ public sealed class Connection<TState, TMove> : IConnection<TState, TMove>
     private StateUpdate<TState>? _lastState;
 
     private Guid? ConnectionId => _lastState?.CurrentPlayer.ConnectionId;
+    /// <inheritdoc/>
     public string TableName { get; }
 
+    /// <inheritdoc/>
     public string PlayerName { get; }
 
+    /// <inheritdoc/>
     public IObservable<StateUpdate<TState>> GameState { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether the connection has been disposed.
+    /// </summary>
     public bool IsDisposed { get; private set; }
 
     internal Connection(
@@ -45,6 +53,7 @@ public sealed class Connection<TState, TMove> : IConnection<TState, TMove>
         GameState = CreateGameStateObservable();
     }
 
+    /// <inheritdoc/>
     public void Dispose()
     {
         if (!IsDisposed)
@@ -63,8 +72,11 @@ public sealed class Connection<TState, TMove> : IConnection<TState, TMove>
         }
     }
 
+    /// <inheritdoc/>
     public async Task PlayMove(TMove move, CancellationToken cancellation)
     {
+        ObjectDisposedException.ThrowIf(IsDisposed, this);
+
         using var totalCancellation = CancellationTokenSource.CreateLinkedTokenSource(
             _cancellation.Token,
             cancellation);
@@ -80,8 +92,11 @@ public sealed class Connection<TState, TMove> : IConnection<TState, TMove>
             totalCancellation.Token);
     }
 
+    /// <inheritdoc/>
     public async Task StartGame(CancellationToken cancellation)
     {
+        ObjectDisposedException.ThrowIf(IsDisposed, this);
+
         if (ConnectionId is not Guid connId)
         {
             throw new InvalidOperationException("Please subscribe for state updates before starting a game.");

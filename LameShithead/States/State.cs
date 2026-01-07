@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 using ConsoleUtils;
+using ConsoleUtils.Output;
 using GamesClient.Shithead;
 
 namespace LameShithead.States;
@@ -21,32 +22,42 @@ public abstract record State(Context Context)
 
     protected abstract Task<State> NextStateUnsafe(CancellationToken cancellation);
 
-    protected Task<string> GetValueFromUser(Prompt prompt, CancellationToken cancellation)
+    protected Task<string> GetValueFromUser(string prompt, CancellationToken cancellation) =>
+        GetValueFromUser(ConsoleOutput.FromString(prompt), cancellation);
+
+    protected Task<string> GetValueFromUser(IConsoleOutput prompt, CancellationToken cancellation)
     {
         return Task.Run(GetValueFromUserSync, cancellation);
 
         async Task<string> GetValueFromUserSync()
         {
-            await (prompt.Color.HasValue
-                ? Context.Console.WriteLine(prompt.Message, prompt.Color.Value, cancellation)
-                : Context.Console.WriteLine(prompt.Message, cancellation));
+            await Context.Console.WriteLine(prompt, cancellation);
 
             return await Context.Console.ReadLine(cancellation) ?? "";
         }
     }
 
+    protected Task<T> GetOptionFromUser<T>(
+        string prompt,
+        IReadOnlyCollection<(int Key, string DisplayValue, T Value)> options,
+        CancellationToken cancellation)
+        =>
+        GetOptionFromUser(
+            ConsoleOutput.FromString(prompt),
+            options,
+            cancellation);
+
     protected async Task<T> GetOptionFromUser<T>(
-        Prompt prompt,
+        IConsoleOutput prompt,
         IReadOnlyCollection<(int Key, string DisplayValue, T Value)> options,
         CancellationToken cancellation)
     {
         var optionByKey = options.ToDictionary(opt => opt.Key);
-        prompt = prompt with
-        {
-            Message = string.Join("\n\t", options
-                .Select(opt => $"${opt.Key}: {opt.DisplayValue}")
-                .Prepend(prompt.Message)),
-        };
+
+        var optionsStrings = string.Join("\n\t", options
+                .Select(opt => $"${opt.Key}: {opt.DisplayValue}"));
+
+        prompt = ConsoleOutput.Interpolate($"{prompt}\n\t{options}");
 
         return await GetValueFromUser<T>(prompt, IsValidOption, cancellation);
 
@@ -68,19 +79,27 @@ public abstract record State(Context Context)
         }
     }
 
-    protected async Task<T> GetValueFromUser<T>(Prompt prompt, Parser<T> parser, CancellationToken cancellation)
+    protected Task<T> GetValueFromUser<T>(
+        string prompt,
+        Parser<T> parser,
+        CancellationToken cancellation)
+        =>
+        GetValueFromUser(ConsoleOutput.FromString(prompt), parser, cancellation);
+
+    protected async Task<T> GetValueFromUser<T>(
+        IConsoleOutput prompt,
+        Parser<T> parser,
+        CancellationToken cancellation)
     {
         var resultStr = await GetValueFromUser(prompt, cancellation);
         T? result;
 
         while (!parser(resultStr, out result, out var error))
         {
-            var errorPrompt = prompt with
-            {
-                Message = string.Join('\n',
-                    "Invalid input: " + error,
-                    prompt.Message)
-            };
+            var invalidInputMessage = ConsoleOutput.Interpolate($"Invalid input: {error}")
+                .Stylize(Style.Red.Forward);
+
+            var errorPrompt = ConsoleOutput.Interpolate($"{invalidInputMessage}\n{prompt}");
 
             resultStr = await GetValueFromUser(errorPrompt, cancellation);
         }

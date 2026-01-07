@@ -1,8 +1,8 @@
 ﻿namespace DTOs.Shithead.Moves;
 
 /// <summary>
-/// Removes the selected <paramref name="CardIndex"/> from the player's hand
-/// and places it on the revealed cards at <paramref name="TargetIndex"/> location.
+/// Removes the selected <see cref="CardIndex"/> from the player's hand
+/// and places it on the revealed cards at <see cref="TargetIndex"/> location.
 /// </summary>
 public sealed record SetRevealedCard : ShitheadMove
 {
@@ -18,7 +18,7 @@ public sealed record SetRevealedCard : ShitheadMove
 }
 
 /// <summary>
-/// Removes the selected <paramref name="CardIndex"/> from the player's revealed cards
+/// Removes the selected <see cref="CardIndex"/> from the player's revealed cards
 /// and places it back to the player's hand.
 /// </summary>
 public sealed record UnsetRevealedCard : ShitheadMove

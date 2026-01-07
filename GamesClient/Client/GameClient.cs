@@ -12,15 +12,25 @@ using Microsoft.Extensions.Options;
 
 namespace GamesClient.Client;
 
+/// <summary>
+/// Base options for the game client.
+/// </summary>
 public abstract record GameClientOptions
 {
     private readonly string _route;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="GameClientOptions"/> class.
+    /// </summary>
+    /// <param name="route">The API route for the game.</param>
     public GameClientOptions(string route)
     {
         _route = route;
     }
 
+    /// <summary>
+    /// The base URL of the game server.
+    /// </summary>
     [Required]
     public required Uri BaseUrl
     {
@@ -55,20 +65,45 @@ public abstract record GameClientOptions
         }
     }
 
+    /// <summary>
+    /// The WebSocket URI of the game server.
+    /// </summary>
     public Uri WebSocketUri { get; private set; } = null!;
 }
 
+/// <summary>
+/// A client for connecting to a game server.
+/// </summary>
+/// <typeparam name="TOptions">The type of the game client options.</typeparam>
+/// <typeparam name="TState">The type of the game state.</typeparam>
+/// <typeparam name="TMove">The type of the game move.</typeparam>
 public abstract class GameClient<TOptions, TState, TMove> : IClient<TState, TMove>
     where TOptions : GameClientOptions
     where TState : State
 {
     private readonly IHttpClientFactory _httpClientFactory;
 
+    /// <summary>
+    /// JSON serializer options for the client.
+    /// </summary>
     protected static JsonSerializerOptions SerializerOptions { get; } = JsonOptions.SetJsonSerializationOptions();
 
+    /// <summary>
+    /// Gets the logger for the client.
+    /// </summary>
     protected ILogger Logger { get; }
+
+    /// <summary>
+    /// Gets the options for the client.
+    /// </summary>
     protected TOptions Options { get; }
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="GameClient{TOptions, TState, TMove}"/> class.
+    /// </summary>
+    /// <param name="options">The options for the client.</param>
+    /// <param name="logger">The logger for the client.</param>
+    /// <param name="httpClientFactory">The HTTP client factory.</param>
     public GameClient(
         IOptions<TOptions> options,
         ILogger logger,
@@ -79,6 +114,7 @@ public abstract class GameClient<TOptions, TState, TMove> : IClient<TState, TMov
         Options = options?.Value ?? throw new ArgumentNullException(nameof(options));
     }
 
+    /// <inheritdoc/>
     public async Task<CanJoinTableResponse> CanJoinTable(
         string tableName,
         string playerName,
@@ -96,6 +132,7 @@ public abstract class GameClient<TOptions, TState, TMove> : IClient<TState, TMov
             ?? throw new InvalidOperationException("Failed to get response data from server");
     }
 
+    /// <inheritdoc/>
     public async Task<IConnection<TState, TMove>> CreateTable(
         string tableName,
         string playerName,
@@ -113,6 +150,7 @@ public abstract class GameClient<TOptions, TState, TMove> : IClient<TState, TMov
             GetHttpClient);
     }
 
+    /// <inheritdoc/>
     public async Task<IConnection<TState, TMove>> JoinTable(string tableName, string playerName, CancellationToken cancellation)
     {
         Uri uri = new(Options.WebSocketUri, $"join/{PlayersSubPath(tableName, playerName)}");

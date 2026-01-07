@@ -1,5 +1,6 @@
 using System;
 using System.Reactive.Linq;
+using ConsoleUtils.Output;
 using DTOs;
 using DTOs.Shithead;
 using DTOs.Shithead.Moves;
@@ -63,7 +64,8 @@ public record GamePlayState(
         catch (Exception ex) when (ex is not TaskCanceledException)
         {
             await Context.Console.WriteLine(
-                new Prompt(ex.ToString(), ConsoleColor.Red),
+                ConsoleOutput.FromString(ex.ToString())
+                    .Stylize(Style.Red.Forward),
                 cancellation);
         }
     }

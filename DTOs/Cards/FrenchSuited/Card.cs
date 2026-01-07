@@ -8,6 +8,9 @@ namespace DTOs.Cards.FrenchSuited;
 /// </summary>
 public record Card
 {
+    /// <summary>
+    /// The value of the card.
+    /// </summary>
     public Value Value { get; init; }
 
     /// <summary>

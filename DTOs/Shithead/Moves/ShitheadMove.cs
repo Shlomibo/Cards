@@ -3,6 +3,9 @@ using System.Text.Json.Serialization;
 
 namespace DTOs.Shithead.Moves;
 
+/// <summary>
+/// A move in the Shithead game.
+/// </summary>
 [JsonPolymorphic]
 [JsonDerivedType(typeof(PlaceCard), nameof(PlaceCard))]
 [JsonDerivedType(typeof(PlaceJoker), nameof(PlaceJoker))]
