@@ -3,7 +3,7 @@ using System;
 namespace ConsoleUtils.Output;
 
 internal sealed class OutputStyle(
-    IConsoleOutput output,
+    ConsoleOutput output,
     HashSet<Style> styles) : OutputModBase(
         output,
         Prefix(styles),

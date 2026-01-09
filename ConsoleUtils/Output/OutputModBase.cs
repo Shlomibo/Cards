@@ -4,11 +4,11 @@ using System.Text;
 namespace ConsoleUtils.Output;
 
 internal abstract class OutputModBase(
-    IConsoleOutput output,
+    ConsoleOutput output,
     string prefix,
-    string suffix) : IConsoleOutput
+    string suffix) : ConsoleOutput
 {
-    public void Print(StringBuilder stringBuilder)
+    public sealed override void Print(StringBuilder stringBuilder)
     {
         stringBuilder.Append(prefix);
         output.Print(stringBuilder);

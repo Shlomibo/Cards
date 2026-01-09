@@ -24,28 +24,12 @@ public interface IConsole
     Task WriteLine(CancellationToken cancellation);
 
     /// <summary>
-    /// Writes the specified string to the console, followed by a new line.
-    /// </summary>
-    /// <param name="line">The string to write.</param>
-    /// <param name="cancellation">A cancellation token.</param>
-    /// <returns>A task that represents the asynchronous write operation.</returns>
-    Task WriteLine(string line, CancellationToken cancellation);
-
-    /// <summary>
     /// Writes the specified console output to the console, followed by a new line.
     /// </summary>
     /// <param name="output">The console output to write.</param>
     /// <param name="cancellation">A cancellation token.</param>
     /// <returns>A task that represents the asynchronous write operation.</returns>
-    Task WriteLine(IConsoleOutput output, CancellationToken cancellation);
-
-    /// <summary>
-    /// Writes the specified interpolated console output to the console, followed by a new line.
-    /// </summary>
-    /// <param name="output">The interpolated console output to write.</param>
-    /// <param name="cancellation">A cancellation token.</param>
-    /// <returns>A task that represents the asynchronous write operation.</returns>
-    Task WriteLine(InterpolatedConsoleOutput output, CancellationToken cancellation);
+    Task WriteLine(ConsoleOutput output, CancellationToken cancellation);
 
     /// <summary>
     /// Clears the console.
@@ -53,4 +37,24 @@ public interface IConsole
     /// <param name="cancellation">A cancellation token.</param>
     /// <returns>A task that represents the asynchronous clear operation.</returns>
     Task Clear(CancellationToken cancellation);
+}
+
+/// <summary>
+/// Provides extension methods for the <see cref="IConsole"/> interface.
+/// </summary>
+public static class ConsoleExtensions
+{
+    /// <summary>
+    /// Writes the specified interpolated console output to the console, followed by a new line.
+    /// </summary>
+    /// <param name="console">The console to write to.</param>
+    /// <param name="output">The interpolated console output to write.</param>
+    /// <param name="cancellation">A cancellation token.</param>
+    /// <returns>A task that represents the asynchronous write operation.</returns>
+    public static Task WriteLine(
+        this IConsole console,
+        InterpolatedConsoleOutput output,
+        CancellationToken cancellation)
+        =>
+        console.WriteLine((ConsoleOutput)output, cancellation);
 }

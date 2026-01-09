@@ -8,7 +8,7 @@ namespace ConsoleUtils.Output;
 /// Represents console output created via interpolated strings.
 /// </summary>
 [InterpolatedStringHandler]
-public sealed class InterpolatedConsoleOutput : IConsoleOutput
+public sealed class InterpolatedConsoleOutput : ConsoleOutput
 {
     private readonly string[] _strings;
     private readonly (object? value, int? alignment, string? format)[] _values;
@@ -26,7 +26,7 @@ public sealed class InterpolatedConsoleOutput : IConsoleOutput
     }
 
     /// <inheritdoc/>
-    public void Print(StringBuilder stringBuilder)
+    public override void Print(StringBuilder stringBuilder)
     {
         for (int i = 0; i < _values.Length; i++)
         {
@@ -34,36 +34,21 @@ public sealed class InterpolatedConsoleOutput : IConsoleOutput
 
             var (value, alignment, format) = _values[i];
 
-            if (value is IConsoleOutput output)
+            if (value is not ConsoleOutput output)
             {
-                if (!alignment.HasValue)
-                {
-                    output.Print(stringBuilder);
-                }
-                else
-                {
-                    StringBuilder unaligned = new();
-                    output.Print(unaligned);
-                    stringBuilder.AppendFormat($$"""{0,{{alignment}}}""", unaligned);
-                }
+                output = new FormattedValueOutput<object>(value, format, alignment);
+                alignment = null;
+            }
+
+            if (!alignment.HasValue)
+            {
+                output.Print(stringBuilder);
             }
             else
             {
-                switch ((alignment, format))
-                {
-                    case (null, null):
-                        stringBuilder.Append(value);
-                        break;
-                    case (int align, null):
-                        stringBuilder.AppendFormat($$"""{0,{{align}}}""", value);
-                        break;
-                    case (null, string fmt):
-                        stringBuilder.AppendFormat($$"""{0:{{fmt}}}""", value);
-                        break;
-                    default:
-                        stringBuilder.AppendFormat($$"""{0,{{alignment}}:{{format}}}""", value);
-                        break;
-                }
+                StringBuilder unaligned = new();
+                output.Print(unaligned);
+                stringBuilder.AppendFormat($$"""{0,{{alignment}}}""", unaligned);
             }
         }
 

@@ -1,7 +1,6 @@
 using System;
 using System.Text;
 using ConsoleUtils.Output;
-using Nito.Disposables;
 
 namespace ConsoleUtils;
 
@@ -21,19 +20,11 @@ public sealed class DefaultConsole : IConsole
         Console.Clear();
 
     /// <inheritdoc/>
-    public Task WriteLine(string line, CancellationToken cancellation) =>
-        Console.Out.WriteLineAsync(line);
-
-    /// <inheritdoc/>
-    public Task WriteLine(IConsoleOutput output, CancellationToken cancellation)
+    public Task WriteLine(ConsoleOutput output, CancellationToken cancellation)
     {
         StringBuilder outputBuilder = new();
         output.Print(outputBuilder);
 
         return Console.Out.WriteLineAsync(outputBuilder, cancellation);
     }
-
-    /// <inheritdoc/>
-    public Task WriteLine(InterpolatedConsoleOutput output, CancellationToken cancellation) =>
-        WriteLine((IConsoleOutput)output, cancellation);
 }

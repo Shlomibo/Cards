@@ -22,10 +22,7 @@ public abstract record State(Context Context)
 
     protected abstract Task<State> NextStateUnsafe(CancellationToken cancellation);
 
-    protected Task<string> GetValueFromUser(string prompt, CancellationToken cancellation) =>
-        GetValueFromUser(ConsoleOutput.FromString(prompt), cancellation);
-
-    protected Task<string> GetValueFromUser(IConsoleOutput prompt, CancellationToken cancellation)
+    protected Task<string> GetValueFromUser(ConsoleOutput prompt, CancellationToken cancellation)
     {
         return Task.Run(GetValueFromUserSync, cancellation);
 
@@ -37,18 +34,8 @@ public abstract record State(Context Context)
         }
     }
 
-    protected Task<T> GetOptionFromUser<T>(
-        string prompt,
-        IReadOnlyCollection<(int Key, string DisplayValue, T Value)> options,
-        CancellationToken cancellation)
-        =>
-        GetOptionFromUser(
-            ConsoleOutput.FromString(prompt),
-            options,
-            cancellation);
-
     protected async Task<T> GetOptionFromUser<T>(
-        IConsoleOutput prompt,
+        ConsoleOutput prompt,
         IReadOnlyCollection<(int Key, string DisplayValue, T Value)> options,
         CancellationToken cancellation)
     {
@@ -79,15 +66,8 @@ public abstract record State(Context Context)
         }
     }
 
-    protected Task<T> GetValueFromUser<T>(
-        string prompt,
-        Parser<T> parser,
-        CancellationToken cancellation)
-        =>
-        GetValueFromUser(ConsoleOutput.FromString(prompt), parser, cancellation);
-
     protected async Task<T> GetValueFromUser<T>(
-        IConsoleOutput prompt,
+        ConsoleOutput prompt,
         Parser<T> parser,
         CancellationToken cancellation)
     {

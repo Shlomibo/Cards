@@ -3,10 +3,10 @@ using System.Text;
 
 namespace ConsoleUtils.Output;
 
-internal sealed class MultiOutput(IEnumerable<IConsoleOutput> outputs, bool resetStylesOnEnd = false)
-    : IConsoleOutput
+internal sealed class MultiOutput(IEnumerable<ConsoleOutput> outputs, bool resetStylesOnEnd = false)
+    : ConsoleOutput
 {
-    public void Print(StringBuilder stringBuilder)
+    public override void Print(StringBuilder stringBuilder)
     {
         foreach (var output in Normalized())
         {
@@ -19,7 +19,7 @@ internal sealed class MultiOutput(IEnumerable<IConsoleOutput> outputs, bool rese
         }
     }
 
-    private IEnumerable<IConsoleOutput> Normalized()
+    private IEnumerable<ConsoleOutput> Normalized()
     {
         foreach (var output in outputs)
         {
