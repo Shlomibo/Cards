@@ -31,11 +31,16 @@ public abstract partial class ConsoleOutput
     /// <summary>
     /// Concatenates the specified <see cref="ConsoleOutput"/> instances into a single instance.
     /// </summary>
-    /// <param name="output">The first console output to concatenate.</param>
     /// <param name="outputs">The other console outputs to concatenate.</param>
     /// <returns>A new <see cref="ConsoleOutput"/> that represents the concatenated output.</returns>
-    public static ConsoleOutput Concat(ConsoleOutput output, params IEnumerable<ConsoleOutput> outputs) =>
-        output.Concat(outputs);
+    public static ConsoleOutput ConcatAll(params IEnumerable<ConsoleOutput>? outputs) =>
+        outputs?.FirstOrDefault()?.Concat(outputs.Skip(1)) ?? Empty();
+
+    /// <summary>
+    /// Creates an empty <see cref="ConsoleOutput"/>.
+    /// </summary>
+    /// <returns>A new <see cref="ConsoleOutput"/> instance representing empty output.</returns>
+    public static ConsoleOutput Empty() => new EmptyOutput();
 
     /// <summary>
     /// Create an <see cref="ConsoleOutput"/> from a concatenated string such as

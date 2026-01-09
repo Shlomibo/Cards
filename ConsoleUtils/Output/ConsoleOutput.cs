@@ -39,8 +39,10 @@ public abstract partial class ConsoleOutput
     /// </summary>
     /// <param name="outputs">The other console outputs to concatenate.</param>
     /// <returns>A new <see cref="ConsoleOutput"/> that represents the concatenated output.</returns>
-    public ConsoleOutput Concat(params IEnumerable<ConsoleOutput> outputs) =>
-        Concat(resetStylesOnEnd: false, outputs);
+    public ConsoleOutput Concat(params IEnumerable<ConsoleOutput>? outputs) =>
+        outputs == null
+        ? this
+        : Concat(resetStylesOnEnd: false, outputs);
 
 
     /// <summary>
