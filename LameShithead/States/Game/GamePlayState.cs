@@ -1,7 +1,9 @@
 using System;
+using System.Collections.Concurrent;
 using System.Reactive.Linq;
 using ConsoleUtils.Output;
 using DTOs;
+using DTOs.Cards.FrenchSuited;
 using DTOs.Shithead;
 using DTOs.Shithead.Moves;
 using GamesClient.Client;
@@ -95,9 +97,29 @@ public record GamePlayState(
         });
     }
 
-    private async Task WaitForGameReset(StateUpdate<ShitheadGameState> state, CancellationToken cancellation)
-    {
+    private async Task WaitForGameReset(StateUpdate<ShitheadGameState> state, CancellationToken cancellation) =>
         throw new NotImplementedException();
+
+    private async Task PrintPlayersList(StateUpdate<ShitheadGameState> state, CancellationToken cancellation)
+    {
+        var tableName = ConsoleOutput.FromString(state.TableName).Stylize(Style.Bold);
+        var output = ConsoleOutput.Interpolate($@"Table: {tableName}
+======={new string('=', state.TableName.Length)}
+");
+
+        output = output.Concat(state.Table.Values.Select(GetPlayerIdentification));
+
+        await Context.Console.WriteLine(output, cancellation);
+    }
+
+    private static ConsoleOutput GetPlayerIdentification(Player player)
+    {
+        var playerName = ConsoleOutput.FromString(player.PlayerName)
+            .Stylize(player.State == DTOs.PlayerState.Playing
+                ? Style.Bold
+                : Style.Dim);
+
+        return ConsoleOutput.Interpolate($"{player.PlayerId,2} {playerName}\n");
     }
 
     private async Task LetMasterResetGame(StateUpdate<ShitheadGameState> state, CancellationToken cancellation)
@@ -125,18 +147,110 @@ public record GamePlayState(
         throw new NotImplementedException();
     }
 
-    private async Task WaitForPlayersToSelectTheirRevealedCards(StateUpdate<ShitheadGameState> state, CancellationToken cancellation)
+    private Task WaitForPlayersToSelectTheirRevealedCards(
+        StateUpdate<ShitheadGameState> state,
+        CancellationToken cancellation)
+        =>
+        PrintGame(state, cancellation);
+
+    private const int ALIGNMENT = 3;
+
+    private async Task PrintGame(StateUpdate<ShitheadGameState> state, CancellationToken cancellation)
     {
-        throw new NotImplementedException();
+
+
+        static ConsoleOutput PlayerHands(StateUpdate<ShitheadGameState> state) =>
+            ConsoleOutput.Join(
+                "\n\n",
+                state.Table.Values
+                    .Where(p => p.PlayerId != state.CurrentPlayer.PlayerId)
+                    .Select(player => PlayerHand(
+                        player,
+                        state.State!.SharedState.Players[player.PlayerId])));
+
+        static ConsoleOutput PlayerHand(Player player, OtherPlayersState state)
+        {
+            var id = GetPlayerIdentification(player);
+            var hand = ConsoleOutput.Interpolate($"Cards in hand: {state.CardsCount}");
+            var revealedCards = ConsoleOutput.Join("  ", Enumerable.Range(0, 3)
+                .Select(i => state.RevealedCards.GetValueOrDefault(i))
+                .Select(c => PrintCard(c))
+                .Select(c => ConsoleOutput.FromValue(c, alignment: ALIGNMENT)));
+            var undercards = ConsoleOutput.Join("  ", Enumerable.Range(0, 3)
+                .Select(i => state.RevealedCards.TryGetValue(i, out var card)
+                    ? PrintCard(card, "[x]")
+                    : PrintCard(null))
+                .Select(c => ConsoleOutput.FromValue(c, alignment: ALIGNMENT)));
+
+            if (!state.RevealedCardsAccepted)
+            {
+                revealedCards = revealedCards.Stylize(Style.Dim);
+            }
+
+            return ConsoleOutput.Join("\n",
+                id,
+                hand,
+                revealedCards,
+                undercards);
+        }
     }
 
     private async Task WaitForGameToStart(StateUpdate<ShitheadGameState> state, CancellationToken cancellation)
     {
-        throw new NotImplementedException();
+        await PrintPlayersList(state, cancellation);
     }
 
     private async Task LetMasterStartGame(StateUpdate<ShitheadGameState> state, CancellationToken cancellation)
     {
-        throw new NotImplementedException();
+        await PrintPlayersList(state, cancellation);
+
+        string input;
+
+        do
+        {
+            input = await Context.Console.ReadLine(cancellation) ?? "";
+        }
+        while (!input.Equals("ok", StringComparison.OrdinalIgnoreCase)
+            && cancellation.IsCancellationRequested);
+
+        if (!cancellation.IsCancellationRequested)
+        {
+            await Connection.StartGame(cancellation);
+        }
+    }
+
+    private static readonly ConcurrentDictionary<Card, string> _cardsMemoise = [];
+
+    private static string PrintCard(Card? card, string? nullCard = null)
+    {
+        return card == null
+            ? nullCard ?? "[ ]"
+            : _cardsMemoise.GetOrAdd(card, CalculateCardValue);
+
+        static string CalculateCardValue(Card card) => card switch
+        {
+            { Value: Value.Joker, Color: Color.Red } => "RJ",
+            { Value: Value.Joker } => "BJ",
+            { Value: var value, Suit: var suit } => PrintValue(value) + PrintSuit(suit!.Value)
+        };
+
+        static string PrintValue(Value value) => value switch
+        {
+            Value.Ace => "A",
+            > Value.Ace and <= Value.Ten => ((int)value).ToString(),
+            Value.Jack => "J",
+            Value.Queen => "Q",
+            Value.King => "K",
+            _ => throw new ArgumentException("Invalid value"),
+        };
+
+        static string PrintSuit(Suit suit) => suit switch
+        {
+            Suit.Clubs => "♣️",
+            Suit.Diamonds => "♦️",
+            Suit.Hearts => "♥️",
+            Suit.Spades => "♠️",
+            _ => throw new ArgumentException("Invalid suit"),
+        };
     }
 }

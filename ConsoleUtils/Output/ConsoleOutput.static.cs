@@ -37,6 +37,35 @@ public abstract partial class ConsoleOutput
         outputs?.FirstOrDefault()?.Concat(outputs.Skip(1)) ?? Empty();
 
     /// <summary>
+    /// Joins the specified <see cref="ConsoleOutput"/> instances using the specified joiner.
+    /// </summary>
+    /// <param name="joiner">The <see cref="ConsoleOutput"/> to use as a joiner.</param>
+    /// <param name="outputs">The console outputs to join.</param>
+    /// <returns>A new <see cref="ConsoleOutput"/> that represents the joined output.</returns>
+    public static ConsoleOutput Join(ConsoleOutput joiner, params IEnumerable<ConsoleOutput> outputs)
+    {
+        return ConcatAll(JoinedEnumerable(joiner, outputs));
+
+        static IEnumerable<ConsoleOutput> JoinedEnumerable(ConsoleOutput joiner, IEnumerable<ConsoleOutput> outputs)
+        {
+            using var enumerator = outputs.GetEnumerator();
+
+            if (!enumerator.MoveNext())
+            {
+                yield break;
+            }
+
+            yield return enumerator.Current;
+
+            while (enumerator.MoveNext())
+            {
+                yield return joiner;
+                yield return enumerator.Current;
+            }
+        }
+    }
+
+    /// <summary>
     /// Creates an empty <see cref="ConsoleOutput"/>.
     /// </summary>
     /// <returns>A new <see cref="ConsoleOutput"/> instance representing empty output.</returns>
