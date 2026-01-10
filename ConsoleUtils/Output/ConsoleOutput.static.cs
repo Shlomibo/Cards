@@ -40,7 +40,7 @@ public abstract partial class ConsoleOutput
     /// Creates an empty <see cref="ConsoleOutput"/>.
     /// </summary>
     /// <returns>A new <see cref="ConsoleOutput"/> instance representing empty output.</returns>
-    public static ConsoleOutput Empty() => new EmptyOutput();
+    public static ConsoleOutput Empty() => EmptyOutput.Instance;
 
     /// <summary>
     /// Create an <see cref="ConsoleOutput"/> from a concatenated string such as

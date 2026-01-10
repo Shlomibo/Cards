@@ -141,39 +141,138 @@ public class InterpolateTests : ConsoleOutputTestsBase
     }
 
     [Test]
-    public void WhenValueIsPrefixConsoleOutput()
+    public void WhenAnotherConsoleOutputIsPrefix()
     {
-
+        var value = Fixture.Create<int>();
+        var output = ConsoleOutput.FromValue(value);
+        var subject = ConsoleOutput.Interpolate($"{output}def");
+        Validate(subject, $"{value}def");
     }
 
     [Test]
-    public void WhenValueIsPrefixConsoleOutputWithFormatOrAlignment()
+    public void WhenAnotherConsoleOutputIsInfix()
     {
-
+        var value = Fixture.Create<int>();
+        var output = ConsoleOutput.FromValue(value);
+        var subject = ConsoleOutput.Interpolate($"abc{output}def");
+        Validate(subject, $"abc{value}def");
     }
 
     [Test]
-    public void WhenValueIsInfixConsoleOutput()
+    public void WhenAnotherConsoleOutputIsSuffix()
     {
-
+        var value = Fixture.Create<int>();
+        var output = ConsoleOutput.FromValue(value);
+        var subject = ConsoleOutput.Interpolate($"abc{output}");
+        Validate(subject, $"abc{value}");
     }
 
     [Test]
-    public void WhenValueIsInfixConsoleOutputWithFormatOrAlignment()
+    public void WhenAnotherConsoleOutputIsPrefixWithAlignment()
     {
-
+        var value = Fixture.Create<int>();
+        var output = ConsoleOutput.FromValue(value);
+        var subject = ConsoleOutput.Interpolate($"{output,2}def");
+        Validate(subject, $"{value,2}def");
     }
 
     [Test]
-    public void WhenValueIsSuffixConsoleOutput()
+    public void WhenAnotherConsoleOutputIsInfixWithAlignment()
     {
-
+        var value = Fixture.Create<int>();
+        var output = ConsoleOutput.FromValue(value);
+        var subject = ConsoleOutput.Interpolate($"abc{output,4}def");
+        Validate(subject, $"abc{value,4}def");
     }
 
     [Test]
-    public void WhenValueIsSuffixConsoleOutputWithFormatOrAlignment()
+    public void WhenAnotherConsoleOutputIsSuffixWithAlignment()
     {
+        var value = Fixture.Create<int>();
+        var output = ConsoleOutput.FromValue(value);
+        var subject = ConsoleOutput.Interpolate($"abc{output,3}");
+        Validate(subject, $"abc{value,3}");
+    }
 
+    [Test]
+    public void WhenAnotherConsoleOutputIsPrefixWithNegativeAlignment()
+    {
+        var value = Fixture.Create<int>();
+        var output = ConsoleOutput.FromValue(value);
+        var subject = ConsoleOutput.Interpolate($"{output,-2}def");
+        Validate(subject, $"{value,-2}def");
+    }
+
+    [Test]
+    public void WhenAnotherConsoleOutputIsInfixWithNegativeAlignment()
+    {
+        var value = Fixture.Create<int>();
+        var output = ConsoleOutput.FromValue(value);
+        var subject = ConsoleOutput.Interpolate($"abc{output,-4}def");
+        Validate(subject, $"abc{value,-4}def");
+    }
+
+    [Test]
+    public void WhenAnotherConsoleOutputIsSuffixWithNegativeAlignment()
+    {
+        var value = Fixture.Create<int>();
+        var output = ConsoleOutput.FromValue(value);
+        var subject = ConsoleOutput.Interpolate($"abc{output,-3}");
+        Validate(subject, $"abc{value,-3}");
+    }
+
+    [Test]
+    public void WhenAnotherConsoleOutputIsPrefixWithFormat()
+    {
+        var value = Fixture.Create<float>();
+        var output = ConsoleOutput.FromValue(value);
+        var subject = ConsoleOutput.Interpolate($"abc{output:##.##}");
+        Validate(subject, $"abc{value}");
+    }
+
+    [Test]
+    public void WhenAnotherConsoleOutputIsInfixWithFormat()
+    {
+        var value = Fixture.Create<float>();
+        var output = ConsoleOutput.FromValue(value);
+        var subject = ConsoleOutput.Interpolate($"abc{output:##.##}def");
+        Validate(subject, $"abc{value}def");
+    }
+
+    [Test]
+    public void WhenAnotherConsoleOutputIsSuffixWithFormat()
+    {
+        var value = Fixture.Create<float>();
+        var output = ConsoleOutput.FromValue(value);
+        var subject = ConsoleOutput.Interpolate($"abc{output:##.##}");
+        Validate(subject, $"abc{value}");
+    }
+
+    [Test]
+    public void WhenAnotherConsoleOutputIsPrefixWithFormatAndAlignment()
+    {
+        var value = Fixture.Create<int>();
+        var output = ConsoleOutput.FromValue(value);
+        var subject = ConsoleOutput.Interpolate($"abc{output,2:##.##}");
+        Validate(subject, $"abc{value,2}");
+    }
+
+    [Test]
+    public void WhenAnotherConsoleOutputIsInfixWithFormatAndAlignment()
+    {
+        var value = Fixture.Create<int>();
+        var output = ConsoleOutput.FromValue(value);
+        var subject = ConsoleOutput.Interpolate($"abc{output,3:##.##}def");
+        Validate(subject, $"abc{value,3}def");
+    }
+
+    [Test]
+    public void WhenAnotherConsoleOutputIsSuffixWithFormatAndAlignment()
+    {
+        var value = Fixture.Create<int>();
+        var output = ConsoleOutput.FromValue(value);
+        var subject = ConsoleOutput.Interpolate($"abc{output,4:##.##}");
+        Validate(subject, $"abc{value,4}");
     }
 
     [Test]

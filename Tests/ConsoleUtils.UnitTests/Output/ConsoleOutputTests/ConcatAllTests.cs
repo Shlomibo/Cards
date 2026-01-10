@@ -39,4 +39,15 @@ public class ConcatAllTests : ConsoleOutputTestsBase
 
         Validate(subject, string.Concat(values));
     }
+
+    [Test]
+    public void WhenConcatenatingConcatenatedOutput()
+    {
+        var a = ConsoleOutput.ConcatAll("a", "b");
+        var b = ConsoleOutput.ConcatAll("1", "2");
+
+        var testSubject = ConsoleOutput.ConcatAll(a, b);
+
+        Validate(testSubject, "ab12");
+    }
 }
