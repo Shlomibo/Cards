@@ -16,6 +16,17 @@ public record GamePlayState(
     IConnection<ShitheadGameState, ShitheadMove> Connection,
     bool IsMaster) : State(Context)
 {
+    private const string SEPARATOR = """
+
+        ================================================================================
+        ================================================================================
+
+
+        """;
+
+    private static readonly ConsoleOutput Separator = ConsoleOutput.FromString(SEPARATOR)
+        .Stylize(Style.Dim);
+
     protected override async Task<State> NextStateUnsafe(CancellationToken cancellation)
     {
         TaskCompletionSource<State> resultTaskSource = new();
@@ -157,9 +168,14 @@ public record GamePlayState(
 
     private async Task PrintGame(StateUpdate<ShitheadGameState> state, CancellationToken cancellation)
     {
+        await Context.Console.WriteLine(
+            ConsoleOutput.Join(Separator,
+                PlayersHands(state),
+                TableTop(state),
+                CurrentPlayer(state)),
+            cancellation);
 
-
-        static ConsoleOutput PlayerHands(StateUpdate<ShitheadGameState> state) =>
+        static ConsoleOutput PlayersHands(StateUpdate<ShitheadGameState> state) =>
             ConsoleOutput.Join(
                 "\n\n",
                 state.Table.Values
@@ -193,6 +209,92 @@ public record GamePlayState(
                 revealedCards,
                 undercards);
         }
+
+        static ConsoleOutput TableTop(StateUpdate<ShitheadGameState> state)
+        {
+            var sharedState = state.State!.SharedState;
+
+            return ConsoleOutput.Interpolate(
+                $"""
+                Deck size   : {sharedState.DeckSize}
+                Pile        : {sharedState.DiscardPile.Length} {TopCard([.. sharedState.DiscardPile])}
+                """);
+        }
+
+        static ConsoleOutput CurrentPlayer(StateUpdate<ShitheadGameState> state)
+        {
+            var activeCardsStyle = Style.Yellow.Forward;
+            var inactiveCardsStyle = Style.Dim;
+
+            var playerDetails = state.CurrentPlayer;
+            var identification = ConsoleOutput.Interpolate($"{playerDetails.PlayerId,2}: {playerDetails.PlayerName}")
+                .Stylize(Style.Dim);
+
+            var playerState = state.State!.PlayerState;
+            var hand = state.State.PlayerState.Hand.Length == 0
+                ? PrintCard(null).Stylize(inactiveCardsStyle)
+                : ConsoleOutput
+                    .Join(
+                        " ",
+                        playerState.Hand.Select((c, i) => ConsoleOutput.Interpolate($"{PrintCard(c)}({i + 1})")))
+                    .Stylize(activeCardsStyle);
+
+            var revealedCardsStyle = playerState is { Hand.Length: 0, RevealedCards.Count: > 0 }
+                ? activeCardsStyle
+                : inactiveCardsStyle;
+
+            var revealedCards = ConsoleOutput
+                .Join(
+                    " ",
+                    Enumerable.Range(0, 3)
+                        .Select(i => playerState.RevealedCards.TryGetValue(i, out var c)
+                            ? ConsoleOutput.Interpolate($"{PrintCard(c)}({i + 1})")
+                            : "      "))
+                .Stylize(revealedCardsStyle);
+
+            var undercardsStyle = playerState is { Hand.Length: 0, RevealedCards.Count: 0 }
+                ? activeCardsStyle
+                : inactiveCardsStyle;
+
+            var undercards = ConsoleOutput
+                .Join(
+                    " ",
+                    Enumerable.Range(0, 3)
+                        .Select(i => playerState.Undercards.TryGetValue(i, out var c)
+                            ? ConsoleOutput.Interpolate($"{PrintCard(c)}({i + 1})")
+                            : "      "))
+                .Stylize(undercardsStyle);
+
+            return ConsoleOutput.Join("\n\n", identification, hand, revealedCards, undercards);
+        }
+    }
+
+    private static ConsoleOutput TopCard(ReadOnlySpan<Card> discardPile) =>
+        discardPile switch
+        {
+            [] => "[]",
+            [{ Value: Value.Three } top, .. var rest] => ConsoleOutput.Interpolate($"{PrintCard(top)} ({TopCard(Valued(rest))})"),
+            [var top, ..] => PrintCard(top),
+        };
+
+    private static ReadOnlySpan<Card> Valued(ReadOnlySpan<Card> pile)
+    {
+        int? nonThreeIndex = null;
+
+        for (int i = 0; i < pile.Length; i++)
+        {
+            if (pile[0].Value != Value.Three)
+            {
+                nonThreeIndex = i;
+                break;
+            }
+        }
+
+        return nonThreeIndex switch
+        {
+            null => [],
+            int i => pile[i..],
+        };
     }
 
     private async Task WaitForGameToStart(StateUpdate<ShitheadGameState> state, CancellationToken cancellation)
@@ -221,7 +323,7 @@ public record GamePlayState(
 
     private static readonly ConcurrentDictionary<Card, string> _cardsMemoise = [];
 
-    private static string PrintCard(Card? card, string? nullCard = null)
+    private static ConsoleOutput PrintCard(Card? card, ConsoleOutput? nullCard = null)
     {
         return card == null
             ? nullCard ?? "[ ]"
