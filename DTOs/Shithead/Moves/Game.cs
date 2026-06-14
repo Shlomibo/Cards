@@ -26,7 +26,13 @@ public sealed record PlaceJoker : ShitheadMove
 /// <summary>
 /// Accepts the discard pile.
 /// </summary>
-public sealed record AcceptDiscardPile : ShitheadMove;
+public sealed record AcceptDiscardPile : ShitheadMove
+{
+    /// <summary>
+    /// Gets the singleton instance of the move.
+    /// </summary>
+    public static readonly AcceptDiscardPile Instance = new();
+}
 
 /// <summary>
 /// If the player has no cards in hand, reveals the undercard to the player

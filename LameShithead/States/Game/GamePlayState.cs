@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 using System.Reactive.Linq;
 using ConsoleUtils.Output;
 using DTOs;
@@ -37,7 +38,7 @@ public record GamePlayState(
                 CancellationToken Cancellation)> observer)
                 =>
                 {
-                    using CancellationTokenSource cancellation = new();
+                    CancellationTokenSource cancellation = new();
                     observer.OnNext((state, cancellation.Token));
 
                     return () =>
@@ -143,13 +144,249 @@ public record GamePlayState(
 
     private async Task PlayOutOfTurn(StateUpdate<ShitheadGameState> state, CancellationToken cancellation)
     {
-        throw new NotImplementedException();
+        await PrintGame(state, cancellation);
+        var playerState = state.State!.PlayerState;
+
+        List<Option<Func<Task<ShitheadMove>>>> options = [
+            new(1, "Take revealed card(s)", TakeRevealedCards(playerState, cancellation), HasRevealedCards(playerState)),
+            new(2, "Reveal an undercard", RevealUndercard(playerState, cancellation), CanRevealUndercard(playerState)),
+            new(3, "Place a Joker to pass the pile", PlaceJoker(state, cancellation), CanPlaceJoker(playerState)),
+        ];
+
+        var move = await GetOptionFromUser(
+            "Select your move:",
+            options,
+            cancellation);
+
+        await Context.Console.WriteLine(SEPARATOR, cancellation);
+
+        await Connection.PlayMove(
+            await move(),
+            CancellationToken.None);
     }
+
+    private static bool CanPlaceJoker(DTOs.Shithead.PlayerState playerState) => playerState switch
+    {
+        { Hand: { Length: > 0 } hand } => hand.Any(c => c.Value == Value.Joker),
+        { Hand.Length: 0, RevealedCards: { Count: > 0 } revealedCards } => revealedCards.Values.Any(card => card.Value == Value.Joker),
+        { Hand.Length: 0, RevealedCards.Count: 0, Undercards: { Count: > 0 } u } => u.Values.Any(c => c?.Value == Value.Joker),
+        _ => false,
+    };
+
+    private static bool CanRevealUndercard(DTOs.Shithead.PlayerState playerState) =>
+        playerState is
+        {
+            Hand.Length: 0,
+            RevealedCards.Count: 0,
+            Undercards: { Count: > 0 } undercards
+        }
+        && !undercards.Values.Any(c => c != null);
+
+    private static bool HasRevealedCards(DTOs.Shithead.PlayerState playerState) =>
+        playerState is { Hand.Length: 0 }
+            && (playerState.RevealedCards.Count > 0
+            || playerState.Undercards.Values.Any(c => c != null));
 
     private async Task PlayInTurn(StateUpdate<ShitheadGameState> state, CancellationToken cancellation)
     {
-        throw new NotImplementedException();
+        await PrintGame(state, cancellation);
+        var playerState = state.State!.PlayerState;
+
+        bool playerHasCardsInHand = playerState.Hand.Length > 0;
+
+        List<Option<Func<Task<ShitheadMove>>>> options = [
+            (1, "Take pile", async () => AcceptDiscardPile.Instance),
+            new(2, "Select card(s) to place", PlaceCards, playerHasCardsInHand),
+            new(3, "Take revealed card(s)", TakeRevealedCards(playerState, cancellation), HasRevealedCards(playerState)),
+            new(4, "Reveal an undercard", RevealUndercard(playerState, cancellation), CanRevealUndercard(playerState)),
+            new(5, "Place a Joker to pass the pile", PlaceJoker(state, cancellation), CanPlaceJoker(playerState)),
+        ];
+
+        var move = await GetOptionFromUser(
+            "Select your move:",
+            options,
+            cancellation);
+
+        await Context.Console.WriteLine(SEPARATOR, cancellation);
+
+        await Connection.PlayMove(
+            await move(),
+            CancellationToken.None);
+
+        async Task<ShitheadMove> PlaceCards()
+        {
+            var selectedCards = await GetValueFromUser<int[]>(
+                "Select card(s) to place (separate by comma):",
+                IsValidCardList,
+                cancellation);
+
+            return new PlaceCard { CardIndices = selectedCards };
+
+            bool IsValidCardList(
+                string str,
+                [NotNullWhen(true)] out int[]? indices,
+                [NotNullWhen(false)] out string? error)
+            {
+                indices = default;
+                error = default;
+
+                var parts = str.Split(
+                    ',',
+                    StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+                var selectedIndices = new List<int>(parts.Length);
+
+                foreach (var part in parts)
+                {
+                    if (!int.TryParse(part, out int parsed))
+                    {
+                        error = "Please enter a valid number.";
+                        return false;
+                    }
+
+                    int zeroBasedParsed = parsed - 1;
+
+                    if (zeroBasedParsed < 0 || zeroBasedParsed >= playerState.Hand.Length)
+                    {
+                        error = $"Please select a valid card index ({parsed} is not valid).";
+                        return false;
+                    }
+
+                    selectedIndices.Add(zeroBasedParsed);
+                }
+
+                if (selectedIndices.Count == 0)
+                {
+                    error = "Please select at least one card.";
+                    return false;
+                }
+
+                indices = [.. selectedIndices];
+                return true;
+            }
+        }
     }
+
+    private Func<Task<ShitheadMove>> PlaceJoker(
+        StateUpdate<ShitheadGameState> state,
+        CancellationToken cancellation)
+        =>
+        async () =>
+        {
+            var selectedPlayerId = await GetOptionFromUser(
+                "Select a player to pass the pile to:",
+                [.. state.Table.Values
+                        .Where(p => p.State == DTOs.PlayerState.Playing)
+                        .Select(p => (p.PlayerId, p.PlayerName, p.PlayerId))],
+                cancellation);
+
+            return new PlaceJoker { PlayerId = selectedPlayerId };
+        };
+
+    private Func<Task<ShitheadMove>> RevealUndercard(
+        DTOs.Shithead.PlayerState playerState,
+        CancellationToken cancellation)
+        =>
+        async () =>
+        {
+            var undercardToReveal = await GetValueFromUser<int>(
+                "Select an undercard to reveal:",
+                IsValidUndercardIndex,
+                cancellation);
+
+            return new RevealUndercard { CardIndex = undercardToReveal };
+
+            bool IsValidUndercardIndex(string str, [NotNullWhen(true)] out int index, [NotNullWhen(false)] out string? error)
+            {
+                index = default;
+                error = null;
+
+                if (!int.TryParse(str, out int parsed))
+                {
+                    error = "Please enter a valid number.";
+                    return false;
+                }
+
+                if (!playerState.Undercards.ContainsKey(parsed - 1)
+                    || playerState.Undercards[parsed - 1] == null)
+                {
+                    error = "Please select a valid undercard index.";
+                    return false;
+                }
+
+                index = parsed - 1;
+                return true;
+            }
+        };
+
+    private Func<Task<ShitheadMove>> TakeRevealedCards(
+        DTOs.Shithead.PlayerState playerState,
+        CancellationToken cancellation)
+        =>
+        async () =>
+        {
+            if (playerState.RevealedCards.Count == 0)
+            {
+                return new TakeUndercard
+                {
+                    CardIndex = playerState.Undercards
+                        .Where(kv => kv.Value != null)
+                        .Select(kv => kv.Key)
+                        .Single()
+                };
+            }
+
+            var selectedCards = await GetValueFromUser<int[]>(
+                "Select revealed card(s) to take (separate by comma):",
+                IsValidRevealedCardsList,
+                cancellation);
+
+            return new TakeRevealedCards { CardIndices = selectedCards };
+
+            bool IsValidRevealedCardsList(
+                string str,
+                [NotNullWhen(true)] out int[]? indices,
+                [NotNullWhen(false)] out string? error)
+            {
+                indices = default;
+                error = default;
+
+                var parts = str.Split(
+                    ',',
+                    StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+                var selectedIndices = new List<int>(parts.Length);
+
+                foreach (var part in parts)
+                {
+                    if (!int.TryParse(part, out int parsed))
+                    {
+                        error = "Please enter a valid number.";
+                        return false;
+                    }
+
+                    int zeroBasedParsed = parsed - 1;
+
+                    if (!playerState.RevealedCards.TryGetValue(zeroBasedParsed, out var card) ||
+                        card == null)
+                    {
+                        error = $"Please select a valid revealed card index ({parsed} is not valid).";
+                        return false;
+                    }
+
+                    selectedIndices.Add(zeroBasedParsed);
+                }
+
+                if (selectedIndices.Count == 0)
+                {
+                    error = "Please select at least one card.";
+                    return false;
+                }
+
+                indices = [.. selectedIndices];
+                return true;
+            }
+        };
 
     private async Task LetPlayerRevealCards(StateUpdate<ShitheadGameState> state, CancellationToken cancellation)
     {
@@ -164,7 +401,7 @@ public record GamePlayState(
 
         await Connection.PlayMove(
             new RevealUndercard { CardIndex = selectedCard },
-            cancellation);
+            CancellationToken.None);
     }
 
     private Task WaitForPlayersToSelectTheirRevealedCards(

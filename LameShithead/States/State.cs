@@ -130,8 +130,50 @@ public delegate bool Parser<T>(
     [NotNullWhen(true)] out T? result,
     [NotNullWhen(false)] out string? error);
 
-public record Option<T>(int Key, string DisplayValue, T Value, bool Enabled = true)
+public record Option<T>
 {
+    private T? _value = default;
+
+    [MemberNotNullWhen(true, nameof(_value))]
+    private bool ValueCreated { get; set; }
+    private readonly Func<T> _valueFactory;
+
+    public T Value
+    {
+        get
+        {
+            if (!ValueCreated)
+            {
+                _value = _valueFactory();
+                ValueCreated = true;
+            }
+
+            return _value;
+        }
+    }
+
+    public int Key { get; }
+    public string DisplayValue { get; }
+    public bool Enabled { get; }
+
+    public Option(int key, string displayValue, T value, bool enabled = true)
+        : this(key, displayValue, () => value, enabled)
+    {
+        Key = key;
+        DisplayValue = displayValue;
+        Enabled = enabled;
+        _value = value;
+        ValueCreated = true;
+    }
+
+    public Option(int key, string displayValue, Func<T> valueFactory, bool enabled = true)
+    {
+        Key = key;
+        DisplayValue = displayValue;
+        _valueFactory = valueFactory;
+        Enabled = enabled;
+    }
+
     public static implicit operator Option<T>((int Key, string DisplayValue, T Value) triple) =>
         new(triple.Key, triple.DisplayValue, triple.Value);
 }
