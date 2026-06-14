@@ -37,7 +37,7 @@ public record GamePlayState(
                 CancellationToken Cancellation)> observer)
                 =>
                 {
-                    CancellationTokenSource cancellation = new();
+                    using CancellationTokenSource cancellation = new();
                     observer.OnNext((state, cancellation.Token));
 
                     return () =>
@@ -138,10 +138,8 @@ public record GamePlayState(
         throw new NotImplementedException();
     }
 
-    private async Task WaitForGameToEnd(StateUpdate<ShitheadGameState> state, CancellationToken cancellation)
-    {
-        throw new NotImplementedException();
-    }
+    private Task WaitForGameToEnd(StateUpdate<ShitheadGameState> state, CancellationToken cancellation) =>
+        PrintGame(state, cancellation);
 
     private async Task PlayOutOfTurn(StateUpdate<ShitheadGameState> state, CancellationToken cancellation)
     {
@@ -155,7 +153,18 @@ public record GamePlayState(
 
     private async Task LetPlayerRevealCards(StateUpdate<ShitheadGameState> state, CancellationToken cancellation)
     {
-        throw new NotImplementedException();
+        await PrintGame(state, cancellation);
+
+        var selectedCard = await GetOptionFromUser(
+            "Reveal a card:",
+            [.. state.State!.PlayerState.Undercards
+                .Where(kv => kv.Value != null)
+                .Select(kv => (kv.Key, kv.Key.ToString(), kv.Key)) ],
+                cancellation);
+
+        await Connection.PlayMove(
+            new RevealUndercard { CardIndex = selectedCard },
+            cancellation);
     }
 
     private Task WaitForPlayersToSelectTheirRevealedCards(

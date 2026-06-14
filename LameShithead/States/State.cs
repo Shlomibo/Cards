@@ -34,9 +34,19 @@ public abstract record State(Context Context)
         }
     }
 
-    protected async Task<T> GetOptionFromUser<T>(
+    protected Task<T> GetOptionFromUser<T>(
         ConsoleOutput prompt,
         IReadOnlyCollection<(int Key, string DisplayValue, T Value)> options,
+        CancellationToken cancellation)
+        =>
+        GetOptionFromUser(
+            prompt,
+            [.. options.Select(opt => (Option<T>)opt)],
+            cancellation);
+
+    protected async Task<T> GetOptionFromUser<T>(
+        ConsoleOutput prompt,
+        IReadOnlyCollection<Option<T>> options,
         CancellationToken cancellation)
     {
         var optionByKey = options.ToDictionary(opt => opt.Key);
@@ -58,6 +68,11 @@ public abstract record State(Context Context)
                 || !optionByKey.TryGetValue(parsed, out var selectedOption))
             {
                 error = $"'{str}' is not a valid option";
+                return false;
+            }
+            else if (!selectedOption.Enabled)
+            {
+                error = $"'{parsed}' option is disabled";
                 return false;
             }
 
@@ -114,3 +129,9 @@ public delegate bool Parser<T>(
     string str,
     [NotNullWhen(true)] out T? result,
     [NotNullWhen(false)] out string? error);
+
+public record Option<T>(int Key, string DisplayValue, T Value, bool Enabled = true)
+{
+    public static implicit operator Option<T>((int Key, string DisplayValue, T Value) triple) =>
+        new(triple.Key, triple.DisplayValue, triple.Value);
+}
